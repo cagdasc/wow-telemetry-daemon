@@ -1,0 +1,106 @@
+10/29 20:15:00.000  ENCOUNTER_START,2901,"The Obsidian Warden",16,20,5
+10/29 20:15:00.120  SPELL_AURA_APPLIED,Player-1-00000001,"Arthasdk",0x511,0x0,Player-1-00000001,"Arthasdk",0x511,0x0,6673,"Battle Shout",0x1
+10/29 20:15:00.150  SPELL_AURA_APPLIED,Player-1-00000002,"Holypriest",0x512,0x0,Player-1-00000002,"Holypriest",0x512,0x0,21562,"Power Word: Fortitude",0x2
+10/29 20:15:00.200  SPELL_AURA_APPLIED,Player-1-00000003,"Frostmage",0x511,0x0,Player-1-00000003,"Frostmage",0x511,0x0,1459,"Arcane Intellect",0x40
+10/29 20:15:01.000  SPELL_CAST_START,Player-1-00000004,"Roguedps",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,1752,"Sinister Strike",0x1
+10/29 20:15:01.250  SPELL_DAMAGE,Player-1-00000004,"Roguedps",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,1752,"Sinister Strike",0x1,12450,0,1,0,0,0,0,0,0
+10/29 20:15:01.500  SPELL_CAST_START,Player-1-00000001,"Arthasdk",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,49998,"Death Strike",0x1
+10/29 20:15:01.750  SPELL_DAMAGE,Player-1-00000001,"Arthasdk",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,49998,"Death Strike",0x1,18750,0,1,0,0,0,0,0,0
+10/29 20:15:02.000  SPELL_HEAL,Player-1-00000002,"Holypriest",0x512,0x0,Player-1-00000001,"Arthasdk",0x511,0x0,2061,"Flash Heal",0x2,32500,0,0,0,0,0
+10/29 20:15:02.250  SPELL_CAST_START,Player-1-00000003,"Frostmage",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,116,"Frostbolt",0x10
+10/29 20:15:02.750  SPELL_DAMAGE,Player-1-00000003,"Frostmage",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,116,"Frostbolt",0x10,25400,0,1,0,0,0,0,0,0
+10/29 20:15:03.000  SPELL_PERIODIC_DAMAGE,Player-1-00000005,"Affliction",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,172,"Corruption",0x20,8450,0,1,0,0,0,0,0,0
+10/29 20:15:03.250  SWING_DAMAGE,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,Player-1-00000001,"Arthasdk",0x511,0x0,18500,0,1,0,0,0,0,0,0,0
+10/29 20:15:03.500  SPELL_CAST_START,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1
+10/29 20:15:03.750  SPELL_DAMAGE,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,28900,0,1,1,0,0,0,0,0
+10/29 20:15:04.000  SPELL_AURA_APPLIED,Player-1-00000007,"Restodruid",0x512,0x0,Player-1-00000001,"Arthasdk",0x511,0x0,774,"Rejuvenation",0x2
+10/29 20:15:04.250  SPELL_PERIODIC_HEAL,Player-1-00000007,"Restodruid",0x512,0x0,Player-1-00000001,"Arthasdk",0x511,0x0,774,"Rejuvenation",0x2,7250,0,0,0,0,0
+10/29 20:15:04.500  SPELL_CAST_START,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,Player-1-00000001,"Arthasdk",0x511,0x0,900101,"Obsidian Smash",0x1
+10/29 20:15:05.000  SPELL_DAMAGE,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,Player-1-00000001,"Arthasdk",0x511,0x0,900101,"Obsidian Smash",0x1,65000,0,1,0,0,0,0,0,0
+10/29 20:15:05.250  SPELL_ABSORBED,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,Player-1-00000001,"Arthasdk",0x511,0x0,17,"Power Word: Shield",0x2,18000
+10/29 20:15:05.500  SPELL_CAST_START,Player-1-00000004,"Roguedps",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,1752,"Sinister Strike",0x1
+10/29 20:15:05.750  SPELL_DAMAGE,Player-1-00000004,"Roguedps",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,1752,"Sinister Strike",0x1,15400,0,1,0,0,0,0,0,0
+10/29 20:15:06.000  SPELL_CAST_START,Player-1-00000003,"Frostmage",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,30455,"Ice Lance",0x10
+10/29 20:15:06.150  SPELL_DAMAGE,Player-1-00000003,"Frostmage",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,30455,"Ice Lance",0x10,48200,0,1,1,0,0,0,0,0
+10/29 20:15:06.500  SPELL_MISSED,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,"DODGE"
+10/29 20:15:07.000  SPELL_CAST_START,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,Player-1-00000003,"Frostmage",0x511,0x0,900102,"Shadow Bolt Volley",0x20
+10/29 20:15:07.500  SPELL_DAMAGE,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,Player-1-00000003,"Frostmage",0x511,0x0,900102,"Shadow Bolt Volley",0x20,38500,0,1,0,0,0,0,0,0
+10/29 20:15:07.550  SPELL_DAMAGE,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,Player-1-00000004,"Roguedps",0x511,0x0,900102,"Shadow Bolt Volley",0x20,41200,0,1,0,0,0,0,0,0
+10/29 20:15:07.600  SPELL_DAMAGE,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,Player-1-00000006,"Retribution",0x511,0x0,900102,"Shadow Bolt Volley",0x20,37600,0,1,0,0,0,0,0,0
+10/29 20:15:08.000  SPELL_CAST_START,Player-1-00000005,"Affliction",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,172,"Corruption",0x20
+10/29 20:15:08.250  SPELL_DAMAGE,Player-1-00000005,"Affliction",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,172,"Corruption",0x20,16500,0,1,0,0,0,0,0,0
+10/29 20:15:08.500  SPELL_CAST_START,Player-1-00000002,"Holypriest",0x512,0x0,Player-1-00000003,"Frostmage",0x511,0x0,2061,"Flash Heal",0x2
+10/29 20:15:09.000  SPELL_HEAL,Player-1-00000002,"Holypriest",0x512,0x0,Player-1-00000003,"Frostmage",0x511,0x0,2061,"Flash Heal",0x2,29800,0,0,0,0,0
+10/29 20:15:09.250  SPELL_INTERRUPT,Player-1-00000004,"Roguedps",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,1766,"Kick",0x1,900103,"Void Channel"
+10/29 20:15:09.500  SPELL_AURA_APPLIED,Player-1-00000001,"Arthasdk",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,55095,"Frost Fever",0x20
+10/29 20:15:10.000  SPELL_PERIODIC_DAMAGE,Player-1-00000001,"Arthasdk",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,55095,"Frost Fever",0x20,7200,0,1,0,0,0,0,0,0
+10/29 20:15:10.500  SPELL_DAMAGE,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,32500,0,1,1,0,0,0,0,0
+10/29 20:15:11.000  SPELL_CAST_START,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,Player-1-00000001,"Arthasdk",0x511,0x0,900104,"Obsidian Cleave",0x1
+10/29 20:15:11.500  SPELL_DAMAGE,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,Player-1-00000001,"Arthasdk",0x511,0x0,900104,"Obsidian Cleave",0x1,42000,0,1,0,0,0,0,0,0
+10/29 20:15:11.750  SPELL_HEAL,Player-1-00000007,"Restodruid",0x512,0x0,Player-1-00000001,"Arthasdk",0x511,0x0,5185,"Regrowth",0x2,44500,0,1,0,0,0
+10/29 20:15:12.000  SPELL_AURA_REMOVED,Player-1-00000007,"Restodruid",0x512,0x0,Player-1-00000001,"Arthasdk",0x511,0x0,774,"Rejuvenation",0x2
+10/29 20:15:12.500  SPELL_CAST_START,Player-1-00000003,"Frostmage",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,116,"Frostbolt",0x10
+10/29 20:15:13.000  SPELL_DAMAGE,Player-1-00000003,"Frostmage",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,116,"Frostbolt",0x10,26700,0,1,0,0,0,0,0,0
+10/29 20:15:13.500  SPELL_DAMAGE,Player-1-00000005,"Affliction",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,686,"Shadow Bolt",0x20,51600,0,1,1,0,0,0,0,0
+10/29 20:15:14.000  SPELL_CAST_START,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,Player-1-00000006,"Retribution",0x511,0x0,900105,"Obsidian Prison",0x20
+10/29 20:15:14.500  SPELL_AURA_APPLIED,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,Player-1-00000006,"Retribution",0x511,0x0,900106,"Obsidian Prison",0x20
+10/29 20:15:15.000  SPELL_DAMAGE,Player-1-00000004,"Roguedps",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,1752,"Sinister Strike",0x1,17300,0,1,0,0,0,0,0,0
+10/29 20:15:15.500  SPELL_PERIODIC_DAMAGE,Player-1-00000005,"Affliction",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,172,"Corruption",0x20,9200,0,1,0,0,0,0,0,0
+10/29 20:15:16.000  SPELL_HEAL,Player-1-00000002,"Holypriest",0x512,0x0,Player-1-00000006,"Retribution",0x511,0x0,2061,"Flash Heal",0x2,35700,0,0,0,0,0
+10/29 20:15:16.500  SPELL_AURA_REMOVED,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,Player-1-00000006,"Retribution",0x511,0x0,900106,"Obsidian Prison",0x20
+10/29 20:15:17.000  SPELL_DAMAGE,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,31800,0,1,0,0,0,0,0,0
+10/29 20:15:18.000  SPELL_CAST_START,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,Player-1-00000001,"Arthasdk",0x511,0x0,900107,"Cataclysmic Slam",0x20
+10/29 20:15:19.000  SPELL_DAMAGE,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,Player-1-00000001,"Arthasdk",0x511,0x0,900107,"Cataclysmic Slam",0x20,155000,0,1,0,0,0,0,0,0
+10/29 20:15:19.250  UNIT_DIED,Player-1-00000001,"Arthasdk",0x511,0x0
+10/29 20:15:19.500  SPELL_HEAL,Player-1-00000007,"Restodruid",0x512,0x0,Player-1-00000003,"Frostmage",0x511,0x0,5185,"Regrowth",0x2,38500,0,0,0,0,0
+10/29 20:15:20.000  SPELL_CAST_START,Player-1-00000002,"Holypriest",0x512,0x0,Player-1-00000001,"Arthasdk",0x511,0x0,2006,"Resurrection",0x2
+10/29 20:15:22.000  SPELL_CAST_SUCCESS,Player-1-00000002,"Holypriest",0x512,0x0,Player-1-00000001,"Arthasdk",0x511,0x0,2006,"Resurrection",0x2
+10/29 20:15:22.250  SPELL_RESURRECT,Player-1-00000002,"Holypriest",0x512,0x0,Player-1-00000001,"Arthasdk",0x511,0x0
+10/29 20:15:23.000  SPELL_CAST_START,Player-1-00000003,"Frostmage",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,30455,"Ice Lance",0x10
+10/29 20:15:23.150  SPELL_DAMAGE,Player-1-00000003,"Frostmage",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,30455,"Ice Lance",0x10,53500,0,1,1,0,0,0,0,0
+10/29 20:15:24.000  SPELL_CAST_START,Player-1-00000005,"Affliction",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,686,"Shadow Bolt",0x20
+10/29 20:15:24.500  SPELL_DAMAGE,Player-1-00000005,"Affliction",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,686,"Shadow Bolt",0x20,49800,0,1,0,0,0,0,0,0
+10/29 20:15:25.000  SPELL_DAMAGE,Player-1-00000004,"Roguedps",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,1752,"Sinister Strike",0x1,19200,0,1,0,0,0,0,0,0
+10/29 20:15:26.000  SPELL_PERIODIC_DAMAGE,Player-1-00000001,"Arthasdk",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,55095,"Frost Fever",0x20,8200,0,0,0,0,0,0,0,0
+10/29 20:15:27.000  SPELL_DAMAGE,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,34800,0,1,1,0,0,0,0,0
+10/29 20:15:28.000  SPELL_HEAL,Player-1-00000002,"Holypriest",0x512,0x0,Player-1-00000001,"Arthasdk",0x511,0x0,2061,"Flash Heal",0x2,42100,0,0,0,0,0
+10/29 20:15:29.000  SPELL_CAST_START,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,Player-1-00000004,"Roguedps",0x511,0x0,900108,"Void Rupture",0x20
+10/29 20:15:30.000  SPELL_DAMAGE,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,Player-1-00000004,"Roguedps",0x511,0x0,900108,"Void Rupture",0x20,87500,0,1,0,0,0,0,0,0
+10/29 20:15:30.250  SPELL_MISSED,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,"PARRY"
+10/29 20:15:31.000  SPELL_DAMAGE,Player-1-00000003,"Frostmage",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,116,"Frostbolt",0x10,27300,0,1,0,0,0,0,0,0
+10/29 20:15:32.000  SPELL_PERIODIC_DAMAGE,Player-1-00000005,"Affliction",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,172,"Corruption",0x20,10300,0,1,0,0,0,0,0,0
+10/29 20:15:33.000  SPELL_DAMAGE,Player-1-00000004,"Roguedps",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,1752,"Sinister Strike",0x1,20500,0,1,0,0,0,0,0,0
+10/29 20:15:34.000  SPELL_HEAL,Player-1-00000007,"Restodruid",0x512,0x0,Player-1-00000004,"Roguedps",0x511,0x0,5185,"Regrowth",0x2,39500,0,0,0,0,0
+10/29 20:15:35.000  SPELL_CAST_START,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,Player-1-00000003,"Frostmage",0x511,0x0,900109,"Meteoric Barrage",0x20
+10/29 20:15:36.000  SPELL_DAMAGE,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,Player-1-00000003,"Frostmage",0x511,0x0,900109,"Meteoric Barrage",0x20,112000,0,1,0,0,0,0,0,0
+10/29 20:15:36.250  UNIT_DIED,Player-1-00000003,"Frostmage",0x511,0x0
+10/29 20:15:37.000  SPELL_DAMAGE,Player-1-00000005,"Affliction",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,686,"Shadow Bolt",0x20,55200,0,1,1,0,0,0,0,0
+10/29 20:15:38.000  SPELL_HEAL,Player-1-00000002,"Holypriest",0x512,0x0,Player-1-00000001,"Arthasdk",0x511,0x0,2061,"Flash Heal",0x2,44800,0,0,0,0,0
+10/29 20:15:39.000  SPELL_CAST_START,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1
+10/29 20:15:39.250  SPELL_DAMAGE,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,36700,0,1,1,0,0,0,0,0
+10/29 20:15:39.250  SPELL_DAMAGE,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,36700,0,1,1,0,0,0,0,0
+10/29 20:15:39.250  SPELL_DAMAGE,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,36700,0,1,1,0,0,0,0,0
+10/29 20:15:39.250  SPELL_DAMAGE,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,36700,0,1,1,0,0,0,0,0
+10/29 20:15:39.250  SPELL_DAMAGE,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,36700,0,1,1,0,0,0,0,0
+10/29 20:15:39.250  SPELL_DAMAGE,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,36700,0,1,1,0,0,0,0,0
+10/29 20:15:39.250  SPELL_DAMAGE,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,36700,0,1,1,0,0,0,0,0
+10/29 20:15:39.250  SPELL_DAMAGE,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,36700,0,1,1,0,0,0,0,0
+10/29 20:15:39.250  SPELL_DAMAGE,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,36700,0,1,1,0,0,0,0,0
+10/29 20:15:39.250  SPELL_DAMAGE,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,36700,0,1,1,0,0,0,0,0
+10/29 20:15:39.250  SPELL_DAMAGE,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,36700,0,1,1,0,0,0,0,0
+10/29 20:15:39.250  SPELL_DAMAGE,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,36700,0,1,1,0,0,0,0,0
+10/29 20:15:39.250  SPELL_DAMAGE,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,36700,0,1,1,0,0,0,0,0
+10/29 20:15:39.250  SPELL_DAMAGE,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,36700,0,1,1,0,0,0,0,0
+10/29 20:15:39.250  SPELL_DAMAGE,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,36700,0,1,1,0,0,0,0,0
+10/29 20:15:39.250  SPELL_DAMAGE,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,36700,0,1,1,0,0,0,0,0
+10/29 20:15:39.250  SPELL_DAMAGE,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,36700,0,1,1,0,0,0,0,0
+10/29 20:15:39.250  SPELL_DAMAGE,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,36700,0,1,1,0,0,0,0,0
+10/29 20:15:39.250  SPELL_DAMAGE,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,36700,0,1,1,0,0,0,0,0
+10/29 20:15:39.250  SPELL_DAMAGE,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,36700,0,1,1,0,0,0,0,0
+10/29 20:15:39.250  SPELL_DAMAGE,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,36700,0,1,1,0,0,0,0,0
+10/29 20:15:39.250  SPELL_DAMAGE,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,36700,0,1,1,0,0,0,0,0
+10/29 20:15:39.250  SPELL_DAMAGE,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,36700,0,1,1,0,0,0,0,0
+10/29 20:15:39.250  SPELL_DAMAGE,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,36700,0,1,1,0,0,0,0,0
+10/29 20:15:39.250  SPELL_DAMAGE,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,36700,0,1,1,0,0,0,0,0
+10/29 20:15:39.250  SPELL_DAMAGE,Player-1-00000006,"Retribution",0x511,0x0,Creature-0-0-0-0-90001,"Obsidian Warden",0xa48,0x0,35395,"Crusader Strike",0x1,36700,0,1,1,0,0,0,0,0
+10/29 20:15:40.000  ENCOUNTER_END,2901,"The Obsidian Warden",16,20,5,0

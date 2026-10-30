@@ -1,21 +1,21 @@
 use std::collections::HashMap;
 
-use crate::parser::{CombatEvent, EventKind};
+use crate::parser::CombatEvent;
 
 #[derive(Debug, Default)]
 pub struct State {
-    event_counts: HashMap<EventKind, u64>,
+    event_counts: HashMap<String, u64>,
     combat_active: bool,
     last_timestamp: Option<String>,
 }
 
 impl State {
     pub fn record(&mut self, event: &CombatEvent<'_>) {
-        *self.event_counts.entry(event.event).or_default() += 1;
+        *self.event_counts.entry(event.event.to_owned()).or_default() += 1;
         self.last_timestamp = Some(event.timestamp.to_owned());
         match event.event {
-            EventKind::PlayerRegenDisabled => self.combat_active = true,
-            EventKind::PlayerRegenEnabled => self.combat_active = false,
+            "PLAYER_REGEN_DISABLED" => self.combat_active = true,
+            "PLAYER_REGEN_ENABLED" => self.combat_active = false,
             _ => {}
         }
     }

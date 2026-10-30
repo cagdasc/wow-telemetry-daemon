@@ -1,0 +1,85 @@
+# wow-telemetry-daemon
+
+A lightweight sidecar that tails a WoW combat log and writes recognized events as
+JSON Lines to stdout and to connected WebSocket clients.
+
+## Run
+
+```sh
+cargo run -- [PATH]
+```
+
+The default path is `WoWCombatLog.txt`. The file must exist when the daemon
+starts. It begins at the current end of the file, so existing lines are skipped.
+
+By default, the daemon listens for WebSocket clients at
+`ws://127.0.0.1:8765`. Each recognized event is sent as one JSON text frame,
+with the same object shape as the stdout JSON Lines output. To choose another
+address:
+
+```sh
+cargo run -- [PATH] --ws-addr 127.0.0.1:9000
+```
+
+For clients on the local network, bind to an appropriate interface, for
+example `--ws-addr 0.0.0.0:8765`. This exposes an unauthenticated, unencrypted
+WebSocket listener; use it only on a trusted network. Use `--no-websocket` to
+disable the listener and retain stdout output only. Slow clients whose outbound
+queue fills are disconnected rather than delaying log parsing.
+
+## Combat-log format and event coverage
+
+`resources/combat-log-spec.yml` is the format reference used by the parser. The
+parser recognizes all 62 event names in that specification, plus
+`PLAYER_REGEN_DISABLED` and `PLAYER_REGEN_ENABLED`. Recognized events are:
+
+- **Damage:** `SPELL_DAMAGE`, `SPELL_PERIODIC_DAMAGE`, `RANGE_DAMAGE`,
+  `DAMAGE_SHIELD`, `DAMAGE_SPLIT`, `SPELL_DAMAGE_SUPPORT`,
+  `SPELL_PERIODIC_DAMAGE_SUPPORT`, `RANGE_DAMAGE_SUPPORT`,
+  `SWING_DAMAGE_LANDED_SUPPORT`, `SWING_DAMAGE`, `SWING_DAMAGE_LANDED`,
+  `ENVIRONMENTAL_DAMAGE`.
+- **Healing and absorbs:** `SPELL_HEAL`, `SPELL_PERIODIC_HEAL`,
+  `SPELL_HEAL_SUPPORT`, `SPELL_PERIODIC_HEAL_SUPPORT`, `SPELL_ABSORBED`,
+  `SPELL_ABSORBED_SUPPORT`, `SPELL_HEAL_ABSORBED`.
+- **Auras and utility:** `SPELL_AURA_APPLIED`, `SPELL_AURA_REMOVED`,
+  `SPELL_AURA_REFRESH`, `SPELL_AURA_BROKEN`, `SPELL_AURA_BROKEN_SPELL`,
+  `SPELL_AURA_APPLIED_DOSE`, `SPELL_AURA_REMOVED_DOSE`, `SPELL_INTERRUPT`,
+  `SPELL_DISPEL`, `SPELL_DISPEL_FAILED`, `SPELL_STOLEN`, `SPELL_ENERGIZE`,
+  `SPELL_DRAIN`, `SPELL_LEECH`, `SPELL_PERIODIC_ENERGIZE`, `SPELL_CAST_START`,
+  `SPELL_CAST_SUCCESS`, `SPELL_EMPOWER_START`, `SPELL_EMPOWER_END`,
+  `SPELL_EMPOWER_INTERRUPT`, `SPELL_CAST_FAILED`, `SWING_MISSED`,
+  `SPELL_MISSED`, `RANGE_MISSED`, `SPELL_PERIODIC_MISSED`,
+  `DAMAGE_SHIELD_MISSED`, `SPELL_SUMMON`, `SPELL_RESURRECT`,
+  `SPELL_INSTAKILL`.
+- **Unit, encounter, and log metadata:** `UNIT_DIED`, `UNIT_DESTROYED`,
+  `UNIT_DISSIPATES`, `UNIT_HEALTH`, `ENCOUNTER_START`, `ENCOUNTER_END`,
+  `CHALLENGE_MODE_START`, `CHALLENGE_MODE_END`, `ZONE_CHANGE`, `MAP_CHANGE`,
+  `WORLD_MARKER_PLACED`, `WORLD_MARKER_REMOVED`, `COMBATANT_INFO`,
+  `COMBAT_LOG_VERSION`.
+- **Combat state:** `PLAYER_REGEN_DISABLED`, `PLAYER_REGEN_ENABLED`.
+
+The parser accepts a two-or-more-space separator or a tab between timestamp and
+event data. CSV commas inside quoted fields and doubled quotes are handled.
+The timestamp is retained as written; its format (including local-time UTC
+offsets) is not validated or normalized. Unknown event names are ignored.
+
+Each JSON object includes the timestamp, event name, `fields`, and applicable
+convenience fields (`source_guid`, `source_name`, `dest_guid`, `dest_name`,
+`spell_id`, `spell_name`, and `amount`). `fields` preserves the complete CSV
+payload after the event name, in order; array index 0 corresponds to event
+offset 1 in the YAML. A YAML `nil` value is emitted as JSON `null`. Fields are
+retained as strings rather than coerced to numbers, booleans, or enums.
+
+The convenience source/target fields follow the common header offsets in the
+spec. Spell ID and name are extracted for `SPELL_*` and `RANGE_*` events with a
+spell prefix, except the special absorption layouts; `SWING_DAMAGE_LANDED_SUPPORT`
+also has that prefix. `amount` uses the documented base-amount suffix for
+spell/swing damage variants (the advanced-logging offset is selected from row
+width, not the version header) and the documented fixed offset for
+`ENVIRONMENTAL_DAMAGE`.
+
+This is a loss-preserving event recognizer, not a full semantic decoder of
+every suffix: event-specific suffixes, advanced-logging blocks, enum values,
+and `COMBATANT_INFO` bracket structures remain available in `fields` and are
+not individually interpreted. `COMBAT_LOG_VERSION` is recognized as an event,
+but the daemon does not currently reset its in-memory state when one appears.
