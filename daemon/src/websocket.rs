@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::io;
 use std::net::{SocketAddr, TcpListener, TcpStream};
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::mpsc::{self, SyncSender, TryRecvError, TrySendError};
+use std::sync::mpsc::{self, SyncSender, TryRecvError};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
@@ -11,7 +11,6 @@ use tungstenite::Message;
 
 const CLIENT_QUEUE_SIZE: usize = 256;
 const CLIENT_READ_TIMEOUT: Duration = Duration::from_millis(50);
-const CLIENT_WRITE_TIMEOUT: Duration = Duration::from_secs(1);
 
 type ClientId = usize;
 type ClientSender = SyncSender<Arc<str>>;
@@ -44,19 +43,32 @@ impl WebSocketServer {
     }
 
     pub fn broadcast(&self, payload: Arc<str>) -> io::Result<()> {
-        let mut clients = self
+        let clients = self
             .clients
             .lock()
             .map_err(|_| io::Error::other("WebSocket client registry lock poisoned"))?;
+        let senders: Vec<_> = clients
+            .iter()
+            .map(|(id, sender)| (*id, sender.clone()))
+            .collect();
+        drop(clients);
 
-        clients.retain(|id, sender| match sender.try_send(Arc::clone(&payload)) {
-            Ok(()) => true,
-            Err(TrySendError::Full(_)) => {
-                eprintln!("dropping slow WebSocket client {id}: outbound queue is full");
-                false
+        let mut disconnected = Vec::new();
+        for (id, sender) in senders {
+            if sender.send(Arc::clone(&payload)).is_err() {
+                disconnected.push(id);
             }
-            Err(TrySendError::Disconnected(_)) => false,
-        });
+        }
+
+        if !disconnected.is_empty() {
+            let mut clients = self
+                .clients
+                .lock()
+                .map_err(|_| io::Error::other("WebSocket client registry lock poisoned"))?;
+            for id in disconnected {
+                clients.remove(&id);
+            }
+        }
         Ok(())
     }
 }
@@ -99,9 +111,6 @@ fn serve_connection(stream: TcpStream, id: ClientId, clients: &Clients) -> Resul
         .set_read_timeout(Some(CLIENT_READ_TIMEOUT))
         .map_err(|error| error.to_string())?;
     stream
-        .set_write_timeout(Some(CLIENT_WRITE_TIMEOUT))
-        .map_err(|error| error.to_string())?;
-    stream
         .set_nodelay(true)
         .map_err(|error| error.to_string())?;
 
@@ -137,8 +146,12 @@ fn serve_connection(stream: TcpStream, id: ClientId, clients: &Clients) -> Resul
 
 #[cfg(test)]
 mod tests {
-    use super::WebSocketServer;
+    use super::{ClientSender, WebSocketServer};
+    use std::collections::HashMap;
     use std::sync::Arc;
+    use std::sync::mpsc;
+    use std::thread;
+    use std::time::Duration;
 
     #[test]
     fn broadcasts_event_json_to_connected_clients() {
@@ -151,5 +164,30 @@ mod tests {
 
         let message = client.read().unwrap().into_text().unwrap();
         assert_eq!(message, r#"{"event":"SPELL_DAMAGE"}"#);
+    }
+
+    #[test]
+    fn waits_for_a_slow_clients_queue_instead_of_dropping_it() {
+        let server = Arc::new(WebSocketServer::bind("127.0.0.1:0".parse().unwrap()).unwrap());
+        let (sender, receiver) = mpsc::sync_channel(1);
+        sender.send(Arc::from("first")).unwrap();
+        let clients: HashMap<usize, ClientSender> = HashMap::from([(0, sender)]);
+        *server.clients.lock().unwrap() = clients;
+
+        let broadcast_server = Arc::clone(&server);
+        let broadcast = thread::spawn(move || {
+            broadcast_server.broadcast(Arc::from("second")).unwrap();
+        });
+
+        assert!(receiver.recv_timeout(Duration::from_secs(1)).is_ok());
+        assert_eq!(
+            receiver
+                .recv_timeout(Duration::from_secs(1))
+                .unwrap()
+                .as_ref(),
+            "second"
+        );
+        broadcast.join().unwrap();
+        assert!(server.clients.lock().unwrap().contains_key(&0));
     }
 }

@@ -2,13 +2,22 @@ package com.cacaosd.wowtelemetry.client
 
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.websocket.WebSockets
 import java.net.URI
 
 private const val DEFAULT_WEBSOCKET_URL = "ws://127.0.0.1:8765"
 
 fun main(args: Array<String>) {
     val websocketUrl = parseWebSocketUrl(args) ?: return
-    val client = TelemetryWebSocketClient(URI(websocketUrl))
+    val client = TelemetryWebSocketClient(
+        httpClient = HttpClient(CIO) {
+            install(WebSockets)
+        },
+        url = websocketUrl,
+        logError = { System.err.println(it) },
+    )
     client.start()
 
     application {

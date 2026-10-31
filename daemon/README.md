@@ -25,7 +25,60 @@ For clients on the local network, bind to an appropriate interface, for
 example `--ws-addr 0.0.0.0:8765`. This exposes an unauthenticated, unencrypted
 WebSocket listener; use it only on a trusted network. Use `--no-websocket` to
 disable the listener and retain stdout output only. Slow clients whose outbound
-queue fills are disconnected rather than delaying log parsing.
+queue fills apply backpressure: the daemon pauses event processing until the
+client catches up instead of dropping events or disconnecting it. This can
+delay processing while a client is persistently slow.
+
+On Windows, build the executable for `x86_64-pc-windows-gnu`, then edit
+`LOG_DIR` in `run-windows.bat` to the directory containing
+`WoWCombatLog-MMDDYY_HHMMSS.txt` files. Double-click the batch file to start the
+daemon using the newest timestamped log. You can override the folder by setting
+`WOW_COMBAT_LOG_DIR` before running the batch file. It binds to
+`0.0.0.0:8765`, so allow that port through Windows Firewall if a client connects
+from another computer.
+
+## Generate a mock event stream
+
+To exercise a client without a live WoW log, use the mock stream script. It
+starts the real daemon against a temporary empty log, then appends random rows
+from `sample_log/WoWCombatLog-103126_002522.txt` in batches:
+
+```sh
+python3 scripts/mock_stream.py --ws-addr 0.0.0.0:8765
+```
+
+Connect the client to the machine running the script. By default, the script
+waits three seconds for clients to connect, then sends 10,000 rows in batches
+of 100 every 0.1 seconds, waits two seconds for the daemon to process the final
+batch, then stops the daemon. To stream continuously until
+Ctrl+C:
+
+```sh
+python3 scripts/mock_stream.py --events 0 --ws-addr 0.0.0.0:8765
+```
+
+For a one-write bulk test, use `--bulk`. The script counts recognized events
+emitted by the daemon and reports processing time and events per second:
+
+```sh
+python3 scripts/mock_stream.py --bulk --events 50000 --ws-addr 0.0.0.0:8765
+```
+
+Bulk mode requires a finite event count. Its timer covers appending the rows and
+waiting for the daemon to parse and emit all recognized events; it does not
+measure when a remote client finishes consuming them.
+
+Use `--sample PATH`, `--events COUNT`, `--batch-size COUNT`, `--interval
+SECONDS`, `--startup-delay SECONDS`, `--drain-delay SECONDS`,
+`--drain-timeout SECONDS`, and `--seed INTEGER` to customize the sample and
+stream. For example:
+
+```sh
+python3 scripts/mock_stream.py --events 50000 --batch-size 500 --interval 0.05 --seed 42
+```
+
+The script requires Python 3 and Cargo. It does not modify the source sample
+log or require extra Python packages.
 
 ## Combat-log format and event coverage
 
