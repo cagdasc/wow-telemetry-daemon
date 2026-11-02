@@ -1,0 +1,39 @@
+# Rust build output
+**/target/
+**/debug/
+**/release/
+**/*.rs.bk
+**/*.pdb
+
+# Gradle and Kotlin Multiplatform build output
+**/.gradle/
+**/.kotlin/
+**/build/
+**/local.properties
+**/.cxx/
+**/.externalNativeBuild/
+
+# IntelliJ-based IDE local state and caches
+**/.idea/**/workspace.xml
+**/.idea/**/tasks.xml
+**/.idea/**/usage.statistics.xml
+**/.idea/**/dictionaries/
+**/.idea/**/shelf/
+**/.idea/**/caches/
+**/.idea/**/contentModel.xml
+**/.idea/**/dataSources/
+**/.idea/**/dataSources.ids
+**/.idea/**/dataSources.local.xml
+**/.idea/**/sqlDataSources.xml
+**/.idea/**/dynamic.xml
+**/.idea/**/uiDesigner.xml
+**/.idea/**/dbnavigator.xml
+**/.idea/**/httpRequests/
+**/.idea/**/sonarlint/
+**/.idea/**/sonarIssues.xml
+**/*.iws
+**/out/
+
+# Operating-system files
+**/.DS_Store
+**/Thumbs.db

@@ -1,0 +1,96 @@
+# WoW Telemetry System Guide
+
+## System overview
+
+This workspace contains two independent services that work together:
+
+- `daemon/` is a Rust sidecar. It tails the WoW combat log, recognizes and parses CLEU records, and publishes event JSON over WebSockets.
+- `client/` is a Kotlin Multiplatform app. It receives the stream and owns client-side state, persistence, analysis, and presentation.
+
+Keep raw file I/O and low-level parsing in the daemon. Keep application state, metadata, deterministic analysis, and presentation in the client. Neither service should depend on the other's implementation; the WebSocket JSON contract is their boundary.
+
+Design pillars:
+
+- Never add in-game Lua hooks or interfere with the game process.
+- Keep high-frequency parsing and transport efficient. Avoid allocations on hot paths where practical, and measure before adding complexity.
+- Keep rule outcomes deterministic and separate from any generated wording. Never use an LLM to infer facts or decide combat rules.
+- Describe implemented behavior accurately. Treat planned capabilities as plans, not existing features.
+
+## Rust daemon (`daemon/`)
+
+### Responsibilities
+
+- Tail `WoWCombatLog.txt` as an out-of-process sidecar.
+- Scan byte-oriented log records with `memchr` and parse recognized combat-log events.
+- Preserve event fields and publish each recognized event as one JSON text frame to connected WebSocket clients. Also write JSON lines to stdout.
+- Keep daemon state and parsing independent from client storage and presentation.
+
+### Constraints
+
+- Keep the daemon's memory footprint and latency low. Preserve bounded channels and queues unless a measured requirement justifies changing them.
+- Avoid heap allocations in byte scanning and field extraction when practical. Current parsing uses a `Vec` for fields and allocates for escaped quotes; serialization also allocates. Do not describe the current path as allocation-free.
+- Keep parsing tolerant of quoted CSV fields and combat-log format variation. Preserve unrecognized or event-specific fields rather than silently discarding data.
+- Return or report errors explicitly. Use standard Rust error types for local errors; use `thiserror` for reusable domain errors or `anyhow` at an application boundary when appropriate. Do not add dependencies without need.
+- Bind to localhost by default. LAN binding is unauthenticated and unencrypted; document this limitation when changing network behavior.
+
+## Kotlin Multiplatform client (`client/`)
+
+### Responsibilities
+
+- Consume the daemon's WebSocket event stream without data loss.
+- Own client-side metadata, persistence, deterministic analysis, and user-facing state.
+- Keep lookup and analysis work efficient; use indexed local queries for ID lookups when a database is added.
+- Present information without changing the underlying event facts.
+
+### Constraints
+
+- Current client config has a shared KMP module and a Desktop/JVM app target. It currently reconnects and prints received event JSON; it has no RoomDB, metadata entities, or encounter state machines.
+- Keep JDK-only APIs in `desktopApp` or a JVM source set, not `commonMain`. Use common APIs in shared source sets.
+- Use coroutines and structured concurrency for asynchronous work. Keep blocking I/O off the UI thread; use the appropriate I/O dispatcher for blocking operations.
+- Expose UI state reactively. Do not block the main thread.
+- If adding Room/SQLite metadata such as spell or NPC tables, define schemas, migrations, and indexed ID lookups with the feature; do not imply those tables already exist.
+- Preserve transport messages losslessly. Parse event JSON only when a client feature needs its fields.
+- The default endpoint is `ws://127.0.0.1:8765`. Support `--ws-url` and `WOW_TELEMETRY_WS_URL`, with the command-line option taking precedence.
+- LAN use requires binding the daemon to a reachable interface, typically `0.0.0.0:8765`, and using the daemon host's LAN IP in the client. The current listener has no authentication or encryption; use only on trusted networks.
+
+## Data contract and WebSocket protocol
+
+The daemon sends one JSON text frame for each recognized combat-log event. The current serialized shape is:
+
+```json
+{
+  "timestamp": "10/28 15:04:05.123",
+  "event": "SPELL_DAMAGE",
+  "fields": ["Player-1", "Mage", "0x511", "0", "Creature-2", "Target", "0x10", "0", "1234", "Fireball"],
+  "source_guid": "Player-1",
+  "source_name": "Mage",
+  "dest_guid": "Creature-2",
+  "dest_name": "Target",
+  "spell_id": "1234",
+  "spell_name": "Fireball",
+  "amount": "250"
+}
+```
+
+- `timestamp`, `event`, and each non-null field are strings. `fields` is an ordered array of strings or `null`; `"nil"` input fields become `null`.
+- `source_guid`, `source_name`, `dest_guid`, `dest_name`, `spell_id`, `spell_name`, and `amount` are optional string fields and are omitted when absent. JSON uses the exact snake_case names shown.
+- IDs remain strings at the boundary. Do not assume every combat-log ID fits a numeric type or discard the original `fields`.
+- `timestamp` is the original timestamp from the combat log, not a synchronized UTC timestamp or a daemon-generated clock value.
+- Encounter and combat signals arrive as ordinary events, such as `ENCOUNTER_START`, `ENCOUNTER_END`, `PLAYER_REGEN_DISABLED`, and `PLAYER_REGEN_ENABLED`. The current protocol has no separate phase-trigger or entity-template fields.
+
+Treat this shape as the current contract, not a promise that all future events have identical fields. When changing serialization, coordinate daemon and client changes and add contract-focused tests. Keep additions backward-compatible when practical; document any breaking change.
+
+## AI development guardrails
+
+- Read the scoped guide in `client/` or `daemon/` before changing that service.
+- Keep Rust idiomatic: use clear ownership, explicit error handling, and small focused modules. Do not suppress parse, I/O, or WebSocket failures.
+- Keep Kotlin idiomatic: use structured concurrency, cancellation-aware work, and platform-specific APIs only in platform source sets.
+- Keep deterministic analysis as ordinary tested code. Never delegate core math or rule logic—including missing-interrupt detection and cooldown tracking—to an LLM.
+- LLMs may phrase already-computed results only. They must not invent events, IDs, timings, causes, or rule outcomes.
+- Preserve the protocol's raw data and test behavior at service boundaries.
+
+## Validation
+
+- Daemon: run `cargo test` from `daemon/`.
+- Client: run `./gradlew :desktopApp:build` from `client/` and relevant tests.
+- For protocol changes, validate both services and test the serialized payload across the boundary.
