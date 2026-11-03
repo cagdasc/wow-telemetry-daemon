@@ -1,8 +1,8 @@
 # WoW Telemetry Client
 
 A Kotlin Multiplatform project with a Desktop/JVM client that connects to the
-`wow-telemetry-daemon` WebSocket and prints each incoming event JSON message to
-the application console.
+`wow-telemetry-daemon` WebSocket and displays a summary of the latest parsed
+combat event.
 
 ## Run
 
@@ -26,8 +26,22 @@ WOW_TELEMETRY_WS_URL=ws://192.168.1.50:8765 ./gradlew :desktopApp:run
 ```
 
 The client retries the connection every three seconds if the daemon is not
-reachable or disconnects. Incoming WebSocket text messages are printed as
-received, one event per line.
+reachable or disconnects. The data layer decodes one JSON text frame per event,
+preserves raw string IDs and ordered fields, and exposes events as a Flow.
+
+## Architecture
+
+- `domain/` contains framework-independent event models, repository contracts,
+  and the event observation use case.
+- `data/` contains the Ktor WebSocket repository, JSON DTO mapping, and Room
+  schema for spell and NPC metadata.
+- `desktopApp/` contains the presentation layer, JVM WebSocket engine, and
+  application lifecycle. Koin modules wire app and data dependencies.
+- Koog is available in `desktopApp` for a future AI presentation feature; no
+  agent or provider is configured.
+
+The Room schema and indexed metadata repositories are ready, but metadata import
+and encounter analysis are not implemented yet.
 
 ## LAN setup
 
@@ -47,8 +61,9 @@ network.
 
 ```sh
 ./gradlew :desktopApp:build
+./gradlew :data:allTests
 ```
 
-The shared module is Kotlin Multiplatform, but the current project configures
-only a JVM target for its desktop application. The WebSocket transport uses the
-JDK `java.net.http.WebSocket` API in the desktop app.
+The domain and data modules use Kotlin Multiplatform with a configured JVM
+target. The desktop app uses Ktor CIO for WebSocket transport. Room looks up
+metadata by indexed primary key; SQLite does not guarantee strict O(1) lookup.

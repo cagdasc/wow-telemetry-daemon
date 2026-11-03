@@ -39,16 +39,16 @@ Design pillars:
 
 - Consume the daemon's WebSocket event stream without data loss.
 - Own client-side metadata, persistence, deterministic analysis, and user-facing state.
-- Keep lookup and analysis work efficient; use indexed local queries for ID lookups when a database is added.
+- Keep lookup and analysis work efficient; use indexed local queries for ID lookups.
 - Present information without changing the underlying event facts.
 
 ### Constraints
 
-- Current client config has a shared KMP module and a Desktop/JVM app target. It currently reconnects and prints received event JSON; it has no RoomDB, metadata entities, or encounter state machines.
-- Keep JDK-only APIs in `desktopApp` or a JVM source set, not `commonMain`. Use common APIs in shared source sets.
+- Current client config has domain and data KMP modules plus a Desktop/JVM presentation app. Domain models and Room spell/NPC metadata schema exist; metadata import and encounter analysis do not.
+- Keep JDK-only APIs in `desktopApp` or a JVM source set, not `commonMain`.
 - Use coroutines and structured concurrency for asynchronous work. Keep blocking I/O off the UI thread; use the appropriate I/O dispatcher for blocking operations.
 - Expose UI state reactively. Do not block the main thread.
-- If adding Room/SQLite metadata such as spell or NPC tables, define schemas, migrations, and indexed ID lookups with the feature; do not imply those tables already exist.
+- The client has Room tables `Spell`, `SpellName`, and `Creature` with primary-key ID lookups. Include exported schema and migrations when changing them.
 - Preserve transport messages losslessly. Parse event JSON only when a client feature needs its fields.
 - The default endpoint is `ws://127.0.0.1:8765`. Support `--ws-url` and `WOW_TELEMETRY_WS_URL`, with the command-line option taking precedence.
 - LAN use requires binding the daemon to a reachable interface, typically `0.0.0.0:8765`, and using the daemon host's LAN IP in the client. The current listener has no authentication or encryption; use only on trusted networks.
@@ -85,6 +85,7 @@ Treat this shape as the current contract, not a promise that all future events h
 - Read the scoped guide in `client/` or `daemon/` before changing that service.
 - Keep Rust idiomatic: use clear ownership, explicit error handling, and small focused modules. Do not suppress parse, I/O, or WebSocket failures.
 - Keep Kotlin idiomatic: use structured concurrency, cancellation-aware work, and platform-specific APIs only in platform source sets.
+- Use Koin modules at data and application boundaries. Keep domain interfaces free of Koin dependencies. Keep Koog out of the domain layer.
 - Keep deterministic analysis as ordinary tested code. Never delegate core math or rule logic—including missing-interrupt detection and cooldown tracking—to an LLM.
 - LLMs may phrase already-computed results only. They must not invent events, IDs, timings, causes, or rule outcomes.
 - Preserve the protocol's raw data and test behavior at service boundaries.

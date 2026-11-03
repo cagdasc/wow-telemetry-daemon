@@ -7,9 +7,18 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":shared"))
+    implementation(project(":domain"))
+    implementation(project(":data"))
 
     implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.client.websockets)
+    implementation(libs.koin.core)
+    implementation(libs.koog.agents)
+    implementation(libs.compose.runtime)
+    implementation(libs.compose.foundation)
+    implementation(libs.compose.material3)
+    implementation(libs.compose.ui)
+    implementation(libs.compose.uiToolingPreview)
     implementation(compose.desktop.currentOs)
     implementation(libs.kotlinx.coroutinesSwing)
 

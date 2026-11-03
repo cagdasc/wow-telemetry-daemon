@@ -32,4 +32,5 @@ plugins {
 }
 
 include(":desktopApp")
-include(":shared")
+include(":domain")
+include(":data")
