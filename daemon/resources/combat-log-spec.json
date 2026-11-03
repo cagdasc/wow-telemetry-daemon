@@ -1,0 +1,1844 @@
+{
+  "$schema": "https://wowcoach.gg/docs/combat-log/spec.json",
+  "format_version": 22,
+  "verified_against_patch": "12.0+",
+  "last_updated": "2026-10-10",
+  "notes": "This is the WoW combat log format itself — what Blizzard emits to the client log file. Field offsets verified against real retail M+ and raid logs. The structure is stable across expansions; exact offsets may shift between major patches.",
+  "source": {
+    "canonical_url": "https://wowcoach.gg/docs/combat-log",
+    "cite_as": "WoW Combat Log Reference (WowCoach.gg). https://wowcoach.gg/docs/combat-log"
+  },
+  "line_format": {
+    "separator": "two spaces (or tab on some clients) between timestamp and event CSV",
+    "timestamp_format": "M/D/YYYY H:MM:SS.fff followed by the writer's UTC offset in whole hours. Month first, no zero padding. The fraction is always three digits; everything after it is the offset. Negative offsets carry \"-\" (\"20:46:27.250-4\" = UTC-4); positive offsets carry no sign (\"19:41:14.7042\" = 19:41:14.704 at UTC+2, \"15:35:07.16710\" = UTC+10). utc = local - offset.",
+    "csv": {
+      "quote_char": "\"",
+      "embedded_comma": "allowed inside quoted strings",
+      "nil_literal": "the string \"nil\" stands in for \"no value\" / null in many fields"
+    }
+  },
+  "version_header": {
+    "example": "COMBAT_LOG_VERSION,22,ADVANCED_LOG_ENABLED,1,BUILD_VERSION,12.0.0,PROJECT_ID,1",
+    "fields": [
+      {
+        "name": "format_version",
+        "type": "integer"
+      },
+      {
+        "name": "advanced_log_enabled",
+        "type": "boolean_int"
+      },
+      {
+        "name": "build_version",
+        "type": "string"
+      },
+      {
+        "name": "project_id",
+        "type": "integer",
+        "notes": "1 for retail"
+      }
+    ]
+  },
+  "common_header": {
+    "applies_to": "all events with a source/target",
+    "fields": [
+      {
+        "offset": 0,
+        "name": "event",
+        "type": "string"
+      },
+      {
+        "offset": 1,
+        "name": "source_guid",
+        "type": "string"
+      },
+      {
+        "offset": 2,
+        "name": "source_name",
+        "type": "quoted_string"
+      },
+      {
+        "offset": 3,
+        "name": "source_flags",
+        "type": "hex_uint32",
+        "enumRef": "unit_flags"
+      },
+      {
+        "offset": 4,
+        "name": "source_raid_flags",
+        "type": "hex_uint32",
+        "enumRef": "raid_marker_flags"
+      },
+      {
+        "offset": 5,
+        "name": "dest_guid",
+        "type": "string"
+      },
+      {
+        "offset": 6,
+        "name": "dest_name",
+        "type": "quoted_string"
+      },
+      {
+        "offset": 7,
+        "name": "dest_flags",
+        "type": "hex_uint32",
+        "enumRef": "unit_flags"
+      },
+      {
+        "offset": 8,
+        "name": "dest_raid_flags",
+        "type": "hex_uint32",
+        "enumRef": "raid_marker_flags"
+      }
+    ]
+  },
+  "spell_prefix": {
+    "applies_to": "events whose name starts with SPELL_, RANGE_, or SPELL_PERIODIC_ (not SWING_*)",
+    "fields": [
+      {
+        "offset": 9,
+        "name": "spell_id",
+        "type": "integer"
+      },
+      {
+        "offset": 10,
+        "name": "spell_name",
+        "type": "quoted_string"
+      },
+      {
+        "offset": 11,
+        "name": "spell_school",
+        "type": "hex_bitfield",
+        "enumRef": "spell_schools"
+      }
+    ]
+  },
+  "advanced_logging_block": {
+    "size": 19,
+    "enabled_by": "/console advancedCombatLogging 1",
+    "detection_hint": "Count fields on a SPELL_DAMAGE event: ~22 fields = off, 40+ fields = on. Do not trust the ADVANCED_LOG_ENABLED header on a fragmented log.",
+    "position": [
+      {
+        "event_pattern": "SPELL_*, RANGE_*",
+        "offsets": "12-30"
+      },
+      {
+        "event_pattern": "SWING_*",
+        "offsets": "9-27"
+      },
+      {
+        "event_pattern": "ENVIRONMENTAL_DAMAGE",
+        "offsets": "9-27"
+      }
+    ],
+    "describes": [
+      {
+        "event": "SPELL_DAMAGE",
+        "unit": "target"
+      },
+      {
+        "event": "SPELL_PERIODIC_DAMAGE",
+        "unit": "target"
+      },
+      {
+        "event": "RANGE_DAMAGE",
+        "unit": "target"
+      },
+      {
+        "event": "SPELL_HEAL",
+        "unit": "target"
+      },
+      {
+        "event": "SPELL_PERIODIC_HEAL",
+        "unit": "target"
+      },
+      {
+        "event": "SWING_DAMAGE",
+        "unit": "source"
+      },
+      {
+        "event": "SWING_DAMAGE_LANDED",
+        "unit": "target"
+      },
+      {
+        "event": "ENVIRONMENTAL_DAMAGE",
+        "unit": "target"
+      },
+      {
+        "event": "SPELL_ENERGIZE",
+        "unit": "target"
+      }
+    ],
+    "fields": [
+      {
+        "offset": 0,
+        "name": "info_guid",
+        "type": "string",
+        "notes": "Identifies which unit this block describes — match against source/dest GUID."
+      },
+      {
+        "offset": 1,
+        "name": "owner_guid",
+        "type": "string",
+        "notes": "Pet owner GUID, or 0000000000000000 if not a pet."
+      },
+      {
+        "offset": 2,
+        "name": "current_hp",
+        "type": "long"
+      },
+      {
+        "offset": 3,
+        "name": "max_hp",
+        "type": "long"
+      },
+      {
+        "offset": 4,
+        "name": "attack_power",
+        "type": "integer"
+      },
+      {
+        "offset": 5,
+        "name": "spell_power",
+        "type": "integer"
+      },
+      {
+        "offset": 6,
+        "name": "armor",
+        "type": "integer"
+      },
+      {
+        "offset": 7,
+        "name": "absorb",
+        "type": "integer"
+      },
+      {
+        "offset": 8,
+        "name": "unknown_1",
+        "type": "integer",
+        "notes": "Always 0 in observed retail logs."
+      },
+      {
+        "offset": 9,
+        "name": "unknown_2",
+        "type": "integer",
+        "notes": "Always 0 in observed retail logs."
+      },
+      {
+        "offset": 10,
+        "name": "power_type",
+        "type": "integer",
+        "enumRef": "power_types"
+      },
+      {
+        "offset": 11,
+        "name": "current_power",
+        "type": "integer"
+      },
+      {
+        "offset": 12,
+        "name": "max_power",
+        "type": "integer"
+      },
+      {
+        "offset": 13,
+        "name": "power_cost",
+        "type": "integer",
+        "notes": "In tenths (e.g., 350 = 35 rage)."
+      },
+      {
+        "offset": 14,
+        "name": "position_x",
+        "type": "float"
+      },
+      {
+        "offset": 15,
+        "name": "position_y",
+        "type": "float"
+      },
+      {
+        "offset": 16,
+        "name": "ui_map_id",
+        "type": "integer"
+      },
+      {
+        "offset": 17,
+        "name": "facing",
+        "type": "float",
+        "notes": "Radians."
+      },
+      {
+        "offset": 18,
+        "name": "item_level",
+        "type": "integer"
+      }
+    ]
+  },
+  "guid_prefixes": [
+    {
+      "prefix": "Player-",
+      "meaning": "Player character",
+      "example": "Player-1168-0A234B"
+    },
+    {
+      "prefix": "Pet-",
+      "meaning": "Hunter pet, ghoul, elemental, mirror image, voidwalker",
+      "example": "Pet-0-4232-2662-31585-165189-..."
+    },
+    {
+      "prefix": "Creature-",
+      "meaning": "Any NPC: trash, boss, friendly NPC. NPC entry ID is the second-to-last segment.",
+      "example": "Creature-0-4232-2662-31585-214502-0001"
+    },
+    {
+      "prefix": "Vehicle-",
+      "meaning": "Siege weapons, dungeon vehicles, possession vehicles",
+      "example": "Vehicle-0-4232-..."
+    },
+    {
+      "prefix": "GameObject-",
+      "meaning": "Interactable object",
+      "example": "GameObject-0-..."
+    },
+    {
+      "prefix": "0000000000000000",
+      "meaning": "No source/target (used by environmental events)",
+      "example": "0000000000000000"
+    }
+  ],
+  "events": {
+    "SPELL_DAMAGE": {
+      "prefix": "spell_prefix",
+      "hasAdvancedBlock": true,
+      "totalFieldCount": 42,
+      "advancedBlockDescribes": "target",
+      "suffix": [
+        {
+          "offset": 31,
+          "name": "base_amount",
+          "type": "integer",
+          "notes": "Effective damage post-mitigation. The canonical damage number."
+        },
+        {
+          "offset": 32,
+          "name": "raw_amount",
+          "type": "integer",
+          "notes": "Pre-mitigation, diagnostics only."
+        },
+        {
+          "offset": 33,
+          "name": "overkill",
+          "type": "integer",
+          "notes": "-1 if not a killing blow; otherwise excess damage past 0 HP."
+        },
+        {
+          "offset": 34,
+          "name": "school",
+          "type": "hex_bitfield",
+          "enumRef": "spell_schools"
+        },
+        {
+          "offset": 35,
+          "name": "resisted",
+          "type": "integer"
+        },
+        {
+          "offset": 36,
+          "name": "blocked",
+          "type": "integer"
+        },
+        {
+          "offset": 37,
+          "name": "absorbed",
+          "type": "integer",
+          "notes": "Informational. Do NOT add to totals — use the SPELL_ABSORBED event."
+        },
+        {
+          "offset": 38,
+          "name": "critical",
+          "type": "bool_or_nil"
+        },
+        {
+          "offset": 39,
+          "name": "glancing",
+          "type": "bool_or_nil",
+          "notes": "Legacy, always nil in modern logs."
+        },
+        {
+          "offset": 40,
+          "name": "crushing",
+          "type": "bool_or_nil",
+          "notes": "Legacy, always nil in modern logs."
+        },
+        {
+          "offset": 41,
+          "name": "ability_hint",
+          "type": "string",
+          "values": [
+            "ST",
+            "AOE"
+          ],
+          "notes": "Tag from the game indicating single-target vs cleave/AoE."
+        }
+      ]
+    },
+    "SPELL_PERIODIC_DAMAGE": {
+      "inherits": "SPELL_DAMAGE",
+      "notes": "DoT tick. Identical layout."
+    },
+    "RANGE_DAMAGE": {
+      "inherits": "SPELL_DAMAGE"
+    },
+    "DAMAGE_SHIELD": {
+      "inherits": "SPELL_DAMAGE",
+      "totalFieldCount": 42,
+      "notes": "Reflect damage from a damage shield (thorns-style effects). Source = the shield owner, dest = the attacker it damaged, spell = the shield. Counts as the shield owner's damage done, with the same damage formula."
+    },
+    "DAMAGE_SPLIT": {
+      "inherits": "SPELL_DAMAGE",
+      "totalFieldCount": 42,
+      "notes": "Damage moved between linked units (e.g., Soul Link moving part of a warlock's damage taken to their demon). Damage taken, not damage dealt: exclude from offensive damage totals."
+    },
+    "SPELL_DAMAGE_SUPPORT": {
+      "inherits": "SPELL_DAMAGE",
+      "totalFieldCount": 42,
+      "notes": "Augmentation Evoker buffed damage. SAME damage instance as the underlying SPELL_DAMAGE event — IDENTICAL baseAmount values; pick one stream, never count both. Suffix offsets 31-40 match SPELL_DAMAGE. Field 41 is the supporting Aug Evoker player GUID (replaces the ability_hint slot — no ST/AOE tag on _SUPPORT events). Read the supporting GUID as the LAST field of the event.",
+      "suffix": [
+        {
+          "offset": 31,
+          "name": "base_amount",
+          "type": "integer"
+        },
+        {
+          "offset": 32,
+          "name": "raw_amount",
+          "type": "integer"
+        },
+        {
+          "offset": 33,
+          "name": "overkill",
+          "type": "integer"
+        },
+        {
+          "offset": 34,
+          "name": "school",
+          "type": "hex_bitfield",
+          "enumRef": "spell_schools"
+        },
+        {
+          "offset": 35,
+          "name": "resisted",
+          "type": "integer"
+        },
+        {
+          "offset": 36,
+          "name": "blocked",
+          "type": "integer"
+        },
+        {
+          "offset": 37,
+          "name": "absorbed",
+          "type": "integer"
+        },
+        {
+          "offset": 38,
+          "name": "critical",
+          "type": "bool_or_nil"
+        },
+        {
+          "offset": 39,
+          "name": "glancing",
+          "type": "bool_or_nil"
+        },
+        {
+          "offset": 40,
+          "name": "crushing",
+          "type": "bool_or_nil"
+        },
+        {
+          "offset": 41,
+          "name": "support_player_guid",
+          "type": "string",
+          "notes": "Supporting Aug Evoker player GUID. Replaces the ability_hint slot present in base SPELL_DAMAGE."
+        }
+      ]
+    },
+    "SPELL_PERIODIC_DAMAGE_SUPPORT": {
+      "inherits": "SPELL_DAMAGE_SUPPORT",
+      "notes": "DoT tick variant. Same 42-field layout, support_player_guid at field 41."
+    },
+    "RANGE_DAMAGE_SUPPORT": {
+      "inherits": "SPELL_DAMAGE_SUPPORT",
+      "notes": "Ranged-ability variant. Same 42-field layout, support_player_guid at field 41."
+    },
+    "SWING_DAMAGE_LANDED_SUPPORT": {
+      "inherits": "SPELL_DAMAGE_SUPPORT",
+      "notes": "Melee variant. Despite the SWING_ name it HAS a spell prefix (Ebon Might), so it uses the SPELL_DAMAGE layout, not SWING_DAMAGE's. 42 fields, support_player_guid at field 41."
+    },
+    "SWING_DAMAGE": {
+      "hasSpellPrefix": false,
+      "hasAdvancedBlock": true,
+      "totalFieldCount": "38 (or 39 if off-hand)",
+      "advancedBlockDescribes": "source",
+      "suffix": [
+        {
+          "offset": 28,
+          "name": "base_amount",
+          "type": "integer"
+        },
+        {
+          "offset": 29,
+          "name": "raw_amount",
+          "type": "integer"
+        },
+        {
+          "offset": 30,
+          "name": "overkill",
+          "type": "integer"
+        },
+        {
+          "offset": 31,
+          "name": "school",
+          "type": "hex_bitfield",
+          "notes": "Always 0x1 (physical)."
+        },
+        {
+          "offset": 32,
+          "name": "resisted",
+          "type": "integer"
+        },
+        {
+          "offset": 33,
+          "name": "blocked",
+          "type": "integer"
+        },
+        {
+          "offset": 34,
+          "name": "absorbed",
+          "type": "integer"
+        },
+        {
+          "offset": 35,
+          "name": "critical",
+          "type": "bool_or_nil"
+        },
+        {
+          "offset": 36,
+          "name": "glancing",
+          "type": "bool_or_nil"
+        },
+        {
+          "offset": 37,
+          "name": "crushing",
+          "type": "bool_or_nil"
+        },
+        {
+          "offset": 38,
+          "name": "is_off_hand",
+          "type": "bool_or_nil",
+          "optional": true,
+          "notes": "Field is omitted entirely for main-hand swings."
+        }
+      ]
+    },
+    "SWING_DAMAGE_LANDED": {
+      "inherits": "SWING_DAMAGE",
+      "advancedBlockDescribes": "target",
+      "notes": "SAME swing as SWING_DAMAGE, reported again with the target advanced block. Do NOT count both."
+    },
+    "ENVIRONMENTAL_DAMAGE": {
+      "hasSpellPrefix": false,
+      "hasAdvancedBlock": true,
+      "totalFieldCount": 39,
+      "advancedBlockDescribes": "target",
+      "notes": "Source GUID is always 0000000000000000.",
+      "suffix": [
+        {
+          "offset": 28,
+          "name": "environmental_type",
+          "type": "string",
+          "values": [
+            "Falling",
+            "Lava",
+            "Fire",
+            "Slime",
+            "Drowning",
+            "Fatigue"
+          ]
+        },
+        {
+          "offset": 29,
+          "name": "base_amount",
+          "type": "integer"
+        },
+        {
+          "offset": 30,
+          "name": "raw_amount",
+          "type": "integer"
+        },
+        {
+          "offset": 31,
+          "name": "overkill",
+          "type": "integer"
+        },
+        {
+          "offset": 32,
+          "name": "school",
+          "type": "hex_bitfield"
+        },
+        {
+          "offset": 33,
+          "name": "resisted",
+          "type": "integer"
+        },
+        {
+          "offset": 34,
+          "name": "blocked",
+          "type": "integer"
+        },
+        {
+          "offset": 35,
+          "name": "absorbed",
+          "type": "integer"
+        },
+        {
+          "offset": 36,
+          "name": "critical",
+          "type": "bool_or_nil"
+        },
+        {
+          "offset": 37,
+          "name": "glancing",
+          "type": "bool_or_nil"
+        },
+        {
+          "offset": 38,
+          "name": "crushing",
+          "type": "bool_or_nil"
+        }
+      ]
+    },
+    "SPELL_HEAL": {
+      "prefix": "spell_prefix",
+      "hasAdvancedBlock": true,
+      "totalFieldCount": 36,
+      "advancedBlockDescribes": "target",
+      "suffix": [
+        {
+          "offset": 31,
+          "name": "healed_to_hp",
+          "type": "integer",
+          "notes": "Raw heal minus shield-converted portion. NOT the canonical heal amount."
+        },
+        {
+          "offset": 32,
+          "name": "amount",
+          "type": "integer",
+          "notes": "Total healing INCLUDING overheal. The canonical heal amount."
+        },
+        {
+          "offset": 33,
+          "name": "overheal",
+          "type": "integer"
+        },
+        {
+          "offset": 34,
+          "name": "absorbed_to_shield",
+          "type": "integer",
+          "notes": "Already inside `amount` — do not subtract."
+        },
+        {
+          "offset": 35,
+          "name": "critical",
+          "type": "bool_or_nil"
+        }
+      ]
+    },
+    "SPELL_PERIODIC_HEAL": {
+      "inherits": "SPELL_HEAL"
+    },
+    "SPELL_HEAL_SUPPORT": {
+      "inherits": "SPELL_HEAL",
+      "totalFieldCount": 37,
+      "notes": "Augmentation Evoker buffed healing. Suffix offsets 31-35 match SPELL_HEAL. Field 36 is the supporting Aug Evoker player GUID, APPENDED after the standard heal suffix (heal events have no ability_hint slot to repurpose). Read the supporting GUID as the LAST field of the event.",
+      "suffix": [
+        {
+          "offset": 31,
+          "name": "healed_to_hp",
+          "type": "integer"
+        },
+        {
+          "offset": 32,
+          "name": "amount",
+          "type": "integer",
+          "notes": "Total healing including overheal."
+        },
+        {
+          "offset": 33,
+          "name": "overheal",
+          "type": "integer"
+        },
+        {
+          "offset": 34,
+          "name": "absorbed_to_shield",
+          "type": "integer"
+        },
+        {
+          "offset": 35,
+          "name": "critical",
+          "type": "bool_or_nil"
+        },
+        {
+          "offset": 36,
+          "name": "support_player_guid",
+          "type": "string",
+          "notes": "Supporting Aug Evoker player GUID. Appended after the standard SPELL_HEAL suffix."
+        }
+      ]
+    },
+    "SPELL_PERIODIC_HEAL_SUPPORT": {
+      "inherits": "SPELL_HEAL_SUPPORT",
+      "notes": "HoT tick variant. Same 37-field layout, support_player_guid at field 36."
+    },
+    "SPELL_ABSORBED": {
+      "hasSpellPrefix": false,
+      "hasAdvancedBlock": false,
+      "notes": "Variable arity: 19 fields when defender == absorber, 22 fields when shield is on someone else. Count fields to disambiguate.",
+      "variants": [
+        {
+          "when": "field_count >= 22 (shield on a different unit than the defender)",
+          "totalFieldCount": 22,
+          "suffix": [
+            {
+              "offset": "1-4",
+              "name": "attacker",
+              "type": "unit_block"
+            },
+            {
+              "offset": "5-8",
+              "name": "defender",
+              "type": "unit_block"
+            },
+            {
+              "offset": "9-11",
+              "name": "damage_spell",
+              "type": "spell_block"
+            },
+            {
+              "offset": "12-15",
+              "name": "absorber",
+              "type": "unit_block"
+            },
+            {
+              "offset": "16-18",
+              "name": "shield_spell",
+              "type": "spell_block"
+            },
+            {
+              "offset": 19,
+              "name": "amount",
+              "type": "integer"
+            },
+            {
+              "offset": 20,
+              "name": "total_amount",
+              "type": "integer",
+              "notes": "Full attempted damage before absorb."
+            },
+            {
+              "offset": 21,
+              "name": "critical",
+              "type": "bool_or_nil"
+            }
+          ]
+        },
+        {
+          "when": "field_count == 19 (self-shield)",
+          "totalFieldCount": 19,
+          "suffix": [
+            {
+              "offset": "1-4",
+              "name": "attacker",
+              "type": "unit_block"
+            },
+            {
+              "offset": "5-8",
+              "name": "defender",
+              "type": "unit_block"
+            },
+            {
+              "offset": "9-12",
+              "name": "absorber",
+              "type": "unit_block",
+              "notes": "Same as defender."
+            },
+            {
+              "offset": "13-15",
+              "name": "shield_spell",
+              "type": "spell_block"
+            },
+            {
+              "offset": 16,
+              "name": "amount",
+              "type": "integer"
+            },
+            {
+              "offset": 17,
+              "name": "total_amount",
+              "type": "integer"
+            },
+            {
+              "offset": 18,
+              "name": "critical",
+              "type": "bool_or_nil"
+            }
+          ]
+        }
+      ]
+    },
+    "SPELL_ABSORBED_SUPPORT": {
+      "inherits": "SPELL_ABSORBED",
+      "totalFieldCount": "23 or 20",
+      "notes": "Augmentation Evoker share of an absorb. SPELL_ABSORBED layout (both variants) with the supporting Aug Evoker player GUID appended as the LAST field. The share belongs to the absorber."
+    },
+    "SPELL_HEAL_ABSORBED": {
+      "notes": "Healing absorbed by a heal-absorb debuff. Layout follows the SPELL_ABSORBED conventions."
+    },
+    "SPELL_AURA_APPLIED": {
+      "prefix": "spell_prefix",
+      "hasAdvancedBlock": false,
+      "totalFieldCount": "13 or 14",
+      "suffix": [
+        {
+          "offset": 12,
+          "name": "aura_type",
+          "type": "string",
+          "values": [
+            "BUFF",
+            "DEBUFF"
+          ]
+        },
+        {
+          "offset": 13,
+          "name": "amount",
+          "type": "integer",
+          "optional": true,
+          "notes": "Absorb amount for shield buffs (Power Word: Shield, Reflective Shield). Absent for most auras. NOT a stack count."
+        }
+      ]
+    },
+    "SPELL_AURA_REMOVED": {
+      "inherits": "SPELL_AURA_APPLIED"
+    },
+    "SPELL_AURA_REFRESH": {
+      "inherits": "SPELL_AURA_APPLIED"
+    },
+    "SPELL_AURA_BROKEN": {
+      "inherits": "SPELL_AURA_APPLIED",
+      "notes": "Crowd-control aura broken by melee damage (Polymorph, Sap). Aura type at field 12."
+    },
+    "SPELL_AURA_BROKEN_SPELL": {
+      "prefix": "spell_prefix",
+      "hasAdvancedBlock": false,
+      "totalFieldCount": 16,
+      "notes": "Crowd-control aura broken by a specific spell's damage. Source = the unit whose spell broke it; dest = the crowd-controlled unit; spell prefix (9-11) = the aura that broke. The breaking spell sits BETWEEN the aura and the aura type, so the aura type is at field 15, not 12.",
+      "suffix": [
+        {
+          "offset": 12,
+          "name": "breaking_spell_id",
+          "type": "integer"
+        },
+        {
+          "offset": 13,
+          "name": "breaking_spell_name",
+          "type": "quoted_string"
+        },
+        {
+          "offset": 14,
+          "name": "breaking_spell_school",
+          "type": "integer",
+          "enumRef": "spell_schools",
+          "notes": "Written as a DECIMAL integer (8 = Nature, 32 = Shadow), unlike the hex school at field 11."
+        },
+        {
+          "offset": 15,
+          "name": "aura_type",
+          "type": "string",
+          "values": [
+            "BUFF",
+            "DEBUFF"
+          ]
+        }
+      ]
+    },
+    "SPELL_AURA_APPLIED_DOSE": {
+      "prefix": "spell_prefix",
+      "hasAdvancedBlock": false,
+      "suffix": [
+        {
+          "offset": 12,
+          "name": "aura_type",
+          "type": "string"
+        },
+        {
+          "offset": 13,
+          "name": "stacks",
+          "type": "integer",
+          "notes": "Stack count after the application."
+        }
+      ]
+    },
+    "SPELL_AURA_REMOVED_DOSE": {
+      "inherits": "SPELL_AURA_APPLIED_DOSE"
+    },
+    "SPELL_INTERRUPT": {
+      "prefix": "spell_prefix",
+      "hasAdvancedBlock": false,
+      "totalFieldCount": 15,
+      "suffix": [
+        {
+          "offset": 12,
+          "name": "interrupted_spell_id",
+          "type": "integer"
+        },
+        {
+          "offset": 13,
+          "name": "interrupted_spell_name",
+          "type": "quoted_string"
+        },
+        {
+          "offset": 14,
+          "name": "interrupted_spell_school",
+          "type": "hex_bitfield",
+          "enumRef": "spell_schools"
+        }
+      ]
+    },
+    "SPELL_DISPEL": {
+      "prefix": "spell_prefix",
+      "hasAdvancedBlock": false,
+      "notes": "One line per aura removed. A cleanse removes a debuff from a friendly unit; a purge removes a buff from a hostile unit. Pets, guardians and totems dispel under their own GUIDs; enemies dispel too.",
+      "suffix": [
+        {
+          "offset": 12,
+          "name": "dispelled_spell_id",
+          "type": "integer"
+        },
+        {
+          "offset": 13,
+          "name": "dispelled_spell_name",
+          "type": "quoted_string"
+        },
+        {
+          "offset": 14,
+          "name": "dispelled_spell_school",
+          "type": "hex_bitfield"
+        },
+        {
+          "offset": 15,
+          "name": "aura_type",
+          "type": "string",
+          "values": [
+            "BUFF",
+            "DEBUFF"
+          ]
+        }
+      ]
+    },
+    "SPELL_DISPEL_FAILED": {
+      "inherits": "SPELL_DISPEL",
+      "notes": "A dispel attempt that removed nothing."
+    },
+    "SPELL_STOLEN": {
+      "inherits": "SPELL_DISPEL",
+      "notes": "Spellsteal: the buff moves to the caster. A friendly summon can \"steal\" a friendly buff."
+    },
+    "SPELL_ENERGIZE": {
+      "prefix": "spell_prefix",
+      "hasAdvancedBlock": true,
+      "advancedBlockDescribes": "target",
+      "suffix": [
+        {
+          "offset": 31,
+          "name": "amount",
+          "type": "integer"
+        },
+        {
+          "offset": 32,
+          "name": "over_energize",
+          "type": "integer"
+        },
+        {
+          "offset": 33,
+          "name": "power_type",
+          "type": "integer",
+          "enumRef": "power_types"
+        },
+        {
+          "offset": 34,
+          "name": "max_power",
+          "type": "integer",
+          "notes": "Maximum power pool. NOT current power."
+        }
+      ]
+    },
+    "SPELL_DRAIN": {
+      "inherits": "SPELL_ENERGIZE"
+    },
+    "SPELL_LEECH": {
+      "inherits": "SPELL_ENERGIZE"
+    },
+    "SPELL_PERIODIC_ENERGIZE": {
+      "inherits": "SPELL_ENERGIZE"
+    },
+    "SPELL_CAST_START": {
+      "prefix": "spell_prefix",
+      "hasAdvancedBlock": false
+    },
+    "SPELL_CAST_SUCCESS": {
+      "prefix": "spell_prefix",
+      "hasAdvancedBlock": true,
+      "notes": "This is the event that fires the ability. Damage events come later."
+    },
+    "SPELL_EMPOWER_START": {
+      "prefix": "spell_prefix",
+      "hasAdvancedBlock": false,
+      "notes": "An empowered spell began charging. Written with the caster as target."
+    },
+    "SPELL_EMPOWER_END": {
+      "prefix": "spell_prefix",
+      "hasAdvancedBlock": false,
+      "notes": "The empowered spell was released. Empty target. Its damage or healing arrives as ordinary SPELL_DAMAGE / SPELL_HEAL lines.",
+      "suffix": [
+        {
+          "offset": 12,
+          "name": "empower_stage",
+          "type": "integer",
+          "notes": "Stage reached."
+        }
+      ]
+    },
+    "SPELL_EMPOWER_INTERRUPT": {
+      "inherits": "SPELL_EMPOWER_END",
+      "notes": "The charge ended without a release. Empty target. Field 12 is the stage it had reached."
+    },
+    "SPELL_CAST_FAILED": {
+      "prefix": "spell_prefix",
+      "hasAdvancedBlock": false,
+      "suffix": [
+        {
+          "offset": 12,
+          "name": "fail_reason",
+          "type": "string",
+          "notes": "Localized: \"Out of range\", \"Not yet recovered\", etc."
+        }
+      ]
+    },
+    "SWING_MISSED": {
+      "hasSpellPrefix": false,
+      "hasAdvancedBlock": false,
+      "suffix": [
+        {
+          "offset": 9,
+          "name": "miss_type",
+          "type": "string",
+          "enumRef": "miss_types"
+        }
+      ]
+    },
+    "SPELL_MISSED": {
+      "prefix": "spell_prefix",
+      "hasAdvancedBlock": false,
+      "totalFieldCount": "15, or 18 for a miss with an amount (ABSORB)",
+      "notes": "A miss with an amount carries the amounts after the off-hand field. Both forms end with the ST/AOE ability hint.",
+      "suffix": [
+        {
+          "offset": 12,
+          "name": "miss_type",
+          "type": "string",
+          "enumRef": "miss_types"
+        }
+      ]
+    },
+    "RANGE_MISSED": {
+      "inherits": "SPELL_MISSED"
+    },
+    "SPELL_PERIODIC_MISSED": {
+      "inherits": "SPELL_MISSED",
+      "notes": "A periodic tick that did no damage (fully absorbed, immune, missed). Most are self-inflicted absorbed ticks (Fel Armor, Refraction, Stagger) written player-to-self with miss type ABSORB; they are not enemy damage."
+    },
+    "DAMAGE_SHIELD_MISSED": {
+      "inherits": "SPELL_MISSED",
+      "notes": "A damage-shield reflect that did not land."
+    },
+    "SPELL_SUMMON": {
+      "prefix": "spell_prefix",
+      "hasAdvancedBlock": false,
+      "notes": "Source summons target via spell. Authoritative pet ownership signal."
+    },
+    "SPELL_RESURRECT": {
+      "prefix": "spell_prefix",
+      "hasAdvancedBlock": false,
+      "notes": "Covers battle resurrections (Rebirth 20484, Raise Ally 61999, Intercession 391054, Soulstone Resurrection 95750, Jumper Cables 384893) and out-of-combat mass resurrections (212036, 361178, 212051, 212048, 212056). A player accepting their own Soulstone writes NO SPELL_RESURRECT; the Soulstone buff (20707) is removed at every death of its holder, used or not."
+    },
+    "SPELL_INSTAKILL": {
+      "prefix": "spell_prefix",
+      "notes": "Forced kill effect (e.g., Purgatory expiring, encounter scripts). The source can be empty. Use for death analysis."
+    },
+    "UNIT_DIED": {
+      "hasSpellPrefix": false,
+      "hasAdvancedBlock": false,
+      "notes": "Source is always empty; dest is the unit that died. The dying unit's SPELL_AURA_REMOVED lines are written BEFORE this line (at the killing blow's timestamp), so removals in that final burst were active at death. The killing blow is the last damage line with overkill >= 0; hits on a body already at 0 HP carry overkill -1. On a wipe, the last UNIT_DIED lines can come after ENCOUNTER_END."
+    },
+    "UNIT_DESTROYED": {
+      "hasSpellPrefix": false,
+      "hasAdvancedBlock": false,
+      "notes": "Pet/totem/object was destroyed (not killed)."
+    },
+    "UNIT_DISSIPATES": {
+      "hasSpellPrefix": false,
+      "hasAdvancedBlock": false,
+      "notes": "For things that fade out (totems expiring)."
+    },
+    "UNIT_HEALTH": {
+      "noSourceTarget": true,
+      "notes": "Boss / unit HP update. Useful for HP timelines."
+    },
+    "ENCOUNTER_START": {
+      "noSourceTarget": true,
+      "suffix": [
+        {
+          "offset": 1,
+          "name": "encounter_id",
+          "type": "integer",
+          "notes": "Blizzard's DungeonEncounter ID (DungeonEncounter.db2)."
+        },
+        {
+          "offset": 2,
+          "name": "encounter_name",
+          "type": "quoted_string"
+        },
+        {
+          "offset": 3,
+          "name": "difficulty_id",
+          "type": "integer",
+          "enumRef": "difficulties"
+        },
+        {
+          "offset": 4,
+          "name": "group_size",
+          "type": "integer"
+        },
+        {
+          "offset": 5,
+          "name": "instance_id",
+          "type": "integer",
+          "optional": true
+        }
+      ]
+    },
+    "ENCOUNTER_END": {
+      "noSourceTarget": true,
+      "suffix": [
+        {
+          "offset": 1,
+          "name": "encounter_id",
+          "type": "integer"
+        },
+        {
+          "offset": 2,
+          "name": "encounter_name",
+          "type": "quoted_string"
+        },
+        {
+          "offset": 3,
+          "name": "difficulty_id",
+          "type": "integer"
+        },
+        {
+          "offset": 4,
+          "name": "group_size",
+          "type": "integer"
+        },
+        {
+          "offset": 5,
+          "name": "success",
+          "type": "boolean_int",
+          "notes": "1 = kill, 0 = wipe."
+        },
+        {
+          "offset": 6,
+          "name": "duration_ms",
+          "type": "integer",
+          "optional": true
+        }
+      ]
+    },
+    "CHALLENGE_MODE_START": {
+      "noSourceTarget": true,
+      "suffix": [
+        {
+          "offset": 1,
+          "name": "dungeon_name",
+          "type": "quoted_string"
+        },
+        {
+          "offset": 2,
+          "name": "map_id",
+          "type": "integer"
+        },
+        {
+          "offset": 3,
+          "name": "challenge_mode_id",
+          "type": "integer"
+        },
+        {
+          "offset": 4,
+          "name": "keystone_level",
+          "type": "integer"
+        },
+        {
+          "offset": 5,
+          "name": "affixes",
+          "type": "integer_array",
+          "notes": "Affix 147 = Xal'atath's Guile: each death costs 15 s of key time instead of 5 s."
+        }
+      ]
+    },
+    "CHALLENGE_MODE_END": {
+      "noSourceTarget": true,
+      "suffix": [
+        {
+          "offset": 1,
+          "name": "map_id",
+          "type": "integer"
+        },
+        {
+          "offset": 2,
+          "name": "success",
+          "type": "boolean_int",
+          "notes": "1 = completed, in time OR over time; 0 = not completed. Timed vs over time is not in the line."
+        },
+        {
+          "offset": 3,
+          "name": "keystone_level",
+          "type": "integer"
+        },
+        {
+          "offset": 4,
+          "name": "total_time_ms",
+          "type": "integer",
+          "optional": true,
+          "notes": "Includes death penalties (15 s per death with affix 147, 5 s otherwise)."
+        },
+        {
+          "offset": 5,
+          "name": "run_score",
+          "type": "float",
+          "optional": true,
+          "notes": "Score awarded for the run."
+        },
+        {
+          "offset": 6,
+          "name": "player_rating",
+          "type": "float",
+          "optional": true,
+          "notes": "The logging player's Mythic+ rating after the run."
+        }
+      ]
+    },
+    "ZONE_CHANGE": {
+      "noSourceTarget": true,
+      "suffix": [
+        {
+          "offset": 1,
+          "name": "zone_id",
+          "type": "integer"
+        },
+        {
+          "offset": 2,
+          "name": "zone_name",
+          "type": "quoted_string"
+        },
+        {
+          "offset": 3,
+          "name": "instance_type",
+          "type": "integer",
+          "enumRef": "difficulties",
+          "notes": "The difficulty ID, same values as ENCOUNTER_START; 0 outside instances. Trash has its run's difficulty: from here in raids, from CHALLENGE_MODE_START (8) in keystones."
+        }
+      ]
+    },
+    "MAP_CHANGE": {
+      "noSourceTarget": true,
+      "suffix": [
+        {
+          "offset": 1,
+          "name": "ui_map_id",
+          "type": "integer"
+        },
+        {
+          "offset": 2,
+          "name": "map_name",
+          "type": "quoted_string"
+        },
+        {
+          "offset": 3,
+          "name": "max_x",
+          "type": "float"
+        },
+        {
+          "offset": 4,
+          "name": "min_x",
+          "type": "float"
+        },
+        {
+          "offset": 5,
+          "name": "max_y",
+          "type": "float"
+        },
+        {
+          "offset": 6,
+          "name": "min_y",
+          "type": "float"
+        }
+      ]
+    },
+    "WORLD_MARKER_PLACED": {
+      "noSourceTarget": true,
+      "suffix": [
+        {
+          "offset": 1,
+          "name": "instance_id",
+          "type": "integer"
+        },
+        {
+          "offset": 2,
+          "name": "marker_index",
+          "type": "integer",
+          "enumRef": "world_markers"
+        },
+        {
+          "offset": 3,
+          "name": "x",
+          "type": "float"
+        },
+        {
+          "offset": 4,
+          "name": "y",
+          "type": "float"
+        }
+      ]
+    },
+    "WORLD_MARKER_REMOVED": {
+      "noSourceTarget": true,
+      "suffix": [
+        {
+          "offset": 1,
+          "name": "instance_id",
+          "type": "integer"
+        },
+        {
+          "offset": 2,
+          "name": "marker_index",
+          "type": "integer"
+        }
+      ]
+    },
+    "COMBATANT_INFO": {
+      "noSourceTarget": true,
+      "notes": "Mixed CSV + bracket arrays + tuples. One per player after every ENCOUNTER_START and CHALLENGE_MODE_START; trash pulls get none of their own. Offsets below are the patch 12.x layout (BUILD_VERSION major 12 and later).",
+      "csvPortion": [
+        {
+          "offset": 1,
+          "name": "player_guid",
+          "type": "string"
+        },
+        {
+          "offset": 2,
+          "name": "faction",
+          "type": "integer"
+        },
+        {
+          "offset": 3,
+          "name": "strength",
+          "type": "integer"
+        },
+        {
+          "offset": 4,
+          "name": "agility",
+          "type": "integer"
+        },
+        {
+          "offset": 5,
+          "name": "stamina",
+          "type": "integer"
+        },
+        {
+          "offset": 6,
+          "name": "intellect",
+          "type": "integer"
+        },
+        {
+          "offset": 7,
+          "name": "unknown_12_0",
+          "type": "integer",
+          "notes": "Added in patch 12.0: 0 on retail (Classic-family clients log spirit here). Absent in 10.x/11.x logs, so every offset below is one lower there."
+        },
+        {
+          "offset": 8,
+          "name": "dodge_rating",
+          "type": "integer"
+        },
+        {
+          "offset": 9,
+          "name": "parry_rating",
+          "type": "integer"
+        },
+        {
+          "offset": 10,
+          "name": "block_rating",
+          "type": "integer"
+        },
+        {
+          "offset": 11,
+          "name": "crit_rating",
+          "type": "integer",
+          "notes": "Triplicate (melee, ranged, spell) at offsets 11, 12, 13."
+        },
+        {
+          "offset": 14,
+          "name": "speed_rating",
+          "type": "integer"
+        },
+        {
+          "offset": 15,
+          "name": "leech_rating",
+          "type": "integer"
+        },
+        {
+          "offset": 16,
+          "name": "haste_rating",
+          "type": "integer",
+          "notes": "Triplicate (melee, ranged, spell) at offsets 16, 17, 18."
+        },
+        {
+          "offset": 19,
+          "name": "avoidance_rating",
+          "type": "integer"
+        },
+        {
+          "offset": 20,
+          "name": "mastery_rating",
+          "type": "integer"
+        },
+        {
+          "offset": 21,
+          "name": "versatility_rating",
+          "type": "integer",
+          "notes": "Triplicate (damage done, healing done, damage taken) at offsets 21, 22, 23."
+        },
+        {
+          "offset": 24,
+          "name": "armor",
+          "type": "integer"
+        },
+        {
+          "offset": 25,
+          "name": "spec_id",
+          "type": "integer",
+          "enumRef": "spec_ids",
+          "notes": "In 12.0+ logs. In 10.x/11.x logs, spec_id is at offset 24 (no field at offset 7)."
+        }
+      ],
+      "bracketPortion": [
+        {
+          "position": 1,
+          "shape": "[(node_id, entry_id, rank), ...]",
+          "name": "talents",
+          "notes": "rank=0 = tree slot allocated but not chosen. Middle field is TraitNodeEntry ID, NOT spell ID."
+        },
+        {
+          "position": 2,
+          "shape": "(pvp1, pvp2, ...)",
+          "name": "pvp_talents",
+          "notes": "A tuple, NOT a bracket array."
+        },
+        {
+          "position": 3,
+          "shape": "[(item_id, ilvl, (enchants), (bonus_ids), (gems)), ...]",
+          "name": "gear",
+          "notes": "Array index = equipment slot (shirt 3, main hand 15, off hand 16, tabard 17). item_id=0 = empty slot. Equipped item level = floor(sum over the 16 slots other than shirt and tabard / 16); an empty slot counts 0 and a main hand with an empty off hand counts twice."
+        },
+        {
+          "position": 4,
+          "shape": "[(source_guid, spell_id, ...), ...]",
+          "name": "active_auras"
+        }
+      ]
+    },
+    "COMBAT_LOG_VERSION": {
+      "noSourceTarget": true,
+      "notes": "Header line. Can appear mid-log if the logger restarted (treat as a hard boundary — reset accumulated state)."
+    }
+  },
+  "enums": {
+    "spell_schools": {
+      "type": "hex_bitfield",
+      "values": {
+        "0x1": "Physical",
+        "0x2": "Holy",
+        "0x4": "Fire",
+        "0x8": "Nature",
+        "0x10": "Frost",
+        "0x20": "Shadow",
+        "0x40": "Arcane"
+      }
+    },
+    "power_types": {
+      "type": "integer",
+      "values": {
+        "0": "Mana",
+        "1": "Rage",
+        "2": "Focus",
+        "3": "Energy",
+        "4": "ComboPoints",
+        "5": "Runes",
+        "6": "RunicPower",
+        "7": "SoulShards",
+        "8": "LunarPower",
+        "9": "HolyPower",
+        "11": "Maelstrom",
+        "12": "Chi",
+        "13": "Insanity",
+        "16": "ArcaneCharges",
+        "17": "Fury",
+        "18": "Pain",
+        "19": "Essence"
+      }
+    },
+    "unit_flags": {
+      "type": "hex_bitfield",
+      "structure": {
+        "affiliation": {
+          "mask": "0x00F",
+          "values": {
+            "0x1": "Mine",
+            "0x2": "Party",
+            "0x4": "Raid",
+            "0x8": "Outsider"
+          }
+        },
+        "reaction": {
+          "mask": "0x0F0",
+          "values": {
+            "0x10": "Friendly",
+            "0x20": "Neutral",
+            "0x40": "Hostile"
+          }
+        },
+        "control": {
+          "mask": "0x300",
+          "values": {
+            "0x100": "PlayerControlled",
+            "0x200": "NPCControlled"
+          }
+        },
+        "unit_type": {
+          "mask": "0xFC00",
+          "values": {
+            "0x400": "Player",
+            "0x800": "NPC",
+            "0x1000": "Pet",
+            "0x2000": "Guardian",
+            "0x4000": "Object"
+          }
+        },
+        "special": {
+          "mask": "0xFFFF0000",
+          "values": {
+            "0x10000": "Target",
+            "0x20000": "Focus",
+            "0x40000": "MainTank",
+            "0x80000": "MainAssist",
+            "0x80000000": "None"
+          }
+        }
+      },
+      "notes": "Reaction is written from the logging player's side: while the logger is mind-controlled, their own group (pets and totems included) is written hostile but stays player-controlled. The enemy side is hostile (0x40) AND not player-controlled (0x100 clear). Target (0x10000) is the logging player's current target, not a boss marker; Focus, MainTank and MainAssist are likewise properties of the logger's UI and raid roles."
+    },
+    "raid_marker_flags": {
+      "type": "hex_bitfield",
+      "values": {
+        "0x01": "Star",
+        "0x02": "Circle",
+        "0x04": "Diamond",
+        "0x08": "Triangle",
+        "0x10": "Moon",
+        "0x20": "Square",
+        "0x40": "Cross",
+        "0x80": "Skull"
+      }
+    },
+    "miss_types": {
+      "type": "string",
+      "values": [
+        "MISS",
+        "DODGE",
+        "PARRY",
+        "BLOCK",
+        "DEFLECT",
+        "IMMUNE",
+        "ABSORB",
+        "REFLECT",
+        "EVADE",
+        "RESIST"
+      ]
+    },
+    "difficulties": {
+      "type": "integer",
+      "values": {
+        "8": "Mythic_Plus",
+        "14": "Normal_Raid",
+        "15": "Heroic_Raid",
+        "16": "Mythic_Raid",
+        "17": "LFR",
+        "233": "Mythic_Raid_Flex"
+      }
+    },
+    "world_markers": {
+      "type": "integer",
+      "values": {
+        "1": "Star",
+        "2": "Circle",
+        "3": "Diamond",
+        "4": "Triangle",
+        "5": "Moon",
+        "6": "Square",
+        "7": "Cross",
+        "8": "Skull"
+      }
+    },
+    "spec_ids": {
+      "DeathKnight": {
+        "250": "Blood",
+        "251": "Frost",
+        "252": "Unholy"
+      },
+      "DemonHunter": {
+        "577": "Havoc",
+        "581": "Vengeance",
+        "1480": "Devourer"
+      },
+      "Druid": {
+        "102": "Balance",
+        "103": "Feral",
+        "104": "Guardian",
+        "105": "Restoration"
+      },
+      "Evoker": {
+        "1467": "Devastation",
+        "1468": "Preservation",
+        "1473": "Augmentation"
+      },
+      "Hunter": {
+        "253": "BeastMastery",
+        "254": "Marksmanship",
+        "255": "Survival"
+      },
+      "Mage": {
+        "62": "Arcane",
+        "63": "Fire",
+        "64": "Frost"
+      },
+      "Monk": {
+        "268": "Brewmaster",
+        "269": "Windwalker",
+        "270": "Mistweaver"
+      },
+      "Paladin": {
+        "65": "Holy",
+        "66": "Protection",
+        "70": "Retribution"
+      },
+      "Priest": {
+        "256": "Discipline",
+        "257": "Holy",
+        "258": "Shadow"
+      },
+      "Rogue": {
+        "259": "Assassination",
+        "260": "Outlaw",
+        "261": "Subtlety"
+      },
+      "Shaman": {
+        "262": "Elemental",
+        "263": "Enhancement",
+        "264": "Restoration"
+      },
+      "Warlock": {
+        "265": "Affliction",
+        "266": "Demonology",
+        "267": "Destruction"
+      },
+      "Warrior": {
+        "71": "Arms",
+        "72": "Fury",
+        "73": "Protection"
+      }
+    }
+  },
+  "gotchas": [
+    {
+      "id": "detect-advanced-by-row-width",
+      "title": "Detect advanced logging by row width, not header",
+      "details": "COMBAT_LOG_VERSION lies on fragmented logs. Count fields on a SPELL_DAMAGE event: ~22 fields = off, 40+ = on."
+    },
+    {
+      "id": "absorbed-field-vs-event",
+      "title": "SPELL_DAMAGE absorbed field vs SPELL_ABSORBED event",
+      "details": "They are different things. The absorbed field on damage events is informational. Use SPELL_ABSORBED as the source of truth. Counting both double-counts partial absorbs."
+    },
+    {
+      "id": "overkill-minus-one",
+      "title": "Overkill is -1 when not killing",
+      "details": "Clamp to zero before subtracting. Negative overkill means \"this was not a killing blow.\""
+    },
+    {
+      "id": "trailing-damage-after-encounter-end",
+      "title": "ENCOUNTER_END is not the end of damage",
+      "details": "Damage keeps arriving up to ~2 seconds after ENCOUNTER_END. The fight duration in ENCOUNTER_END, and the de-facto standard fight window, end at ENCOUNTER_END. Use one window for every number derived from a fight. Deaths in those seconds belong to the pull."
+    },
+    {
+      "id": "talent-entry-id",
+      "title": "COMBATANT_INFO talent ID is the entry ID, not spell ID",
+      "details": "The middle number in each talent triple is the TraitNodeEntry ID, not the trait definition ID. Resolve via wago.tools or wow.tools."
+    },
+    {
+      "id": "mid-log-version-restart",
+      "title": "Mid-log COMBAT_LOG_VERSION = logger restarted",
+      "details": "Treat as a hard boundary. Reset pet ownership, ongoing auras, fight tracking — accumulated state across the seam is wrong."
+    },
+    {
+      "id": "two-spell-absorbed-formats",
+      "title": "Two SPELL_ABSORBED formats",
+      "details": "22 fields when shield is on someone else (Disc priest absorbing for tank). 19 fields for self-shields. Count fields before parsing."
+    },
+    {
+      "id": "swing-damage-landed-doublecount",
+      "title": "SWING_DAMAGE_LANDED double-counts if you read both",
+      "details": "It is the same swing as SWING_DAMAGE, reported again with the target advanced block. Count one stream, not both."
+    },
+    {
+      "id": "support-event-double-count",
+      "title": "_SUPPORT events are the same hit, not extra damage",
+      "details": "Every Aug-buffed hit produces two events with identical baseAmount values: the underlying SPELL_DAMAGE (or SPELL_PERIODIC_DAMAGE / RANGE_DAMAGE) and a parallel _SUPPORT variant. They are the same damage instance, double-logged. Pick one stream and ignore the other — never count both."
+    },
+    {
+      "id": "pets-before-summon",
+      "title": "Pets deal damage before SPELL_SUMMON",
+      "details": "Pre-combat pets (warlock demons, hunter pets, DK ghouls) appear before their summon. Buffer unknown-owner pet damage and reassign retroactively."
+    },
+    {
+      "id": "vehicle-possession-guids",
+      "title": "Vehicle and possession GUIDs",
+      "details": "Mind-control / vehicle entry changes the source GUID. Follow the ownerGUID chain (offset 1 in advanced block) for attribution."
+    },
+    {
+      "id": "stagger-and-cheat-death-not-healing",
+      "title": "Stagger and cheat-death absorbs are not healing",
+      "details": "Exclude these spell IDs from healing totals: 114556 Purgatory, 31850 Ardent Defender, 31230 Cheat Death, 115069 Stagger."
+    },
+    {
+      "id": "aura-stacks-only-on-dose-events",
+      "title": "Aura stack field is only valid on _DOSE events",
+      "details": "For non-DOSE aura events the field at offset 13 may carry an absorb amount or be absent. Do not blindly read as stacks."
+    },
+    {
+      "id": "docs-disagree",
+      "title": "Pre-existing combat-log docs disagree with each other",
+      "details": "Older references claim ENVIRONMENTAL_DAMAGE puts envType at field 9 — it is actually field 28. SPELL_DAMAGE has 42 fields with an undocumented ST/AOE hint. Verify against real logs."
+    },
+    {
+      "id": "target-flag-is-not-boss",
+      "title": "0x00010000 is the logger's target, not a boss flag",
+      "details": "It marks the logging player's current target, moves with it, and lands on adds, trash and friendly players. Boss units are the NPC ids of the encounter in ENCOUNTER_START."
+    },
+    {
+      "id": "unsigned-utc-offset",
+      "title": "Positive UTC offsets have no sign",
+      "details": "The fraction is always three digits; anything after it is the offset in hours. \"19:41:14.7042\" is .704 at UTC+2. Only negative offsets carry \"-\"."
+    },
+    {
+      "id": "council-health-summed",
+      "title": "Council health is summed",
+      "details": "On a multi-boss encounter, progress is sum(current HP) / sum(max HP) over every boss unit, each from its latest advanced-block sample; a dead boss counts 0 of its pool."
+    },
+    {
+      "id": "aura-removals-before-unit-died",
+      "title": "Aura removals come before UNIT_DIED",
+      "details": "A dying unit's SPELL_AURA_REMOVED lines are written at the killing blow's timestamp, before UNIT_DIED. Removals in that final burst were active at death."
+    },
+    {
+      "id": "soulstone-removal-is-a-death",
+      "title": "A Soulstone removal is usually a death",
+      "details": "The Soulstone buff (20707) is removed whenever its holder dies, used or not. Accepting your own stone writes no SPELL_RESURRECT; a warlock stoning a dead player writes SPELL_RESURRECT 95750."
+    },
+    {
+      "id": "victim-sourced-debuff",
+      "title": "The victim can be the source of their own killing blow",
+      "details": "Some encounter debuffs are applied and tick with the afflicted player as source. A DEBUFF with the victim as source is an encounter mechanic; the GUID prefix of the source does not identify the killer."
+    },
+    {
+      "id": "keystone-death-penalty",
+      "title": "Keystone deaths cost 15 s with Xal'atath's Guile",
+      "details": "15 s per death when affix 147 is in the CHALLENGE_MODE_START affix list, 5 s otherwise. The penalties are included in CHALLENGE_MODE_END total time."
+    },
+    {
+      "id": "challenge-mode-end-not-timed",
+      "title": "CHALLENGE_MODE_END does not say \"timed\"",
+      "details": "Field 2 is 1 for any completed key, in time or over. Fields 5 and 6 are the run score and the logger's rating."
+    },
+    {
+      "id": "reaction-flips-under-mind-control",
+      "title": "Reaction flags flip under mind control",
+      "details": "While the logger is mind-controlled, their own group is written hostile (still player-controlled). The enemy side is hostile AND not player-controlled."
+    },
+    {
+      "id": "pet-npc-id-not-owner",
+      "title": "A pet's NPC id is not its owner",
+      "details": "Every pet of a family shares one NPC entry id across owners, and pets summoned before logging have no SPELL_SUMMON. Use the ownerGUID in the pet's own advanced block."
+    },
+    {
+      "id": "dispel-is-cleanse-and-purge",
+      "title": "SPELL_DISPEL is both cleanse and purge",
+      "details": "A cleanse removes a debuff from a friendly unit; a purge removes a buff from a hostile one. One line per aura removed. Pets and totems dispel too."
+    },
+    {
+      "id": "item-level-16-slots",
+      "title": "Item level is over 16 slots",
+      "details": "All slots but shirt and tabard; an empty slot counts 0; a two-handed weapon counts in both hands; floor of the mean."
+    },
+    {
+      "id": "combatant-info-12x-layout",
+      "title": "Patch 12.x moved COMBATANT_INFO fields",
+      "details": "A field was inserted at index 7: ratings moved one place later, armor is field 24, spec id is field 25 (24 in 10.x/11.x)."
+    },
+    {
+      "id": "trash-pulls-not-in-log",
+      "title": "Trash pulls are not in the log",
+      "details": "No trash-pull event exists. Trash has its run's difficulty, can end in a wipe, and can be fought without a damage line (kicks, crowd control, fully absorbed hits)."
+    },
+    {
+      "id": "self-absorbed-periodic-ticks",
+      "title": "Self-inflicted absorbed ticks fill SPELL_PERIODIC_MISSED",
+      "details": "Fel Armor, Refraction, Stagger and similar effects are written player-to-self with miss type ABSORB. They are not enemy damage."
+    },
+    {
+      "id": "no-fight-ids",
+      "title": "The log has no fight ids",
+      "details": "Nothing in the file uniquely identifies a fight, pull or line. Identity generated at random differs every time the same file is read; identity derived from the log content does not."
+    }
+  ]
+}

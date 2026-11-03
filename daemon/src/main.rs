@@ -1,4 +1,5 @@
 mod parser;
+mod spec_events;
 mod state;
 mod tailer;
 mod websocket;

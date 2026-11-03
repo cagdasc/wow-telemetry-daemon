@@ -1,0 +1,1233 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/cagdasc/wow-telemetry-daemon/blob/main/daemon/resources/combat-log-event.schema.json",
+  "title": "WoW Telemetry Combat Event",
+  "description": "WebSocket event emitted by the daemon. Raw fields preserve the CSV values as strings; nil values become null.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "timestamp",
+    "event",
+    "fields"
+  ],
+  "properties": {
+    "timestamp": {
+      "type": "string"
+    },
+    "event": {
+      "type": "string",
+      "enum": [
+        "SPELL_DAMAGE",
+        "SPELL_PERIODIC_DAMAGE",
+        "RANGE_DAMAGE",
+        "DAMAGE_SHIELD",
+        "DAMAGE_SPLIT",
+        "SPELL_DAMAGE_SUPPORT",
+        "SPELL_PERIODIC_DAMAGE_SUPPORT",
+        "RANGE_DAMAGE_SUPPORT",
+        "SWING_DAMAGE_LANDED_SUPPORT",
+        "SWING_DAMAGE",
+        "SWING_DAMAGE_LANDED",
+        "ENVIRONMENTAL_DAMAGE",
+        "SPELL_HEAL",
+        "SPELL_PERIODIC_HEAL",
+        "SPELL_HEAL_SUPPORT",
+        "SPELL_PERIODIC_HEAL_SUPPORT",
+        "SPELL_ABSORBED",
+        "SPELL_ABSORBED_SUPPORT",
+        "SPELL_HEAL_ABSORBED",
+        "SPELL_AURA_APPLIED",
+        "SPELL_AURA_REMOVED",
+        "SPELL_AURA_REFRESH",
+        "SPELL_AURA_BROKEN",
+        "SPELL_AURA_BROKEN_SPELL",
+        "SPELL_AURA_APPLIED_DOSE",
+        "SPELL_AURA_REMOVED_DOSE",
+        "SPELL_INTERRUPT",
+        "SPELL_DISPEL",
+        "SPELL_DISPEL_FAILED",
+        "SPELL_STOLEN",
+        "SPELL_ENERGIZE",
+        "SPELL_DRAIN",
+        "SPELL_LEECH",
+        "SPELL_PERIODIC_ENERGIZE",
+        "SPELL_CAST_START",
+        "SPELL_CAST_SUCCESS",
+        "SPELL_EMPOWER_START",
+        "SPELL_EMPOWER_END",
+        "SPELL_EMPOWER_INTERRUPT",
+        "SPELL_CAST_FAILED",
+        "SWING_MISSED",
+        "SPELL_MISSED",
+        "RANGE_MISSED",
+        "SPELL_PERIODIC_MISSED",
+        "DAMAGE_SHIELD_MISSED",
+        "SPELL_SUMMON",
+        "SPELL_RESURRECT",
+        "SPELL_INSTAKILL",
+        "UNIT_DIED",
+        "UNIT_DESTROYED",
+        "UNIT_DISSIPATES",
+        "UNIT_HEALTH",
+        "ENCOUNTER_START",
+        "ENCOUNTER_END",
+        "CHALLENGE_MODE_START",
+        "CHALLENGE_MODE_END",
+        "ZONE_CHANGE",
+        "MAP_CHANGE",
+        "WORLD_MARKER_PLACED",
+        "WORLD_MARKER_REMOVED",
+        "COMBATANT_INFO",
+        "COMBAT_LOG_VERSION",
+        "PLAYER_REGEN_DISABLED",
+        "PLAYER_REGEN_ENABLED"
+      ]
+    },
+    "fields": {
+      "type": "array",
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "description": "Ordered CSV payload after the event name. Values remain strings regardless of their source type in the combat log."
+    },
+    "decoded_fields": {
+      "type": "object",
+      "description": "Known event fields decoded by the YAML specification. Fields not named by the spec remain losslessly available in fields.",
+      "properties": {
+        "source_guid": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Decoded string field from the combat-log specification."
+        },
+        "source_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Decoded quoted_string field from the combat-log specification."
+        },
+        "source_flags": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded hex_uint32 field from the combat-log specification."
+        },
+        "source_raid_flags": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded hex_uint32 field from the combat-log specification."
+        },
+        "dest_guid": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Decoded string field from the combat-log specification."
+        },
+        "dest_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Decoded quoted_string field from the combat-log specification."
+        },
+        "dest_flags": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded hex_uint32 field from the combat-log specification."
+        },
+        "dest_raid_flags": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded hex_uint32 field from the combat-log specification."
+        },
+        "spell_id": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "spell_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Decoded quoted_string field from the combat-log specification."
+        },
+        "spell_school": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded hex_bitfield field from the combat-log specification."
+        },
+        "info_guid": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Decoded string field from the combat-log specification."
+        },
+        "owner_guid": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Decoded string field from the combat-log specification."
+        },
+        "current_hp": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded long field from the combat-log specification."
+        },
+        "max_hp": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded long field from the combat-log specification."
+        },
+        "attack_power": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "spell_power": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "armor": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "absorb": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "unknown_1": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "unknown_2": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "power_type": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "current_power": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "max_power": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "power_cost": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "position_x": {
+          "type": [
+            "number",
+            "string",
+            "null"
+          ],
+          "description": "Decoded float field from the combat-log specification."
+        },
+        "position_y": {
+          "type": [
+            "number",
+            "string",
+            "null"
+          ],
+          "description": "Decoded float field from the combat-log specification."
+        },
+        "ui_map_id": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "facing": {
+          "type": [
+            "number",
+            "string",
+            "null"
+          ],
+          "description": "Decoded float field from the combat-log specification."
+        },
+        "item_level": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "base_amount": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "raw_amount": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "overkill": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "school": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded hex_bitfield field from the combat-log specification."
+        },
+        "resisted": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "blocked": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "absorbed": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "critical": {
+          "type": [
+            "boolean",
+            "string",
+            "null"
+          ],
+          "description": "Decoded bool_or_nil field from the combat-log specification."
+        },
+        "glancing": {
+          "type": [
+            "boolean",
+            "string",
+            "null"
+          ],
+          "description": "Decoded bool_or_nil field from the combat-log specification."
+        },
+        "crushing": {
+          "type": [
+            "boolean",
+            "string",
+            "null"
+          ],
+          "description": "Decoded bool_or_nil field from the combat-log specification."
+        },
+        "ability_hint": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Decoded string field from the combat-log specification."
+        },
+        "support_player_guid": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Decoded string field from the combat-log specification."
+        },
+        "is_off_hand": {
+          "type": [
+            "boolean",
+            "string",
+            "null"
+          ],
+          "description": "Decoded bool_or_nil field from the combat-log specification."
+        },
+        "environmental_type": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Decoded string field from the combat-log specification."
+        },
+        "healed_to_hp": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "amount": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "overheal": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "absorbed_to_shield": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "attacker_guid": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Decoded string field from the combat-log specification."
+        },
+        "attacker_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Decoded quoted_string field from the combat-log specification."
+        },
+        "attacker_flags": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded hex_uint32 field from the combat-log specification."
+        },
+        "attacker_raid_flags": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded hex_uint32 field from the combat-log specification."
+        },
+        "defender_guid": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Decoded string field from the combat-log specification."
+        },
+        "defender_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Decoded quoted_string field from the combat-log specification."
+        },
+        "defender_flags": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded hex_uint32 field from the combat-log specification."
+        },
+        "defender_raid_flags": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded hex_uint32 field from the combat-log specification."
+        },
+        "damage_spell_id": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "damage_spell_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Decoded quoted_string field from the combat-log specification."
+        },
+        "damage_spell_school": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded hex_bitfield field from the combat-log specification."
+        },
+        "absorber_guid": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Decoded string field from the combat-log specification."
+        },
+        "absorber_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Decoded quoted_string field from the combat-log specification."
+        },
+        "absorber_flags": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded hex_uint32 field from the combat-log specification."
+        },
+        "absorber_raid_flags": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded hex_uint32 field from the combat-log specification."
+        },
+        "shield_spell_id": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "shield_spell_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Decoded quoted_string field from the combat-log specification."
+        },
+        "shield_spell_school": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded hex_bitfield field from the combat-log specification."
+        },
+        "total_amount": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "aura_type": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Decoded string field from the combat-log specification."
+        },
+        "breaking_spell_id": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "breaking_spell_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Decoded quoted_string field from the combat-log specification."
+        },
+        "breaking_spell_school": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "stacks": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "interrupted_spell_id": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "interrupted_spell_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Decoded quoted_string field from the combat-log specification."
+        },
+        "interrupted_spell_school": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded hex_bitfield field from the combat-log specification."
+        },
+        "dispelled_spell_id": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "dispelled_spell_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Decoded quoted_string field from the combat-log specification."
+        },
+        "dispelled_spell_school": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded hex_bitfield field from the combat-log specification."
+        },
+        "over_energize": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "empower_stage": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "fail_reason": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Decoded string field from the combat-log specification."
+        },
+        "miss_type": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Decoded string field from the combat-log specification."
+        },
+        "encounter_id": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "encounter_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Decoded quoted_string field from the combat-log specification."
+        },
+        "difficulty_id": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "group_size": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "instance_id": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "success": {
+          "type": [
+            "boolean",
+            "string",
+            "null"
+          ],
+          "description": "Decoded boolean_int field from the combat-log specification."
+        },
+        "duration_ms": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "dungeon_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Decoded quoted_string field from the combat-log specification."
+        },
+        "map_id": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "challenge_mode_id": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "keystone_level": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "affixes": {
+          "type": [
+            "array",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer_array field from the combat-log specification."
+        },
+        "total_time_ms": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "run_score": {
+          "type": [
+            "number",
+            "string",
+            "null"
+          ],
+          "description": "Decoded float field from the combat-log specification."
+        },
+        "player_rating": {
+          "type": [
+            "number",
+            "string",
+            "null"
+          ],
+          "description": "Decoded float field from the combat-log specification."
+        },
+        "zone_id": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "zone_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Decoded quoted_string field from the combat-log specification."
+        },
+        "instance_type": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "map_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Decoded quoted_string field from the combat-log specification."
+        },
+        "max_x": {
+          "type": [
+            "number",
+            "string",
+            "null"
+          ],
+          "description": "Decoded float field from the combat-log specification."
+        },
+        "min_x": {
+          "type": [
+            "number",
+            "string",
+            "null"
+          ],
+          "description": "Decoded float field from the combat-log specification."
+        },
+        "max_y": {
+          "type": [
+            "number",
+            "string",
+            "null"
+          ],
+          "description": "Decoded float field from the combat-log specification."
+        },
+        "min_y": {
+          "type": [
+            "number",
+            "string",
+            "null"
+          ],
+          "description": "Decoded float field from the combat-log specification."
+        },
+        "marker_index": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "x": {
+          "type": [
+            "number",
+            "string",
+            "null"
+          ],
+          "description": "Decoded float field from the combat-log specification."
+        },
+        "y": {
+          "type": [
+            "number",
+            "string",
+            "null"
+          ],
+          "description": "Decoded float field from the combat-log specification."
+        },
+        "player_guid": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Decoded string field from the combat-log specification."
+        },
+        "faction": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "strength": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "agility": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "stamina": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "intellect": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "unknown_12_0": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "dodge_rating": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "parry_rating": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "block_rating": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "crit_rating_melee": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "crit_rating_ranged": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "crit_rating_spell": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "speed_rating": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "leech_rating": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "haste_rating_melee": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "haste_rating_ranged": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "haste_rating_spell": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "avoidance_rating": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "mastery_rating": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "versatility_damage_done": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "versatility_healing_done": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "versatility_damage_taken": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "spec_id": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "talents": {
+          "type": [
+            "array",
+            "string",
+            "null"
+          ],
+          "description": "Decoded bracket_value field from the combat-log specification."
+        },
+        "pvp_talents": {
+          "type": [
+            "array",
+            "string",
+            "null"
+          ],
+          "description": "Decoded bracket_value field from the combat-log specification."
+        },
+        "gear": {
+          "type": [
+            "array",
+            "string",
+            "null"
+          ],
+          "description": "Decoded bracket_value field from the combat-log specification."
+        },
+        "active_auras": {
+          "type": [
+            "array",
+            "string",
+            "null"
+          ],
+          "description": "Decoded bracket_value field from the combat-log specification."
+        },
+        "format_version": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "advanced_log_enabled": {
+          "type": [
+            "boolean",
+            "string",
+            "null"
+          ],
+          "description": "Decoded boolean_int field from the combat-log specification."
+        },
+        "build_version": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Decoded string field from the combat-log specification."
+        },
+        "project_id": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ],
+          "description": "Decoded integer field from the combat-log specification."
+        },
+        "advanced_block_unit": {
+          "type": "string",
+          "enum": [
+            "source",
+            "target"
+          ],
+          "description": "Unit described by the optional advanced logging block."
+        }
+      },
+      "additionalProperties": {
+        "type": [
+          "string",
+          "integer",
+          "number",
+          "boolean",
+          "null",
+          "array",
+          "object"
+        ]
+      }
+    },
+    "source_guid": {
+      "type": "string"
+    },
+    "source_name": {
+      "type": "string"
+    },
+    "dest_guid": {
+      "type": "string"
+    },
+    "dest_name": {
+      "type": "string"
+    },
+    "spell_id": {
+      "type": "string"
+    },
+    "spell_name": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "string"
+    }
+  }
+}

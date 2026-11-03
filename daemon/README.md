@@ -116,23 +116,38 @@ event data. CSV commas inside quoted fields and doubled quotes are handled.
 The timestamp is retained as written; its format (including local-time UTC
 offsets) is not validated or normalized. Unknown event names are ignored.
 
-Each JSON object includes the timestamp, event name, `fields`, and applicable
-convenience fields (`source_guid`, `source_name`, `dest_guid`, `dest_name`,
-`spell_id`, `spell_name`, and `amount`). `fields` preserves the complete CSV
-payload after the event name, in order; array index 0 corresponds to event
-offset 1 in the YAML. A YAML `nil` value is emitted as JSON `null`. Fields are
-retained as strings rather than coerced to numbers, booleans, or enums.
+Each JSON object includes the timestamp, event name, raw `fields`, typed
+`decoded_fields`, and applicable convenience fields (`source_guid`,
+`source_name`, `dest_guid`, `dest_name`, `spell_id`, `spell_name`, and
+`amount`). `fields` preserves every CSV value after the event name, in order;
+array index 0 corresponds to event offset 1 in the YAML. A YAML `nil` value is
+emitted as JSON `null`. `decoded_fields` names and converts fields defined by
+the specification; unknown or newly appended fields remain available in raw
+`fields`.
 
 The convenience source/target fields follow the common header offsets in the
 spec. Spell ID and name are extracted for `SPELL_*` and `RANGE_*` events with a
 spell prefix, except the special absorption layouts; `SWING_DAMAGE_LANDED_SUPPORT`
 also has that prefix. `amount` uses the documented base-amount suffix for
-spell/swing damage variants (the advanced-logging offset is selected from row
-width, not the version header) and the documented fixed offset for
-`ENVIRONMENTAL_DAMAGE`.
+spell/swing damage, healing, energize, and `SPELL_ABSORBED` variants.
+Advanced-logging offsets are selected from row width, not the version header.
 
-This is a loss-preserving event recognizer, not a full semantic decoder of
-every suffix: event-specific suffixes, advanced-logging blocks, enum values,
-and `COMBATANT_INFO` bracket structures remain available in `fields` and are
-not individually interpreted. `COMBAT_LOG_VERSION` is recognized as an event,
-but the daemon does not currently reset its in-memory state when one appears.
+The YAML specification generates both the parser's per-event field layouts and
+the JSON artifacts. Inherited layouts, variable `SPELL_ABSORBED` forms,
+optional advanced-logging blocks, nested unit/spell blocks, and
+`COMBATANT_INFO` CSV/bracket fields are handled. Numeric, boolean, and
+hexadecimal values are converted in `decoded_fields`; enum values retain their
+numeric form. A mid-log `COMBAT_LOG_VERSION` clears the daemon's event counters
+and combat-active flag before recording the new version event. The daemon does
+not maintain pet ownership, aura, or encounter-analysis state.
+
+The generated `resources/combat-log-spec.json` mirrors the YAML reference.
+`resources/combat-log-event.schema.json` describes the WebSocket JSON event
+shape. Both it and the parser's event/prefix metadata are generated from the
+YAML specification:
+
+```sh
+python3 -m pip install PyYAML
+python3 scripts/generate_combat_log_artifacts.py
+python3 scripts/generate_combat_log_artifacts.py --check
+```

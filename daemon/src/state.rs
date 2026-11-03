@@ -11,6 +11,9 @@ pub struct State {
 
 impl State {
     pub fn record(&mut self, event: &CombatEvent<'_>) {
+        if event.event == "COMBAT_LOG_VERSION" {
+            self.reset();
+        }
         *self.event_counts.entry(event.event.to_owned()).or_default() += 1;
         self.last_timestamp = Some(event.timestamp.to_owned());
         match event.event {
@@ -18,6 +21,12 @@ impl State {
             "PLAYER_REGEN_ENABLED" => self.combat_active = false,
             _ => {}
         }
+    }
+
+    fn reset(&mut self) {
+        self.event_counts.clear();
+        self.combat_active = false;
+        self.last_timestamp = None;
     }
 }
 
@@ -48,5 +57,26 @@ mod tests {
         assert!(!state.combat_active);
         assert_eq!(state.event_counts.values().sum::<u64>(), 3);
         assert_eq!(state.last_timestamp.as_deref(), Some("10/28 15:04:07.123"));
+    }
+
+    #[test]
+    fn combat_log_version_resets_accumulated_state() {
+        let mut state = State::default();
+        let started = parse_line(b"10/28 15:04:05.123  PLAYER_REGEN_DISABLED")
+            .unwrap()
+            .unwrap();
+        let version = parse_line(
+            b"10/28 15:04:06.123  COMBAT_LOG_VERSION,22,ADVANCED_LOG_ENABLED,1,BUILD_VERSION,12.0.0,PROJECT_ID,1",
+        )
+            .unwrap()
+            .unwrap();
+
+        state.record(&started);
+        state.record(&version);
+
+        assert_eq!(state.event_counts.len(), 1);
+        assert_eq!(state.event_counts.get("COMBAT_LOG_VERSION"), Some(&1));
+        assert!(!state.combat_active);
+        assert_eq!(state.last_timestamp.as_deref(), Some("10/28 15:04:06.123"));
     }
 }

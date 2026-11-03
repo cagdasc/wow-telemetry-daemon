@@ -73,6 +73,7 @@ The daemon sends one JSON text frame for each recognized combat-log event. The c
 ```
 
 - `timestamp`, `event`, and each non-null field are strings. `fields` is an ordered array of strings or `null`; `"nil"` input fields become `null`.
+- `decoded_fields` is an additional object generated from `combat-log-spec.yml`. It names documented event fields and converts numeric, boolean, hexadecimal, and nested combatant values; the raw `fields` array remains lossless.
 - `source_guid`, `source_name`, `dest_guid`, `dest_name`, `spell_id`, `spell_name`, and `amount` are optional string fields and are omitted when absent. JSON uses the exact snake_case names shown.
 - IDs remain strings at the boundary. Do not assume every combat-log ID fits a numeric type or discard the original `fields`.
 - `timestamp` is the original timestamp from the combat log, not a synchronized UTC timestamp or a daemon-generated clock value.
