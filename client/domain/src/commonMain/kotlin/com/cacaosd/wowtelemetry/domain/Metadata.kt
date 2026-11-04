@@ -17,6 +17,14 @@ data class NpcMetadata(
     val name: String?,
 )
 
+data class CharacterProfile(
+    val characterName: String = "",
+    val characterClass: String = "",
+    val specialization: String = "",
+    val realm: String = "",
+    val region: String = "",
+)
+
 interface SpellMetadataRepository {
     suspend fun findSpellNameById(id: String): SpellNameMetadata?
     suspend fun findSpellById(id: String): SpellMetadata?
@@ -24,4 +32,9 @@ interface SpellMetadataRepository {
 
 interface NpcMetadataRepository {
     suspend fun findById(id: String): NpcMetadata?
+}
+
+interface CharacterProfileRepository {
+    suspend fun getProfile(): CharacterProfile?
+    suspend fun saveProfile(profile: CharacterProfile)
 }

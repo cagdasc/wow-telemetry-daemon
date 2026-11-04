@@ -1,0 +1,182 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "313daaf840ae6ad2dec87da4cdee0711",
+    "entities": [
+      {
+        "tableName": "Spell",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`ID` INTEGER NOT NULL, `NameSubtext_lang` TEXT, `Description_lang` TEXT, `AuraDescription_lang` TEXT, PRIMARY KEY(`ID`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "ID",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nameSubtextLang",
+            "columnName": "NameSubtext_lang",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "descriptionLang",
+            "columnName": "Description_lang",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "auraDescriptionLang",
+            "columnName": "AuraDescription_lang",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "ID"
+          ]
+        }
+      },
+      {
+        "tableName": "SpellName",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`ID` INTEGER NOT NULL, `Name_lang` TEXT, PRIMARY KEY(`ID`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "ID",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "Name_lang",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "ID"
+          ]
+        }
+      },
+      {
+        "tableName": "Creature",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`ID` INTEGER NOT NULL, `Name_lang` TEXT, `Classification` INTEGER, `CreatureFamily` INTEGER, `CreatureType` INTEGER, `NameAlt_lang` TEXT, `Title_lang` TEXT, `TitleAlt_lang` TEXT, `StartAnimState` INTEGER, `AlwaysItem_0` INTEGER, `AlwaysItem_1` INTEGER, `AlwaysItem_2` INTEGER, `DisplayID_0` INTEGER, `DisplayID_1` INTEGER, `DisplayID_2` INTEGER, `DisplayID_3` INTEGER, `DisplayProbability_0` INTEGER, `DisplayProbability_1` INTEGER, `DisplayProbability_2` INTEGER, `DisplayProbability_3` INTEGER, PRIMARY KEY(`ID`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "ID",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nameLang",
+            "columnName": "Name_lang",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "classification",
+            "columnName": "Classification",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "creatureFamily",
+            "columnName": "CreatureFamily",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "creatureType",
+            "columnName": "CreatureType",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "nameAltLang",
+            "columnName": "NameAlt_lang",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "titleLang",
+            "columnName": "Title_lang",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "titleAltLang",
+            "columnName": "TitleAlt_lang",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "startAnimState",
+            "columnName": "StartAnimState",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "alwaysItem0",
+            "columnName": "AlwaysItem_0",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "alwaysItem1",
+            "columnName": "AlwaysItem_1",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "alwaysItem2",
+            "columnName": "AlwaysItem_2",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "displayId0",
+            "columnName": "DisplayID_0",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "displayId1",
+            "columnName": "DisplayID_1",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "displayId2",
+            "columnName": "DisplayID_2",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "displayId3",
+            "columnName": "DisplayID_3",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "displayProbability0",
+            "columnName": "DisplayProbability_0",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "displayProbability1",
+            "columnName": "DisplayProbability_1",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "displayProbability2",
+            "columnName": "DisplayProbability_2",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "displayProbability3",
+            "columnName": "DisplayProbability_3",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "ID"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '313daaf840ae6ad2dec87da4cdee0711')"
+    ]
+  }
+}

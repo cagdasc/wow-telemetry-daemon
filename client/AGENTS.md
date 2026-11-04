@@ -18,7 +18,15 @@
 ## Architecture and implementation
 
 - The client owns metadata, persistence, deterministic analysis, and presentation. The daemon owns combat-log file I/O, parsing, and event publishing.
-- `domain` contains pure domain models, repository contracts, and the event observation use case. `data` contains the Ktor WebSocket repository, DTO decoding, Room metadata schema, and its Koin module. `desktopApp` owns presentation and application wiring.
+- `domain` contains pure domain models, repository contracts, and the event observation use case.
+- `data/network` owns WebSocket transport and typed DTO decoding; `data/local` owns Room entities, DAOs, repositories,
+  and migrations. `data` composes their Koin modules.
+- `combat-log` owns deterministic transformation and enrichment of transport events into analysis-ready combat entries
+  and batches. Keep rule evaluation deterministic and testable.
+- `agent` owns Koog/Ollama interaction and chat memory. Character-profile context is a user turn, never part of the
+  system prompt.
+- `presentation` owns the lifecycle-aware ViewModel and reactive UI state. `desktopApp` owns Compose screens, JVM-only
+  APIs, and platform-specific dependency wiring.
 - Room schema includes `Spell`, `SpellName`, and `Creature`, with primary-key ID lookups. No metadata import, combat metrics, or encounter state machine exists yet; describe these as future work unless implemented.
 - Preserve valid event payload fields and raw IDs through DTO mapping. Parse at the data boundary when a client feature needs structured fields.
 - Use Kotlin coroutines with structured concurrency and cancellation-aware work. Keep blocking I/O off the UI thread, use an appropriate I/O dispatcher, and expose UI state reactively.
@@ -26,6 +34,8 @@
 - Include the exported Room schema and migrations when changing the current database schema.
 - Keep all rule evaluation deterministic and testable. Never use an LLM to decide facts or outcomes such as missing interrupts or cooldown tracking.
 - Keep Koog usage outside `domain`. LLMs may phrase already-computed results, but must not calculate combat metrics or invent event facts.
+- Character profiles live in a separate Room database from spell/NPC metadata, so profile changes do not migrate the
+  existing metadata database.
 
 ## WebSocket event contract
 

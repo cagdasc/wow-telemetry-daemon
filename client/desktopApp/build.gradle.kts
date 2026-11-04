@@ -7,8 +7,11 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":agent"))
+    implementation(project(":combat-log"))
     implementation(project(":domain"))
     implementation(project(":data"))
+    implementation(project(":presentation"))
 
     implementation(libs.ktor.client.cio)
     implementation(libs.ktor.client.websockets)

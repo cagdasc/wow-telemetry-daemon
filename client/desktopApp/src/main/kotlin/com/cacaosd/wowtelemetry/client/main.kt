@@ -2,10 +2,13 @@ package com.cacaosd.wowtelemetry.client
 
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import com.cacaosd.wowtelemetry.data.database.AppDatabase
+import androidx.lifecycle.ViewModelStore
 import com.cacaosd.wowtelemetry.client.di.appModule
-import java.net.URI
+import com.cacaosd.wowtelemetry.data.database.AppDatabase
+import com.cacaosd.wowtelemetry.data.database.CharacterProfileDatabase
+import io.ktor.client.*
 import org.koin.core.context.startKoin
+import java.net.URI
 
 private const val DEFAULT_WEBSOCKET_URL = "ws://127.0.0.1:8765"
 
@@ -16,14 +19,21 @@ fun main(args: Array<String>) {
         modules(appModule(websocketUrl))
     }
     val database = koinApplication.koin.get<AppDatabase>()
+    val profileDatabase = koinApplication.koin.get<CharacterProfileDatabase>()
+    val httpClient = koinApplication.koin.get<HttpClient>()
     val viewModel = koinApplication.koin.get<TelemetryViewModel>()
+    val viewModelStore = ViewModelStore().apply {
+        put("TelemetryViewModel", viewModel)
+    }
     viewModel.start()
 
     application {
         Window(
             onCloseRequest = {
-                viewModel.close()
+                viewModelStore.clear()
+                httpClient.close()
                 database.close()
+                profileDatabase.close()
                 koinApplication.close()
                 exitApplication()
             },

@@ -34,3 +34,8 @@ plugins {
 include(":desktopApp")
 include(":domain")
 include(":data")
+include(":data:network")
+include(":data:local")
+include(":combat-log")
+include(":agent")
+include(":presentation")

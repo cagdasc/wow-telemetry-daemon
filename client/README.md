@@ -1,8 +1,7 @@
 # WoW Telemetry Client
 
 A Kotlin Multiplatform project with a Desktop/JVM client that connects to the
-`wow-telemetry-daemon` WebSocket and displays a summary of the latest parsed
-combat event.
+`wow-telemetry-daemon` WebSocket and narrates incoming combat-event batches.
 
 ## Run
 
@@ -36,21 +35,33 @@ from the daemon's combat-log specification.
 
 - `domain/` contains framework-independent event models, repository contracts,
   and the event observation use case.
-- `data/` contains the Ktor WebSocket repository, JSON DTO mapping, and Room
-  schema for spell and NPC metadata.
-- `desktopApp/` contains the presentation layer, JVM WebSocket engine, Koog
-  event phrasing, and application lifecycle. Koin modules wire app and data
-  dependencies.
+- `data/network/` owns Ktor WebSocket transport and event decoding;
+  `data/local/` owns Room storage, repositories, and migrations. `data/`
+  composes their Koin modules.
+- `combat-log/` turns transport events into enriched, analysis-ready event and
+  batch models.
+- `agent/` owns Koog/Ollama narration and role-based chat memory.
+- `presentation/` owns the lifecycle-aware ViewModel and reactive state;
+  `desktopApp/` owns Compose UI and JVM-specific startup/wiring.
 - The client batches streamed events until 100 events arrive or 1 second passes
   without a new event, then automatically rephrases the batch with a Koog agent
   and Ollama at `http://localhost:11434` using the
-  `llama3.2:3b` model. Start Ollama and pull the model (`ollama pull llama3.2:3b`) to use it. Each batch displays its
-  first and last
-  log timestamps. The agent only phrases deterministic event summaries and
-  does not analyze combat or infer facts.
+  `llama3.2:latest` model. Start Ollama and pull the model (`ollama pull llama3.2:latest`) to use it. Each batch
+  displays its first and last
+  log timestamps. Koog chat memory carries previous batches and assistant
+  replies as separate turns. **Stop chat** clears that history; **Start new chat**
+  begins with empty context. Chat history has no size limit yet and may exceed
+  the model's context window in long sessions. The agent only describes
+  supplied log data and must not invent facts.
 
-The Room schema and indexed metadata repositories are ready, but metadata import
-and encounter analysis are not implemented yet.
+Character name, class, specialization, realm, and region can be saved in the
+Character settings dialog. The profile is stored in its own Room database and
+added as the first user turn of each new chat; it is not embedded in the system
+prompt. Profile storage is separate from the existing spell/creature metadata
+database, which remains at schema version 1 and requires no migration.
+
+The indexed metadata repositories are ready, but metadata import and encounter
+analysis are not implemented yet.
 
 ## LAN setup
 
@@ -69,10 +80,11 @@ network.
 ## Build
 
 ```sh
-./gradlew :desktopApp:build
-./gradlew :data:allTests
+./gradlew :desktopApp:compileKotlin
 ```
 
-The domain and data modules use Kotlin Multiplatform with a configured JVM
-target. The desktop app uses Ktor CIO for WebSocket transport. Room looks up
-metadata by indexed primary key; SQLite does not guarantee strict O(1) lookup.
+The shared domain, data, combat-log, agent, and presentation modules use Kotlin
+Multiplatform with a configured JVM target. The desktop app uses Ktor CIO for
+WebSocket transport. Room looks up metadata by indexed primary key; SQLite does
+not guarantee strict O (1) lookup. Client test tasks are intentionally not run
+unless explicitly requested.
