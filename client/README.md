@@ -27,7 +27,10 @@ WOW_TELEMETRY_WS_URL=ws://192.168.1.50:8765 ./gradlew :desktopApp:run
 
 The client retries the connection every three seconds if the daemon is not
 reachable or disconnects. The data layer decodes one JSON text frame per event,
-preserves raw string IDs and ordered fields, and exposes events as a Flow.
+preserves raw string IDs and ordered fields, and exposes events as a Flow. Each
+frame carries a tagged `event` object with a `type` discriminator and a
+type-specific `data` object. The sealed event classes and decoder are generated
+from the daemon's combat-log specification.
 
 ## Architecture
 

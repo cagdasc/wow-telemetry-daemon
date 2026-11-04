@@ -2,15 +2,8 @@ package com.cacaosd.wowtelemetry.domain
 
 data class CombatEvent(
     val timestamp: String,
-    val event: String,
+    val event: CombatLogEvent,
     val fields: List<String?>,
-    val sourceGuid: String?,
-    val sourceName: String?,
-    val destGuid: String?,
-    val destName: String?,
-    val spellId: String?,
-    val spellName: String?,
-    val amount: String?,
 )
 
 data class SpellCast(
@@ -28,7 +21,7 @@ data class DamageEvent(
     val sourceGuid: String?,
     val destGuid: String?,
     val spellId: String?,
-    val amount: String?,
+    val amount: Long?,
 )
 
 data class EncounterState(
@@ -41,13 +34,32 @@ data class EncounterState(
 }
 
 fun CombatEvent.asSpellCast(): SpellCast? {
-    if (event !in SPELL_CAST_EVENTS) return null
-    return SpellCast(timestamp, event, sourceGuid, sourceName, spellId, spellName)
+    if (event.type !in SPELL_CAST_EVENTS) return null
+    val header = (event as? HasCommonHeader)?.header ?: return null
+    val spell = (event as? HasSpellPrefix)?.spell ?: return null
+    return SpellCast(
+        timestamp = timestamp,
+        event = event.type,
+        sourceGuid = header.sourceGuid,
+        sourceName = header.sourceName,
+        spellId = spell.spellId,
+        spellName = spell.spellName,
+    )
 }
 
 fun CombatEvent.asDamageEvent(): DamageEvent? {
-    if (event !in DAMAGE_EVENTS) return null
-    return DamageEvent(timestamp, event, sourceGuid, destGuid, spellId, amount)
+    if (event.type !in DAMAGE_EVENTS) return null
+    val damage = event as? HasBaseAmount ?: return null
+    val header = (event as? HasCommonHeader)?.header ?: return null
+    val spell = (event as? HasSpellPrefix)?.spell
+    return DamageEvent(
+        timestamp = timestamp,
+        event = event.type,
+        sourceGuid = header.sourceGuid,
+        destGuid = header.destGuid,
+        spellId = spell?.spellId,
+        amount = damage.baseAmount,
+    )
 }
 
 private val SPELL_CAST_EVENTS = setOf(

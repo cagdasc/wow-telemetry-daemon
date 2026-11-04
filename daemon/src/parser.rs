@@ -5,6 +5,9 @@ use crate::spec_events::{
     FieldType, NO_SOURCE_TARGET_EVENTS, NON_STANDARD_HEADER_EVENTS, SPEC_EVENTS,
     SPEC_SPELL_PREFIX_EVENTS, event_fields as spec_event_fields,
 };
+use crate::typed_events::{
+    MalformedEventEventData, TypedCombatLogEvent, UnrecognizedEventEventData, from_decoded,
+};
 use memchr::{memchr, memchr2};
 use serde::Serialize;
 use serde_json::{Map, Number, Value};
@@ -13,36 +16,46 @@ const ADDITIONAL_EVENTS: &[&str] = &["PLAYER_REGEN_DISABLED", "PLAYER_REGEN_ENAB
 
 #[derive(Debug, Serialize)]
 pub struct CombatEvent<'a> {
-    pub timestamp: &'a str,
+    pub timestamp: Cow<'a, str>,
+    #[serde(skip_serializing)]
     pub event: &'a str,
     pub fields: Vec<Option<Cow<'a, str>>>,
-    pub decoded_fields: Map<String, Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "event")]
+    pub typed_event: TypedCombatLogEvent,
+    #[serde(skip_serializing)]
     pub source_guid: Option<Cow<'a, str>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing)]
     pub source_name: Option<Cow<'a, str>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub dest_guid: Option<Cow<'a, str>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub dest_name: Option<Cow<'a, str>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing)]
     pub spell_id: Option<Cow<'a, str>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing)]
     pub spell_name: Option<Cow<'a, str>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing)]
     pub amount: Option<Cow<'a, str>>,
 }
 
 #[derive(Debug)]
-pub struct ParseError(&'static str);
+pub struct ParseError(String);
+
+impl ParseError {
+    fn new(message: impl Into<String>) -> Self {
+        Self(message.into())
+    }
+}
 
 impl std::fmt::Display for ParseError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(self.0)
+        f.write_str(&self.0)
     }
 }
 
 impl std::error::Error for ParseError {}
+
+impl From<serde_json::Error> for ParseError {
+    fn from(error: serde_json::Error) -> Self {
+        Self::new(format!("could not decode typed event: {error}"))
+    }
+}
 
 struct Fields<'a> {
     bytes: &'a [u8],
@@ -100,7 +113,9 @@ impl<'a> Fields<'a> {
                                     b')'
                                 };
                                 let Some(slot) = nesting.get_mut(nesting_depth) else {
-                                    return Err(ParseError("combatant field nesting is too deep"));
+                                    return Err(ParseError::new(
+                                        "combatant field nesting is too deep",
+                                    ));
                                 };
                                 *slot = close;
                                 nesting_depth += 1;
@@ -112,7 +127,9 @@ impl<'a> Fields<'a> {
                                 if nesting_depth == 0
                                     || nesting[nesting_depth - 1] != self.bytes[position]
                                 {
-                                    return Err(ParseError("unbalanced combatant field brackets"));
+                                    return Err(ParseError::new(
+                                        "unbalanced combatant field brackets",
+                                    ));
                                 }
                                 nesting_depth -= 1;
                             }
@@ -127,10 +144,10 @@ impl<'a> Fields<'a> {
             }
         };
         if quoted {
-            return Err(ParseError("unterminated quoted field"));
+            return Err(ParseError::new("unterminated quoted field"));
         }
         if nesting_depth != 0 {
-            return Err(ParseError("unterminated combatant field brackets"));
+            return Err(ParseError::new("unterminated combatant field brackets"));
         }
         self.position = if end == self.bytes.len() {
             self.bytes.len() + 1
@@ -142,7 +159,8 @@ impl<'a> Fields<'a> {
         if value.len() >= 2 && value[0] == b'"' && value[value.len() - 1] == b'"' {
             value = &value[1..value.len() - 1];
         }
-        let value = str::from_utf8(value).map_err(|_| ParseError("field is not valid UTF-8"))?;
+        let value =
+            str::from_utf8(value).map_err(|_| ParseError::new("field is not valid UTF-8"))?;
         if value.contains("\"\"") {
             Ok(Some(Cow::Owned(value.replace("\"\"", "\""))))
         } else {
@@ -352,7 +370,11 @@ fn parsed_fields<'a>(
             decoded.insert(spec_field.name.to_owned(), Value::Null);
             continue;
         };
-        let parsed = parse_spec_value(Some(value), spec_field.field_type);
+        let parsed = if is_identifier_field(spec_field.name) {
+            Value::String(value.to_owned())
+        } else {
+            parse_spec_value(Some(value), spec_field.field_type)
+        };
         if spec_field.name == "base_amount" || spec_field.name == "amount" {
             amount = fields.get(offset.saturating_sub(1)).cloned().flatten();
         }
@@ -361,36 +383,76 @@ fn parsed_fields<'a>(
     (decoded, amount)
 }
 
+fn is_identifier_field(name: &str) -> bool {
+    name == "id" || name == "guid" || name.ends_with("_id") || name.ends_with("_guid")
+}
+
 pub fn parse_line(line: &[u8]) -> Result<Option<CombatEvent<'_>>, ParseError> {
+    match parse_line_inner(line) {
+        Ok(event) => Ok(event),
+        Err(error) => Ok(Some(malformed_event(line, error))),
+    }
+}
+
+fn find_separator(line: &[u8]) -> Result<(usize, usize), ParseError> {
     let mut offset = 0;
-    let (separator, separator_end) = loop {
+    loop {
         let Some(index) = memchr2(b' ', b'\t', &line[offset..]) else {
-            return Err(ParseError("missing timestamp/event separator"));
+            return Err(ParseError::new("missing timestamp/event separator"));
         };
         let index = offset + index;
         if line[index] == b'\t' {
-            break (index, index + 1);
+            return Ok((index, index + 1));
         }
         if line.get(index + 1) == Some(&b' ') {
             let mut end = index + 2;
             while line.get(end) == Some(&b' ') {
                 end += 1;
             }
-            break (index, end);
+            return Ok((index, end));
         }
         offset = index + 1;
+    }
+}
+
+fn timestamp_from_malformed(line: &[u8]) -> Cow<'_, str> {
+    let Ok((separator, _)) = find_separator(line) else {
+        return Cow::Borrowed("");
     };
+    str::from_utf8(&line[..separator])
+        .map(Cow::Borrowed)
+        .unwrap_or_else(|_| Cow::Owned(String::from_utf8_lossy(&line[..separator]).into_owned()))
+}
+
+fn malformed_event(line: &[u8], error: ParseError) -> CombatEvent<'_> {
+    CombatEvent {
+        timestamp: timestamp_from_malformed(line),
+        event: "MALFORMED_EVENT",
+        fields: Vec::new(),
+        typed_event: TypedCombatLogEvent::MalformedEvent(MalformedEventEventData {
+            reason: error.to_string(),
+            raw_bytes: line.to_vec(),
+        }),
+        source_guid: None,
+        source_name: None,
+        spell_id: None,
+        spell_name: None,
+        amount: None,
+    }
+}
+
+fn parse_line_inner(line: &[u8]) -> Result<Option<CombatEvent<'_>>, ParseError> {
+    let (separator, separator_end) = find_separator(line)?;
     let timestamp = str::from_utf8(&line[..separator])
-        .map_err(|_| ParseError("timestamp is not valid UTF-8"))?;
+        .map_err(|_| ParseError::new("timestamp is not valid UTF-8"))?;
     let header = &line[separator_end..];
     let event_end = memchr(b',', header).unwrap_or(header.len());
     let event_name = &header[..event_end];
     let event =
-        str::from_utf8(event_name).map_err(|_| ParseError("event name is not valid UTF-8"))?;
-    if !is_recognized_event(event) {
-        return Ok(None);
+        str::from_utf8(event_name).map_err(|_| ParseError::new("event name is not valid UTF-8"))?;
+    if event.is_empty() {
+        return Err(ParseError::new("missing event name"));
     }
-
     let payload = &header[event_end + usize::from(event_end < header.len())..];
     let mut csv = Fields {
         bytes: payload,
@@ -404,37 +466,39 @@ pub fn parse_line(line: &[u8]) -> Result<Option<CombatEvent<'_>>, ParseError> {
         }
     }
 
-    let has_common_header = !NO_SOURCE_TARGET_EVENTS.contains(&event)
+    let recognized = is_recognized_event(event);
+    let has_common_header = recognized
+        && !NO_SOURCE_TARGET_EVENTS.contains(&event)
         && !NON_STANDARD_HEADER_EVENTS.contains(&event)
         && !ADDITIONAL_EVENTS.contains(&event);
-    let (source_guid, source_name, dest_guid, dest_name) = if has_common_header {
-        (
-            indexed_field(&fields, 0),
-            indexed_field(&fields, 1),
-            indexed_field(&fields, 4),
-            indexed_field(&fields, 5),
-        )
+    let (source_guid, source_name) = if has_common_header {
+        (indexed_field(&fields, 0), indexed_field(&fields, 1))
     } else {
-        (None, None, None, None)
+        (None, None)
     };
 
-    let (spell_id, spell_name) = if has_spell_prefix(event) {
+    let (spell_id, spell_name) = if recognized && has_spell_prefix(event) {
         (indexed_field(&fields, 8), indexed_field(&fields, 9))
     } else {
         (None, None)
     };
 
     let (decoded_fields, amount) = parsed_fields(event, &fields);
+    let typed_event = if recognized {
+        from_decoded(event, decoded_fields)?
+    } else {
+        TypedCombatLogEvent::UnrecognizedEvent(UnrecognizedEventEventData {
+            event_name: event.to_owned(),
+        })
+    };
 
     Ok(Some(CombatEvent {
-        timestamp,
+        timestamp: Cow::Borrowed(timestamp),
         event,
         fields,
-        decoded_fields,
+        typed_event,
         source_guid,
         source_name,
-        dest_guid,
-        dest_name,
         spell_id,
         spell_name,
         amount,
@@ -443,7 +507,12 @@ pub fn parse_line(line: &[u8]) -> Result<Option<CombatEvent<'_>>, ParseError> {
 
 #[cfg(test)]
 mod tests {
-    use super::{SPEC_EVENTS, parse_line};
+    use super::{CombatEvent, SPEC_EVENTS, parse_line};
+    use serde_json::Value;
+
+    fn event_data(event: &CombatEvent<'_>) -> Value {
+        serde_json::to_value(&event.typed_event).unwrap()["data"].clone()
+    }
 
     #[test]
     fn parses_spell_damage_with_quoted_commas_and_escaped_quotes() {
@@ -456,10 +525,16 @@ mod tests {
         assert_eq!(event.spell_id.as_deref(), Some("1234"));
         assert_eq!(event.amount.as_deref(), Some("250"));
         assert_eq!(event.fields[1].as_deref(), Some("Mage, \"The Great\""));
+        let payload = serde_json::to_value(&event).unwrap();
+        assert_eq!(payload["event"]["type"], "SPELL_DAMAGE");
+        assert_eq!(payload["event"]["data"]["spell"]["spell_id"], "1234");
+        assert_eq!(payload["event"]["data"]["base_amount"], 250);
+        assert_eq!(payload["fields"][1], "Mage, \"The Great\"");
+        assert!(payload.get("decoded_fields").is_none());
     }
 
     #[test]
-    fn parses_combat_state_and_ignores_other_events() {
+    fn parses_combat_state_and_unrecognized_events() {
         let event = parse_line(b"10/28 15:04:05.123  PLAYER_REGEN_DISABLED")
             .unwrap()
             .unwrap();
@@ -471,10 +546,68 @@ mod tests {
                 .event,
             "SPELL_HEAL"
         );
+        let unknown = parse_line(b"10/28 15:04:05.123  SPELL_NOT_IN_SPEC,Player-1,Mage,nil")
+            .unwrap()
+            .unwrap();
+        let payload = serde_json::to_value(&unknown).unwrap();
+        assert_eq!(payload["event"]["type"], "UNRECOGNIZED_EVENT");
+        assert_eq!(payload["event"]["data"]["event_name"], "SPELL_NOT_IN_SPEC");
+        assert_eq!(
+            payload["fields"],
+            serde_json::json!(["Player-1", "Mage", null])
+        );
+    }
+
+    #[test]
+    fn publishes_malformed_lines_with_reason_and_original_bytes() {
+        let line = b"10/28 15:04:05.123  SPELL_DAMAGE,\"unterminated";
+        let event = parse_line(line).unwrap().unwrap();
+        let payload = serde_json::to_value(&event).unwrap();
+
+        assert_eq!(payload["event"]["type"], "MALFORMED_EVENT");
+        assert_eq!(
+            payload["event"]["data"]["reason"],
+            "unterminated quoted field"
+        );
+        assert_eq!(
+            payload["event"]["data"]["raw_bytes"],
+            serde_json::json!(line.to_vec())
+        );
+    }
+
+    #[test]
+    fn publishes_invalid_utf8_lines_with_original_bytes() {
+        let line = b"10/28 15:04:05.123  SPELL_DAMAGE,\xff";
+        let event = parse_line(line).unwrap().unwrap();
+        let payload = serde_json::to_value(&event).unwrap();
+
+        assert_eq!(payload["event"]["type"], "MALFORMED_EVENT");
+        assert_eq!(
+            payload["event"]["data"]["reason"],
+            "field is not valid UTF-8"
+        );
+        assert_eq!(
+            payload["event"]["data"]["raw_bytes"],
+            serde_json::json!(line.to_vec())
+        );
+    }
+
+    #[test]
+    fn publishes_known_events_with_invalid_typed_fields_as_malformed() {
+        let line = b"10/28 15:04:05.123  COMBAT_LOG_VERSION,not-a-number,ADVANCED_LOG_ENABLED,1,BUILD_VERSION,12.0.0,PROJECT_ID,1";
+        let event = parse_line(line).unwrap().unwrap();
+        let payload = serde_json::to_value(&event).unwrap();
+
+        assert_eq!(payload["event"]["type"], "MALFORMED_EVENT");
         assert!(
-            parse_line(b"10/28 15:04:05.123  SPELL_NOT_IN_SPEC")
+            payload["event"]["data"]["reason"]
+                .as_str()
                 .unwrap()
-                .is_none()
+                .contains("could not decode typed event")
+        );
+        assert_eq!(
+            payload["event"]["data"]["raw_bytes"],
+            serde_json::json!(line.to_vec())
         );
     }
 
@@ -513,7 +646,7 @@ mod tests {
             "Fireball",
             "4",
         ];
-        spell_damage.extend(std::iter::repeat_n("advanced", 19));
+        spell_damage.extend(std::iter::repeat_n("0", 19));
         spell_damage.extend([
             "250", "300", "0", "4", "0", "0", "0", "nil", "nil", "nil", "ST",
         ]);
@@ -521,7 +654,7 @@ mod tests {
         let event = parse_line(line.as_bytes()).unwrap().unwrap();
         assert_eq!(event.event, "SPELL_DAMAGE");
         assert_eq!(event.amount.as_deref(), Some("250"));
-        assert_eq!(event.decoded_fields["advanced_block_unit"], "target");
+        assert_eq!(event_data(&event)["advanced_block"]["unit"], "target");
 
         let mut swing_damage = vec![
             "SWING_DAMAGE",
@@ -534,19 +667,19 @@ mod tests {
             "0x10",
             "0",
         ];
-        swing_damage.extend(std::iter::repeat_n("advanced", 19));
+        swing_damage.extend(std::iter::repeat_n("0", 19));
         swing_damage.extend(["500", "500", "0", "0x1", "0", "0", "0", "nil", "nil", "nil"]);
         let line = format!("10/29 20:15:01.125  {}", swing_damage.join(","));
         let event = parse_line(line.as_bytes()).unwrap().unwrap();
         assert_eq!(event.event, "SWING_DAMAGE");
         assert_eq!(event.amount.as_deref(), Some("500"));
-        assert_eq!(event.decoded_fields["advanced_block_unit"], "source");
+        assert_eq!(event_data(&event)["advanced_block"]["unit"], "source");
     }
 
     #[test]
     fn extracts_heal_energize_and_absorb_amounts() {
         let mut heal = vec!["SPELL_HEAL".to_owned()];
-        heal.extend((0..16).map(|_| "heal".to_owned()));
+        heal.extend((0..16).map(|_| "0".to_owned()));
         heal[13] = "250".to_owned();
         let line = format!("10/29 20:15:01.125  {}", heal.join(","));
         assert_eq!(
@@ -559,7 +692,7 @@ mod tests {
         );
 
         let mut advanced_heal = vec!["SPELL_HEAL".to_owned()];
-        advanced_heal.extend((0..35).map(|_| "heal".to_owned()));
+        advanced_heal.extend((0..35).map(|_| "0".to_owned()));
         advanced_heal[32] = "500".to_owned();
         let line = format!("10/29 20:15:01.125  {}", advanced_heal.join(","));
         assert_eq!(
@@ -572,7 +705,7 @@ mod tests {
         );
 
         let mut energize = vec!["SPELL_ENERGIZE".to_owned()];
-        energize.extend((0..15).map(|_| "energy".to_owned()));
+        energize.extend((0..15).map(|_| "0".to_owned()));
         energize[12] = "75".to_owned();
         let line = format!("10/29 20:15:01.125  {}", energize.join(","));
         assert_eq!(
@@ -585,7 +718,7 @@ mod tests {
         );
 
         let mut absorbed = vec!["SPELL_ABSORBED".to_owned()];
-        absorbed.extend((0..18).map(|_| "absorb".to_owned()));
+        absorbed.extend((0..18).map(|_| "0".to_owned()));
         absorbed[16] = "900".to_owned();
         let line = format!("10/29 20:15:01.125  {}", absorbed.join(","));
         assert_eq!(
@@ -598,7 +731,7 @@ mod tests {
         );
 
         let mut environmental = vec!["ENVIRONMENTAL_DAMAGE".to_owned()];
-        environmental.extend((0..19).map(|_| "environment".to_owned()));
+        environmental.extend((0..19).map(|_| "0".to_owned()));
         environmental[10] = "1200".to_owned();
         let line = format!("10/29 20:15:01.125  {}", environmental.join(","));
         assert_eq!(
@@ -611,7 +744,7 @@ mod tests {
         );
 
         let mut advanced_environmental = vec!["ENVIRONMENTAL_DAMAGE".to_owned()];
-        advanced_environmental.extend((0..38).map(|_| "environment".to_owned()));
+        advanced_environmental.extend((0..38).map(|_| "0".to_owned()));
         advanced_environmental[29] = "1300".to_owned();
         let line = format!("10/29 20:15:01.125  {}", advanced_environmental.join(","));
         assert_eq!(
@@ -631,12 +764,12 @@ mod tests {
         )
             .unwrap()
             .unwrap();
-        assert_eq!(aura.decoded_fields["aura_type"], "BUFF");
-        assert_eq!(aura.decoded_fields["amount"], 3);
-        assert_eq!(aura.decoded_fields["source_flags"], 0x511);
+        assert_eq!(event_data(&aura)["aura_type"], "BUFF");
+        assert_eq!(event_data(&aura)["amount"], 3);
+        assert_eq!(event_data(&aura)["header"]["source_flags"], 0x511);
         assert_eq!(aura.fields.len(), 13);
         let payload = serde_json::to_value(&aura).unwrap();
-        assert_eq!(payload["decoded_fields"]["amount"], 3);
+        assert_eq!(payload["event"]["data"]["amount"], 3);
         assert_eq!(payload["fields"][12], "3");
 
         let challenge = parse_line(
@@ -645,7 +778,7 @@ mod tests {
         .unwrap()
         .unwrap();
         assert_eq!(
-            challenge.decoded_fields["affixes"],
+            event_data(&challenge)["affixes"],
             serde_json::json!([147, 148])
         );
 
@@ -654,7 +787,7 @@ mod tests {
         )
             .unwrap()
             .unwrap();
-        assert_eq!(extended.decoded_fields["fail_reason"], "Out of range");
+        assert_eq!(event_data(&extended)["fail_reason"], "Out of range");
         assert_eq!(extended.fields.len(), 14);
         assert_eq!(extended.fields[12].as_deref(), Some("future"));
         assert_eq!(extended.fields[13].as_deref(), Some(""));
@@ -667,10 +800,10 @@ mod tests {
         )
             .unwrap()
             .unwrap();
-        assert_eq!(long_absorb.decoded_fields["attacker_guid"], "Creature-1");
-        assert_eq!(long_absorb.decoded_fields["damage_spell_id"], 17);
-        assert_eq!(long_absorb.decoded_fields["absorber_guid"], "Player-3");
-        assert_eq!(long_absorb.decoded_fields["amount"], 900);
+        assert_eq!(event_data(&long_absorb)["attacker_guid"], "Creature-1");
+        assert_eq!(event_data(&long_absorb)["damage_spell_id"], "17");
+        assert_eq!(event_data(&long_absorb)["absorber_guid"], "Player-3");
+        assert_eq!(event_data(&long_absorb)["amount"], 900);
         assert_eq!(long_absorb.fields.len(), 21);
 
         let short_absorb = parse_line(
@@ -678,32 +811,32 @@ mod tests {
         )
             .unwrap()
             .unwrap();
-        assert_eq!(short_absorb.decoded_fields["absorber_guid"], "Player-2");
-        assert_eq!(short_absorb.decoded_fields["amount"], 900);
+        assert_eq!(event_data(&short_absorb)["absorber_guid"], "Player-2");
+        assert_eq!(event_data(&short_absorb)["amount"], 900);
         assert_eq!(short_absorb.fields.len(), 18);
 
         let combatant = parse_line(
-            b"10/29 20:15:01.125  COMBATANT_INFO,Player-1,1,1,2,3,4,0,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,64,[1,(2,3)],(4,5),[(6,7,(8),(9,10),(11))],[(Player-1,1234)]",
+            b"10/29 20:15:01.125  COMBATANT_INFO,Player-1,1,1,2,3,4,0,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,64,[(1,2,3)],(4,5),[(6,7,(8),(9,10),(11))],[(Player-1,1234)]",
         )
             .unwrap()
             .unwrap();
-        assert_eq!(combatant.decoded_fields["player_guid"], "Player-1");
-        assert_eq!(combatant.decoded_fields["crit_rating_melee"], 11);
-        assert_eq!(combatant.decoded_fields["crit_rating_spell"], 13);
+        assert_eq!(event_data(&combatant)["player_guid"], "Player-1");
+        assert_eq!(event_data(&combatant)["crit_rating_melee"], 11);
+        assert_eq!(event_data(&combatant)["crit_rating_spell"], 13);
         assert_eq!(
-            combatant.decoded_fields["talents"],
-            serde_json::json!([1, [2, 3]])
+            event_data(&combatant)["talents"],
+            serde_json::json!([[1, 2, 3]])
         );
         assert_eq!(
-            combatant.decoded_fields["pvp_talents"],
+            event_data(&combatant)["pvp_talents"],
             serde_json::json!([4, 5])
         );
         assert_eq!(
-            combatant.decoded_fields["active_auras"],
+            event_data(&combatant)["active_auras"],
             serde_json::json!([["Player-1", 1234]])
         );
         assert_eq!(
-            combatant.decoded_fields["gear"],
+            event_data(&combatant)["gear"],
             serde_json::json!([[6, 7, [8], [9, 10], [11]]])
         );
         assert_eq!(combatant.fields.len(), 29);
@@ -713,14 +846,14 @@ mod tests {
         )
             .unwrap()
             .unwrap();
-        assert_eq!(version.decoded_fields["format_version"], 22);
-        assert_eq!(version.decoded_fields["advanced_log_enabled"], true);
-        assert_eq!(version.decoded_fields["build_version"], "12.0.0");
-        assert_eq!(version.decoded_fields["project_id"], 1);
+        assert_eq!(event_data(&version)["format_version"], 22);
+        assert_eq!(event_data(&version)["advanced_log_enabled"], true);
+        assert_eq!(event_data(&version)["build_version"], "12.0.0");
+        assert_eq!(event_data(&version)["project_id"], "1");
     }
 
     #[test]
-    fn preserves_offset_timestamps_and_rejects_malformed_structure() {
+    fn preserves_offset_timestamps_and_publishes_malformed_structure() {
         let event = parse_line(
             b"10/31/2026 19:41:14.7042  SPELL_CAST_START,Player-1,Mage,0x511,0,Creature-2,Target,0x10,0,1234,Fireball,4",
         )
@@ -728,13 +861,18 @@ mod tests {
             .unwrap();
         assert_eq!(event.timestamp, "10/31/2026 19:41:14.7042");
 
-        assert!(
-            parse_line(br#"10/31/2026 19:41:14.704-4  SPELL_CAST_START,Player-1,"Mage,0x511,0"#)
-                .is_err()
-        );
-        assert!(
-            parse_line(b"10/31/2026 19:41:14.704-4  COMBATANT_INFO,Player-1,[1,(2,3]").is_err()
-        );
+        for line in [
+            &br#"10/31/2026 19:41:14.704-4  SPELL_CAST_START,Player-1,"Mage,0x511,0"#[..],
+            &b"10/31/2026 19:41:14.704-4  COMBATANT_INFO,Player-1,[1,(2,3]"[..],
+        ] {
+            let event = parse_line(line).unwrap().unwrap();
+            let payload = serde_json::to_value(event).unwrap();
+            assert_eq!(payload["event"]["type"], "MALFORMED_EVENT");
+            assert_eq!(
+                payload["event"]["data"]["raw_bytes"],
+                serde_json::json!(line.to_vec())
+            );
+        }
     }
 
     #[test]

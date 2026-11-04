@@ -60,22 +60,34 @@ The daemon sends one JSON text frame for each recognized combat-log event. The c
 ```json
 {
   "timestamp": "10/28 15:04:05.123",
-  "event": "SPELL_DAMAGE",
-  "fields": ["Player-1", "Mage", "0x511", "0", "Creature-2", "Target", "0x10", "0", "1234", "Fireball"],
-  "source_guid": "Player-1",
-  "source_name": "Mage",
-  "dest_guid": "Creature-2",
-  "dest_name": "Target",
-  "spell_id": "1234",
-  "spell_name": "Fireball",
-  "amount": "250"
+  "event": {
+    "type": "SPELL_DAMAGE",
+    "data": {
+      "header": {
+        "source_guid": "Player-1",
+        "source_name": "Mage",
+        "source_flags": 1297,
+        "source_raid_flags": 0,
+        "dest_guid": "Creature-2",
+        "dest_name": "Target",
+        "dest_flags": 16,
+        "dest_raid_flags": 0
+      },
+      "spell": {
+        "spell_id": "1234",
+        "spell_name": "Fireball",
+        "spell_school": 4
+      },
+      "base_amount": 250
+    }
+  },
+  "fields": ["Player-1", "Mage", "0x511", "0", "Creature-2", "Target", "0x10", "0", "1234", "Fireball"]
 }
 ```
 
-- `timestamp`, `event`, and each non-null field are strings. `fields` is an ordered array of strings or `null`; `"nil"` input fields become `null`.
-- `decoded_fields` is an additional object generated from `combat-log-spec.yml`. It names documented event fields and converts numeric, boolean, hexadecimal, and nested combatant values; the raw `fields` array remains lossless.
-- `source_guid`, `source_name`, `dest_guid`, `dest_name`, `spell_id`, `spell_name`, and `amount` are optional string fields and are omitted when absent. JSON uses the exact snake_case names shown.
-- IDs remain strings at the boundary. Do not assume every combat-log ID fits a numeric type or discard the original `fields`.
+- `timestamp` and `event.type` are strings. `event.data` is a typed object specific to `event.type`; models share `header`, `spell`, and optional `advanced_block` structures where applicable.
+- `fields` is an ordered array of strings or `null`; `"nil"` input fields become `null`. It preserves raw event data losslessly alongside the typed event.
+- IDs, including spell, encounter, map, and GUID values, remain strings at the boundary. Do not assume every combat-log ID fits a numeric type or discard the original `fields`.
 - `timestamp` is the original timestamp from the combat log, not a synchronized UTC timestamp or a daemon-generated clock value.
 - Encounter and combat signals arrive as ordinary events, such as `ENCOUNTER_START`, `ENCOUNTER_END`, `PLAYER_REGEN_DISABLED`, and `PLAYER_REGEN_ENABLED`. The current protocol has no separate phase-trigger or entity-template fields.
 
@@ -94,5 +106,6 @@ Treat this shape as the current contract, not a promise that all future events h
 ## Validation
 
 - Daemon: run `cargo test` from `daemon/`.
-- Client: run `./gradlew :desktopApp:build` from `client/` and relevant tests.
-- For protocol changes, validate both services and test the serialized payload across the boundary.
+- Client: do not run client tests unless the user explicitly requests them.
+- For client changes, run `./gradlew :desktopApp:build` from `client/` only when build validation is needed; do not invoke test tasks as part of the build.
+- For protocol changes, validate the serialized payload across the boundary without running client tests unless the user explicitly requests them.

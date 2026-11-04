@@ -1,7 +1,6 @@
 package com.cacaosd.wowtelemetry.client
 
-import com.cacaosd.wowtelemetry.domain.CombatEvent
-import com.cacaosd.wowtelemetry.domain.ProcessCombatEventUseCase
+import com.cacaosd.wowtelemetry.domain.*
 import io.ktor.client.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,12 +33,27 @@ class TelemetryViewModel(
     private fun CombatEvent.toSummary(): String = buildString {
         append(timestamp)
         append(' ')
-        append(event)
-        spellId?.let {
+        append(event.type)
+        when (val typedEvent = event) {
+            is UnrecognizedEventEvent -> {
+                append(" eventName=")
+                append(typedEvent.eventName)
+            }
+
+            is MalformedEventEvent -> {
+                append(" reason=")
+                append(typedEvent.reason)
+                append(" rawBytes=")
+                append(typedEvent.rawBytes.size)
+            }
+
+            else -> Unit
+        }
+        (event as? HasSpellPrefix)?.spell?.spellId?.let {
             append(" spellId=")
             append(it)
         }
-        amount?.let {
+        (event as? HasBaseAmount)?.baseAmount?.let {
             append(" amount=")
             append(it)
         }

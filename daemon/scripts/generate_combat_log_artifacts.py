@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Generate Rust event metadata and JSON artifacts from combat-log-spec.yml."""
+"""Generate Rust/Kotlin event models and JSON artifacts from combat-log-spec.yml."""
 
 import argparse
 import datetime
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -12,10 +13,14 @@ import yaml
 
 
 ROOT = Path(__file__).resolve().parents[1]
+WORKSPACE = ROOT.parent
 SPEC_PATH = ROOT / "resources" / "combat-log-spec.yml"
 RUST_PATH = ROOT / "src" / "spec_events.rs"
+TYPED_RUST_PATH = ROOT / "src" / "typed_events.rs"
 JSON_SPEC_PATH = ROOT / "resources" / "combat-log-spec.json"
 EVENT_SCHEMA_PATH = ROOT / "resources" / "combat-log-event.schema.json"
+KOTLIN_DOMAIN_PATH = WORKSPACE / "client/domain/src/commonMain/kotlin/com/cacaosd/wowtelemetry/domain/CombatLogEvent.kt"
+KOTLIN_DECODER_PATH = WORKSPACE / "client/data/src/commonMain/kotlin/com/cacaosd/wowtelemetry/data/network/CombatLogEventDecoder.kt"
 ADDITIONAL_EVENTS = ("PLAYER_REGEN_DISABLED", "PLAYER_REGEN_ENABLED")
 UNIT_BLOCK_FIELDS = (
     ("guid", "string"),
@@ -41,6 +46,29 @@ FIELD_TYPE_VARIANTS = {
     "integer_array": "IntegerArray",
     "bracket_value": "BracketValue",
 }
+COMMON_HEADER_FIELDS = (
+    "source_guid",
+    "source_name",
+    "source_flags",
+    "source_raid_flags",
+    "dest_guid",
+    "dest_name",
+    "dest_flags",
+    "dest_raid_flags",
+)
+SPELL_PREFIX_FIELDS = ("spell_id", "spell_name", "spell_school")
+KOTLIN_KEYWORDS = {
+    "as", "break", "class", "continue", "do", "else", "false", "for", "fun",
+    "if", "in", "interface", "is", "null", "object", "package", "return",
+    "super", "this", "throw", "true", "try", "typealias", "typeof", "val",
+    "var", "when", "while",
+}
+
+
+def advanced_field_names(spec):
+    return tuple(
+        field["name"] for field in spec["advanced_logging_block"]["fields"]
+    )
 
 
 def inherits(events, event_name, property_name):
@@ -323,47 +351,173 @@ def render_rust(spec):
 
 def render_event_schema(spec):
     event_names = list(spec["events"]) + list(ADDITIONAL_EVENTS)
-    decoded_properties = {}
     json_types = {
-        "integer": ["integer", "string", "null"],
-        "long": ["integer", "string", "null"],
-        "float": ["number", "string", "null"],
-        "hex_uint32": ["integer", "string", "null"],
-        "hex_bitfield": ["integer", "string", "null"],
-        "bool_or_nil": ["boolean", "string", "null"],
-        "boolean_int": ["boolean", "string", "null"],
-        "integer_array": ["array", "string", "null"],
-        "bracket_value": ["array", "string", "null"],
+        "integer": ["integer", "null"],
+        "long": ["integer", "null"],
+        "float": ["number", "null"],
+        "hex_uint32": ["integer", "null"],
+        "hex_bitfield": ["integer", "null"],
+        "bool_or_nil": ["boolean", "null"],
+        "boolean_int": ["boolean", "null"],
+        "integer_array": ["array", "object", "string", "number", "boolean", "null"],
+        "bracket_value": ["array", "object", "string", "number", "boolean", "null"],
         "string": ["string", "null"],
         "quoted_string": ["string", "null"],
     }
-    for event_name in spec["events"]:
-        fields, _, _ = event_fields(spec, event_name)
-        for _, name, field_type, _, _ in fields:
-            decoded_properties[name] = {
-                "type": json_types.get(field_type, ["string", "null"]),
-                "description": f"Decoded {field_type} field from the combat-log specification.",
-            }
-    decoded_properties["advanced_block_unit"] = {
-        "type": "string",
-        "enum": ["source", "target"],
-        "description": "Unit described by the optional advanced logging block.",
+    common_types = {
+        field["name"]: field["type"]
+        for field in spec["common_header"]["fields"][1:]
     }
+    spell_types = {field["name"]: field["type"] for field in spec["spell_prefix"]["fields"]}
+    advanced_types = {field["name"]: field["type"] for field in spec["advanced_logging_block"]["fields"]}
+
+    def field_schema(name, field_type):
+        types = ["string", "null"] if is_identifier_field(name) else json_types[field_type]
+        if name in ("affixes", "pvp_talents"):
+            return {
+                "type": ["array", "null"],
+                "items": {"type": ["integer", "null"]},
+            }
+        if name == "talents":
+            return {
+                "type": ["array", "null"],
+                "items": {
+                    "type": "array",
+                    "items": {"type": ["integer", "null"]},
+                },
+            }
+        if name == "gear":
+            return {
+                "type": ["array", "null"],
+                "items": {
+                    "type": "array",
+                    "prefixItems": [
+                        {"type": ["integer", "null"]},
+                        {"type": ["integer", "null"]},
+                        {"type": "array", "items": {"type": ["integer", "null"]}},
+                        {"type": "array", "items": {"type": ["integer", "null"]}},
+                        {"type": "array", "items": {"type": ["integer", "null"]}},
+                    ],
+                    "minItems": 5,
+                    "maxItems": 5,
+                },
+            }
+        if name == "active_auras":
+            return {
+                "type": ["array", "null"],
+                "items": {"type": "array"},
+            }
+        return {"type": types}
+
+    def object_schema(fields):
+        return {
+            "type": "object",
+            "properties": {
+                name: field_schema(name, field_type)
+                for name, field_type in fields
+            },
+            "additionalProperties": False,
+        }
+
+    definitions = {
+        "common_header": object_schema([
+            (name, common_types[name]) for name in COMMON_HEADER_FIELDS
+        ]),
+        "spell_prefix": object_schema([
+            (name, spell_types[name]) for name in SPELL_PREFIX_FIELDS
+        ]),
+        "advanced_block": object_schema(
+            [("unit", "string")]
+            + [
+                (name, advanced_types[name])
+                for name in advanced_field_names(spec)
+            ]
+        ),
+    }
+
+    event_variants = []
+    for event_name in event_names:
+        has_header, has_spell, advanced_fields, extra_fields = (
+            event_model(spec, event_name)
+            if event_name in spec["events"]
+            else (False, False, [], [])
+        )
+        data_properties = {}
+        if has_header:
+            data_properties["header"] = {"$ref": "#/$defs/common_header"}
+        if has_spell:
+            data_properties["spell"] = {"$ref": "#/$defs/spell_prefix"}
+        if advanced_fields:
+            data_properties["advanced_block"] = {
+                "oneOf": [
+                    {"$ref": "#/$defs/advanced_block"},
+                    {"type": "null"},
+                ]
+            }
+        data_properties.update({
+            field[1]: field_schema(field[1], field[2])
+            for field in extra_fields
+        })
+        event_variants.append({
+            "type": "object",
+            "required": ["type", "data"],
+            "properties": {
+                "type": {"const": event_name},
+                "data": {
+                    "type": "object",
+                    "properties": data_properties,
+                    "additionalProperties": False,
+                },
+            },
+            "additionalProperties": False,
+        })
+    event_variants.extend([
+        {
+            "type": "object",
+            "required": ["type", "data"],
+            "properties": {
+                "type": {"const": "UNRECOGNIZED_EVENT"},
+                "data": object_schema([("event_name", "string")]),
+            },
+            "additionalProperties": False,
+        },
+        {
+            "type": "object",
+            "required": ["type", "data"],
+            "properties": {
+                "type": {"const": "MALFORMED_EVENT"},
+                "data": {
+                    "type": "object",
+                    "properties": {
+                        "reason": {"type": "string"},
+                        "raw_bytes": {
+                            "type": "array",
+                            "items": {"type": "integer", "minimum": 0, "maximum": 255},
+                        },
+                    },
+                    "required": ["reason", "raw_bytes"],
+                    "additionalProperties": False,
+                },
+            },
+            "additionalProperties": False,
+        },
+    ])
     return json.dumps(
         {
             "$schema": "https://json-schema.org/draft/2020-12/schema",
             "$id": "https://github.com/cagdasc/wow-telemetry-daemon/blob/main/daemon/resources/combat-log-event.schema.json",
             "title": "WoW Telemetry Combat Event",
             "description": (
-                "WebSocket event emitted by the daemon. Raw fields preserve the "
-                "CSV values as strings; nil values become null."
+                "WebSocket event emitted by the daemon. The event is a tagged, "
+                "typed payload; fields preserves raw CSV values losslessly."
             ),
+            "$defs": definitions,
             "type": "object",
             "additionalProperties": False,
             "required": ["timestamp", "event", "fields"],
             "properties": {
                 "timestamp": {"type": "string"},
-                "event": {"type": "string", "enum": event_names},
+                "event": {"oneOf": event_variants},
                 "fields": {
                     "type": "array",
                     "items": {"type": ["string", "null"]},
@@ -372,38 +526,605 @@ def render_event_schema(spec):
                         "strings regardless of their source type in the combat log."
                     ),
                 },
-                "decoded_fields": {
-                    "type": "object",
-                    "description": (
-                        "Known event fields decoded by the YAML specification. "
-                        "Fields not named by the spec remain losslessly available "
-                        "in fields."
-                    ),
-                    "properties": decoded_properties,
-                    "additionalProperties": {
-                        "type": [
-                            "string",
-                            "integer",
-                            "number",
-                            "boolean",
-                            "null",
-                            "array",
-                            "object",
-                        ]
-                    },
-                },
-                "source_guid": {"type": "string"},
-                "source_name": {"type": "string"},
-                "dest_guid": {"type": "string"},
-                "dest_name": {"type": "string"},
-                "spell_id": {"type": "string"},
-                "spell_name": {"type": "string"},
-                "amount": {"type": "string"},
             },
         },
         indent=2,
         ensure_ascii=False,
     ) + "\n"
+
+
+def event_model(spec, event_name):
+    events = spec["events"]
+    fields, _, _ = event_fields(spec, event_name)
+    no_source_target = inherits(events, event_name, "noSourceTarget") is True
+    has_spell_prefix = inherits(events, event_name, "hasSpellPrefix")
+    if has_spell_prefix is None:
+        has_spell_prefix = inherits(events, event_name, "prefix") == "spell_prefix"
+    non_standard_header = (
+        event_name.startswith(("SPELL_", "RANGE_"))
+        and not has_spell_prefix
+        and not no_source_target
+    )
+    has_header = not no_source_target and not non_standard_header
+    advanced_fields = []
+    extra_fields = []
+    seen_advanced = set()
+    seen_extra = set()
+    for field in fields:
+        if field[3] and field[1] not in seen_advanced:
+            advanced_fields.append(field)
+            seen_advanced.add(field[1])
+        elif (
+            not field[3]
+            and field[1] not in COMMON_HEADER_FIELDS
+            and field[1] not in SPELL_PREFIX_FIELDS
+            and field[1] not in seen_extra
+        ):
+            extra_fields.append(field)
+            seen_extra.add(field[1])
+    return has_header, has_spell_prefix, advanced_fields, extra_fields
+
+
+def is_identifier_field(name):
+    return name.endswith(("_id", "_guid")) or name in ("id", "guid")
+
+
+def rust_field_type(name, field_type):
+    if is_identifier_field(name):
+        return "String"
+    if name in ("affixes", "pvp_talents"):
+        return "Vec<Option<i64>>"
+    if name == "talents":
+        return "Vec<TalentEntry>"
+    if name == "gear":
+        return "Vec<GearSlot>"
+    if name == "active_auras":
+        return "Vec<Vec<Value>>"
+    return {
+        "string": "String",
+        "quoted_string": "String",
+        "integer": "i64",
+        "long": "i64",
+        "float": "f64",
+        "hex_uint32": "u32",
+        "hex_bitfield": "u64",
+        "bool_or_nil": "bool",
+        "boolean_int": "bool",
+        "integer_array": "Value",
+        "bracket_value": "Value",
+    }[field_type]
+
+
+def rust_string_slice(values):
+    return "&[" + ", ".join(f'"{value}"' for value in values) + "]"
+
+
+def kotlin_field_type(name, field_type):
+    if is_identifier_field(name):
+        return "String?"
+    if name in ("affixes", "pvp_talents"):
+        return "List<Long?>?"
+    if name == "talents":
+        return "List<TalentEntry>?"
+    if name == "gear":
+        return "List<GearSlot>?"
+    if name == "active_auras":
+        return "List<List<JsonElement>>?"
+    return {
+        "string": "String?",
+        "quoted_string": "String?",
+        "integer": "Long?",
+        "long": "Long?",
+        "float": "Double?",
+        "hex_uint32": "Long?",
+        "hex_bitfield": "Long?",
+        "bool_or_nil": "Boolean?",
+        "boolean_int": "Boolean?",
+        "integer_array": "JsonElement?",
+        "bracket_value": "JsonElement?",
+    }[field_type]
+
+
+def camel_case(name):
+    parts = name.split("_")
+    result = parts[0] + "".join(part[:1].upper() + part[1:] for part in parts[1:])
+    return f"`{result}`" if result in KOTLIN_KEYWORDS else result
+
+
+def pascal_case(name):
+    return "".join(part[:1].upper() + part[1:].lower() for part in name.split("_"))
+
+
+def render_rust_typed_events(spec):
+    names = list(spec["events"]) + list(ADDITIONAL_EVENTS)
+    models = {
+        name: event_model(spec, name) if name in spec["events"] else (
+            False, False, [], [],
+        )
+        for name in names
+    }
+    lines = [
+        "// Generated by scripts/generate_combat_log_artifacts.py; do not edit.",
+        "use serde::{Deserialize, Serialize};",
+        "use serde_json::{Map, Value, json};",
+        "",
+        "#[derive(Debug, Deserialize, Serialize)]",
+        "pub struct CommonHeader {",
+    ]
+    common_types = {
+        field["name"]: field["type"]
+        for field in spec["common_header"]["fields"][1:]
+    }
+    for name in COMMON_HEADER_FIELDS:
+        lines.append(f"    pub {name}: Option<{rust_field_type(name, common_types[name])}>,")
+    lines.extend(["}", "", "#[derive(Debug, Deserialize, Serialize)]", "pub struct SpellPrefix {"])
+    spell_types = {field["name"]: field["type"] for field in spec["spell_prefix"]["fields"]}
+    for name in SPELL_PREFIX_FIELDS:
+        lines.append(f"    pub {name}: Option<{rust_field_type(name, spell_types[name])}>,")
+    lines.extend(["}", "", "#[derive(Debug, Deserialize, Serialize)]", "pub struct AdvancedLoggingBlock {"])
+    advanced_types = {field["name"]: field["type"] for field in spec["advanced_logging_block"]["fields"]}
+    lines.append("    pub unit: Option<String>,")
+    for name in advanced_field_names(spec):
+        lines.append(f"    pub {name}: Option<{rust_field_type(name, advanced_types[name])}>,")
+    lines.extend(["}", ""])
+    lines.extend([
+        "#[derive(Debug, Deserialize, Serialize)]",
+        "pub struct TalentEntry(",
+        "    pub Option<i64>,",
+        "    pub Option<i64>,",
+        "    pub Option<i64>,",
+        ");",
+        "",
+        "#[derive(Debug, Deserialize, Serialize)]",
+        "pub struct GearSlot(",
+        "    pub Option<i64>,",
+        "    pub Option<i64>,",
+        "    pub Vec<Option<i64>>,",
+        "    pub Vec<Option<i64>>,",
+        "    pub Vec<Option<i64>>,",
+        ");",
+        "",
+    ])
+
+    for name in names:
+        has_header, has_spell, advanced_fields, extra_fields = models[name]
+        lines.extend([
+            "#[derive(Debug, Deserialize, Serialize)]",
+            f"pub struct {pascal_case(name)}EventData {{",
+        ])
+        if has_header:
+            lines.append("    pub header: CommonHeader,")
+        if has_spell:
+            lines.append("    pub spell: SpellPrefix,")
+        if advanced_fields:
+            lines.append("    pub advanced_block: Option<AdvancedLoggingBlock>,")
+        for _, field_name, field_type, _, _ in extra_fields:
+            lines.append(
+                f"    pub {field_name}: Option<{rust_field_type(field_name, field_type)}>,"
+            )
+        lines.extend(["}", ""])
+    lines.extend([
+        "#[derive(Debug, Deserialize, Serialize)]",
+        "pub struct UnrecognizedEventEventData {",
+        "    pub event_name: String,",
+        "}",
+        "",
+        "#[derive(Debug, Deserialize, Serialize)]",
+        "pub struct MalformedEventEventData {",
+        "    pub reason: String,",
+        "    pub raw_bytes: Vec<u8>,",
+        "}",
+        "",
+    ])
+    lines.extend([
+        "#[derive(Debug, Deserialize, Serialize)]",
+        "#[serde(tag = \"type\", content = \"data\")]",
+        "pub enum TypedCombatLogEvent {",
+    ])
+    for name in names:
+        lines.append(
+            f'    #[serde(rename = "{name}")] {pascal_case(name)}({pascal_case(name)}EventData),'
+        )
+    lines.extend([
+        '    #[serde(rename = "UNRECOGNIZED_EVENT")] UnrecognizedEvent(UnrecognizedEventEventData),',
+        '    #[serde(rename = "MALFORMED_EVENT")] MalformedEvent(MalformedEventEventData),',
+    ])
+    lines.extend(["}", "", "impl TypedCombatLogEvent {", "    pub fn event_name(&self) -> &'static str {", "        match self {"])
+    for name in names:
+        lines.append(
+            f'            Self::{pascal_case(name)}(_) => "{name}",'
+        )
+    lines.extend([
+        '            Self::UnrecognizedEvent(_) => "UNRECOGNIZED_EVENT",',
+        '            Self::MalformedEvent(_) => "MALFORMED_EVENT",',
+    ])
+    lines.extend(["        }", "    }", "}", ""])
+    lines.extend([
+        "fn move_fields(source: &mut Map<String, Value>, target: &mut Map<String, Value>, names: &[&str]) {",
+        "    for name in names {",
+        "        if let Some(value) = source.remove(*name) {",
+        "            target.insert((*name).to_owned(), value);",
+        "        }",
+        "    }",
+        "}",
+        "",
+        "pub fn from_decoded(",
+        "    event_name: &str,",
+        "    mut decoded_fields: Map<String, Value>,",
+        ") -> Result<TypedCombatLogEvent, serde_json::Error> {",
+        "    let mut data = Map::new();",
+        "    match event_name {",
+    ])
+    for name in names:
+        has_header, has_spell, advanced_fields, extra_fields = models[name]
+        lines.append(f'        "{name}" => {{')
+        if has_header:
+            lines.append("            let mut header = Map::new();")
+            lines.append(
+                f"            move_fields(&mut decoded_fields, &mut header, {rust_string_slice(COMMON_HEADER_FIELDS)});"
+            )
+            lines.append('            data.insert("header".to_owned(), Value::Object(header));')
+        if has_spell:
+            lines.append("            let mut spell = Map::new();")
+            lines.append(
+                f"            move_fields(&mut decoded_fields, &mut spell, {rust_string_slice(SPELL_PREFIX_FIELDS)});"
+            )
+            lines.append('            data.insert("spell".to_owned(), Value::Object(spell));')
+        if advanced_fields:
+            lines.append("            let mut advanced = Map::new();")
+            advanced_names = tuple(field[1] for field in advanced_fields)
+            lines.append(
+                f"            move_fields(&mut decoded_fields, &mut advanced, {rust_string_slice(advanced_names)});"
+            )
+            lines.append('            if let Some(unit) = decoded_fields.remove("advanced_block_unit") {')
+            lines.append('                advanced.insert("unit".to_owned(), unit);')
+            lines.append("            }")
+            lines.append("            if !advanced.is_empty() {")
+            lines.append('                data.insert("advanced_block".to_owned(), Value::Object(advanced));')
+            lines.append("            }")
+        extra_names = tuple(field[1] for field in extra_fields)
+        if extra_names:
+            lines.append(
+                f"            move_fields(&mut decoded_fields, &mut data, {rust_string_slice(extra_names)});"
+            )
+        lines.extend(["        }"])
+    lines.extend([
+        '        _ => return Ok(TypedCombatLogEvent::UnrecognizedEvent(UnrecognizedEventEventData { event_name: event_name.to_owned() })),',
+        "    }",
+        "    serde_json::from_value(json!({",
+        '        "type": event_name,',
+        '        "data": Value::Object(data),',
+        "    }))",
+        "}",
+        "",
+    ])
+    return "\n".join(lines)
+
+
+def render_kotlin_domain_models(spec):
+    names = list(spec["events"]) + list(ADDITIONAL_EVENTS)
+    models = {
+        name: event_model(spec, name) if name in spec["events"] else (
+            False, False, [], [],
+        )
+        for name in names
+    }
+    lines = [
+        "// Generated by scripts/generate_combat_log_artifacts.py; do not edit.",
+        "package com.cacaosd.wowtelemetry.domain",
+        "",
+        "import kotlinx.serialization.json.JsonElement",
+        "",
+        "sealed interface CombatLogEvent {",
+        "    val type: String",
+        "}",
+        "",
+        "data class CommonHeader(",
+    ]
+    common_types = {
+        field["name"]: field["type"]
+        for field in spec["common_header"]["fields"][1:]
+    }
+    for name in COMMON_HEADER_FIELDS:
+        lines.append(f"    val {camel_case(name)}: {kotlin_field_type(name, common_types[name])},")
+    lines.extend([
+        ")",
+        "",
+        "interface HasCommonHeader {",
+        "    val header: CommonHeader",
+        "}",
+        "",
+        "interface HasSpellPrefix {",
+        "    val spell: SpellPrefix",
+        "}",
+        "",
+        "interface HasBaseAmount {",
+        "    val baseAmount: Long?",
+        "}",
+        "",
+        "data class SpellPrefix(",
+    ])
+    spell_types = {field["name"]: field["type"] for field in spec["spell_prefix"]["fields"]}
+    for name in SPELL_PREFIX_FIELDS:
+        lines.append(f"    val {camel_case(name)}: {kotlin_field_type(name, spell_types[name])},")
+    lines.extend([")", "", "data class AdvancedLoggingBlock("])
+    lines.append("    val unit: String?,")
+    advanced_types = {field["name"]: field["type"] for field in spec["advanced_logging_block"]["fields"]}
+    for name in advanced_field_names(spec):
+        lines.append(f"    val {camel_case(name)}: {kotlin_field_type(name, advanced_types[name])},")
+    lines.extend([
+        ")",
+        "",
+        "data class TalentEntry(",
+        "    val nodeId: Long?,",
+        "    val entryId: Long?,",
+        "    val rank: Long?,",
+        ")",
+        "",
+        "data class GearSlot(",
+        "    val itemId: Long?,",
+        "    val itemLevel: Long?,",
+        "    val enchants: List<Long?>,",
+        "    val bonusIds: List<Long?>,",
+        "    val gems: List<Long?>,",
+        ")",
+        "",
+    ])
+
+    for name in names:
+        has_header, has_spell, advanced_fields, extra_fields = models[name]
+        class_name = f"{pascal_case(name)}Event"
+        has_base_amount = any(field[1] == "base_amount" for field in extra_fields)
+        interfaces = ["CombatLogEvent"]
+        if has_header:
+            interfaces.append("HasCommonHeader")
+        if has_spell:
+            interfaces.append("HasSpellPrefix")
+        if has_base_amount:
+            interfaces.append("HasBaseAmount")
+        if not (has_header or has_spell or advanced_fields or extra_fields):
+            lines.extend([
+                f"data object {class_name} : {', '.join(interfaces)} {{",
+                f'    override val type: String = "{name}"',
+                "}",
+                "",
+            ])
+            continue
+        lines.append(f"data class {class_name}(")
+        if has_header:
+            lines.append("    override val header: CommonHeader,")
+        if has_spell:
+            lines.append("    override val spell: SpellPrefix,")
+        if advanced_fields:
+            lines.append("    val advancedBlock: AdvancedLoggingBlock?,")
+        for _, field_name, field_type, _, _ in extra_fields:
+            lines.append(
+                f"    {'override ' if field_name == 'base_amount' else ''}val {camel_case(field_name)}: {kotlin_field_type(field_name, field_type)},"
+            )
+        if has_header or has_spell or advanced_fields or extra_fields:
+            lines[-1] = lines[-1].removesuffix(",")
+        lines.extend([
+            f") : {', '.join(interfaces)} {{",
+            f'    override val type: String = "{name}"',
+            "}",
+            "",
+        ])
+    lines.extend([
+        "data class UnrecognizedEventEvent(",
+        "    val eventName: String,",
+        ") : CombatLogEvent {",
+        '    override val type: String = "UNRECOGNIZED_EVENT"',
+        "}",
+        "",
+        "data class MalformedEventEvent(",
+        "    val reason: String,",
+        "    val rawBytes: List<Int>,",
+        ") : CombatLogEvent {",
+        '    override val type: String = "MALFORMED_EVENT"',
+        "}",
+        "",
+    ])
+    return "\n".join(lines)
+
+
+def kotlin_decoder_expression(name, field_type, receiver="data"):
+    field = camel_case(name)
+    if name in ("affixes", "pvp_talents"):
+        return f'{receiver}.optionalLongList("{name}")'
+    if name == "talents":
+        return f'{receiver}.optionalTalentEntries("{name}")'
+    if name == "gear":
+        return f'{receiver}.optionalGearSlots("{name}")'
+    if name == "active_auras":
+        return f'{receiver}.optionalNestedJsonList("{name}")'
+    if is_identifier_field(name) or field_type in ("string", "quoted_string"):
+        return f'{receiver}.optionalString("{name}")'
+    if field_type in ("integer", "long", "hex_uint32", "hex_bitfield"):
+        return f'{receiver}.optionalLong("{name}")'
+    if field_type == "float":
+        return f'{receiver}.optionalDouble("{name}")'
+    if field_type in ("bool_or_nil", "boolean_int"):
+        return f'{receiver}.optionalBoolean("{name}")'
+    return f'{receiver}.optionalJsonElement("{name}")'
+
+
+def render_kotlin_decoder(spec):
+    names = list(spec["events"]) + list(ADDITIONAL_EVENTS)
+    models = {
+        name: event_model(spec, name) if name in spec["events"] else (
+            False, False, [], [],
+        )
+        for name in names
+    }
+    lines = [
+        "// Generated by scripts/generate_combat_log_artifacts.py; do not edit.",
+        "package com.cacaosd.wowtelemetry.data.network",
+        "",
+        "import com.cacaosd.wowtelemetry.domain.*",
+        "import kotlinx.serialization.json.JsonElement",
+        "import kotlinx.serialization.json.JsonArray",
+        "import kotlinx.serialization.json.JsonNull",
+        "import kotlinx.serialization.json.JsonObject",
+        "import kotlinx.serialization.json.JsonPrimitive",
+        "import kotlinx.serialization.json.booleanOrNull",
+        "import kotlinx.serialization.json.doubleOrNull",
+        "import kotlinx.serialization.json.intOrNull",
+        "import kotlinx.serialization.json.longOrNull",
+        "",
+        "internal fun decodeCombatLogEvent(type: String, data: JsonObject): CombatLogEvent = when (type) {",
+    ]
+    for name in names:
+        has_header, has_spell, advanced_fields, extra_fields = models[name]
+        args = []
+        if has_header:
+            args.append('header = data.requiredObject("header").decodeHeader()')
+        if has_spell:
+            args.append('spell = data.requiredObject("spell").decodeSpellPrefix()')
+        if advanced_fields:
+            args.append('advancedBlock = data.optionalObject("advanced_block")?.decodeAdvancedBlock()')
+        for _, field_name, field_type, _, _ in extra_fields:
+            args.append(f"{camel_case(field_name)} = {kotlin_decoder_expression(field_name, field_type)}")
+        if args:
+            lines.append(f'    "{name}" -> {pascal_case(name)}Event(')
+            lines.extend(f"        {argument}," for argument in args)
+            lines.append("    )")
+        else:
+            lines.append(f'    "{name}" -> {pascal_case(name)}Event')
+    lines.extend([
+        '    "UNRECOGNIZED_EVENT" -> UnrecognizedEventEvent(data.requiredString("event_name"))',
+        '    "MALFORMED_EVENT" -> MalformedEventEvent(',
+        '        reason = data.requiredString("reason"),',
+        '        rawBytes = data.requiredIntList("raw_bytes"),',
+        "    )",
+    ])
+    lines.extend([
+        '    else -> throw CombatEventDecodeException("Unknown event type: $type")',
+        "}",
+        "",
+        "private fun JsonObject.decodeHeader() = CommonHeader(",
+    ])
+    common_types = {
+        field["name"]: field["type"]
+        for field in spec["common_header"]["fields"][1:]
+    }
+    for name in COMMON_HEADER_FIELDS:
+        lines.append(
+            f'    {camel_case(name)} = {kotlin_decoder_expression(name, common_types[name], "this")},'
+        )
+    lines.extend([")", "", "private fun JsonObject.decodeSpellPrefix() = SpellPrefix("])
+    spell_types = {field["name"]: field["type"] for field in spec["spell_prefix"]["fields"]}
+    for name in SPELL_PREFIX_FIELDS:
+        lines.append(
+            f'    {camel_case(name)} = {kotlin_decoder_expression(name, spell_types[name], "this")},'
+        )
+    lines.extend([")", "", "private fun JsonObject.decodeAdvancedBlock() = AdvancedLoggingBlock("])
+    lines.append('    unit = optionalString("unit"),')
+    advanced_types = {field["name"]: field["type"] for field in spec["advanced_logging_block"]["fields"]}
+    for name in advanced_field_names(spec):
+        lines.append(
+            f'    {camel_case(name)} = {kotlin_decoder_expression(name, advanced_types[name], "this")},'
+        )
+    lines.extend([
+        ")",
+        "",
+        'private fun JsonObject.requiredString(name: String): String =',
+        "    (this[name] as? JsonPrimitive)?.takeIf { it.isString }?.content",
+        '        ?: throw CombatEventDecodeException("\'$name\' must be a string")',
+        "",
+        'private fun JsonObject.requiredObject(name: String): JsonObject =',
+        "    this[name] as? JsonObject",
+        "        ?: throw CombatEventDecodeException(\"Event data must include object '$name'\")",
+        "",
+        'private fun JsonObject.optionalObject(name: String): JsonObject? = when (val value = this[name]) {',
+        "    null, JsonNull -> null",
+        "    is JsonObject -> value",
+        "    else -> throw CombatEventDecodeException(\"'$name' must be an object or null\")",
+        "}",
+        "",
+        'private fun JsonObject.optionalString(name: String): String? = when (val value = this[name]) {',
+        "    null, JsonNull -> null",
+        "    is JsonPrimitive -> if (value.isString) value.content else throw CombatEventDecodeException(\"'$name' must be a string or null\")",
+        "    else -> throw CombatEventDecodeException(\"'$name' must be a string or null\")",
+        "}",
+        "",
+        'private fun JsonObject.optionalLong(name: String): Long? = when (val value = this[name]) {',
+        "    null, JsonNull -> null",
+        "    is JsonPrimitive -> if (!value.isString) value.longOrNull ?: throw CombatEventDecodeException(\"'$name' must be an integer or null\") else throw CombatEventDecodeException(\"'$name' must be an integer or null\")",
+        "    else -> throw CombatEventDecodeException(\"'$name' must be an integer or null\")",
+        "}",
+        "",
+        'private fun JsonObject.optionalDouble(name: String): Double? = when (val value = this[name]) {',
+        "    null, JsonNull -> null",
+        "    is JsonPrimitive -> if (!value.isString) value.doubleOrNull ?: throw CombatEventDecodeException(\"'$name' must be a number or null\") else throw CombatEventDecodeException(\"'$name' must be a number or null\")",
+        "    else -> throw CombatEventDecodeException(\"'$name' must be a number or null\")",
+        "}",
+        "",
+        'private fun JsonObject.optionalBoolean(name: String): Boolean? = when (val value = this[name]) {',
+        "    null, JsonNull -> null",
+        "    is JsonPrimitive -> if (!value.isString) value.booleanOrNull ?: throw CombatEventDecodeException(\"'$name' must be a boolean or null\") else throw CombatEventDecodeException(\"'$name' must be a boolean or null\")",
+        "    else -> throw CombatEventDecodeException(\"'$name' must be a boolean or null\")",
+        "}",
+        "",
+        'private fun JsonObject.optionalJsonElement(name: String): JsonElement? =',
+        "    this[name]?.takeUnless { it == JsonNull }",
+        "",
+        'private fun JsonObject.requiredIntList(name: String): List<Int> =',
+        "    (this[name] as? JsonArray)?.mapIndexed { index, value ->",
+        '        val number = (value as? JsonPrimitive)?.takeIf { !it.isString }?.intOrNull',
+        '            ?: throw CombatEventDecodeException("\'$name[$index]\' must be an integer")',
+        '        if (number !in 0..255) throw CombatEventDecodeException("\'$name[$index]\' must be a byte value")',
+        "        number",
+        '    } ?: throw CombatEventDecodeException("\'$name\' must be an array")',
+        "",
+        'private fun JsonObject.optionalLongList(name: String): List<Long?>? = when (val value = this[name]) {',
+        "    null, JsonNull -> null",
+        '    is JsonArray -> value.longItems(name)',
+        "    else -> throw CombatEventDecodeException(\"'$name' must be an array or null\")",
+        "}",
+        "",
+        'private fun JsonObject.optionalTalentEntries(name: String): List<TalentEntry>? = when (val value = this[name]) {',
+        "    null, JsonNull -> null",
+        "    is JsonArray -> value.mapIndexed { index, entry ->",
+        "        val fields = entry as? JsonArray ?: throw CombatEventDecodeException(\"'$name[$index]' must be an array\")",
+        "        if (fields.size != 3) throw CombatEventDecodeException(\"'$name[$index]' must contain 3 values\")",
+        '        TalentEntry(fields[0].longItemOrNull("$name[$index][0]"), fields[1].longItemOrNull("$name[$index][1]"), fields[2].longItemOrNull("$name[$index][2]"))',
+        "    }",
+        "    else -> throw CombatEventDecodeException(\"'$name' must be an array or null\")",
+        "}",
+        "",
+        'private fun JsonObject.optionalGearSlots(name: String): List<GearSlot>? = when (val value = this[name]) {',
+        "    null, JsonNull -> null",
+        "    is JsonArray -> value.mapIndexed { index, slot ->",
+        "        val fields = slot as? JsonArray ?: throw CombatEventDecodeException(\"'$name[$index]' must be an array\")",
+        "        if (fields.size != 5) throw CombatEventDecodeException(\"'$name[$index]' must contain 5 values\")",
+        '        GearSlot(fields[0].longItemOrNull("$name[$index][0]"), fields[1].longItemOrNull("$name[$index][1]"), fields[2].longArray("$name[$index][2]"), fields[3].longArray("$name[$index][3]"), fields[4].longArray("$name[$index][4]"))',
+        "    }",
+        "    else -> throw CombatEventDecodeException(\"'$name' must be an array or null\")",
+        "}",
+        "",
+        'private fun JsonObject.optionalNestedJsonList(name: String): List<List<JsonElement>>? = when (val value = this[name]) {',
+        "    null, JsonNull -> null",
+        "    is JsonArray -> value.mapIndexed { index, item ->",
+        "        item as? JsonArray ?: throw CombatEventDecodeException(\"'$name[$index]' must be an array\")",
+        "    }",
+        "    else -> throw CombatEventDecodeException(\"'$name' must be an array or null\")",
+        "}",
+        "",
+        'private fun JsonArray.longItems(field: String): List<Long?> =',
+        '    mapIndexed { index, value -> value.longItemOrNull("$field[$index]") }',
+        "",
+        'private fun JsonElement.longArray(field: String): List<Long?> =',
+        "    (this as? JsonArray)?.longItems(field)",
+        "        ?: throw CombatEventDecodeException(\"'$field' must be an array\")",
+        "",
+        'private fun JsonElement.longItemOrNull(field: String): Long? = when (this) {',
+        "    JsonNull -> null",
+        "    is JsonPrimitive -> if (!isString) longOrNull ?: throw CombatEventDecodeException(\"'$field' must be an integer or null\") else throw CombatEventDecodeException(\"'$field' must be an integer or null\")",
+        "    else -> throw CombatEventDecodeException(\"'$field' must be an integer or null\")",
+        "}",
+        "",
+    ])
+    return "\n".join(lines)
 
 
 def json_safe(value):
@@ -416,11 +1137,27 @@ def json_safe(value):
     return value
 
 
+def format_rust(source):
+    result = subprocess.run(
+        ["rustfmt", "--edition", "2024", "--emit", "stdout"],
+        input=source,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode:
+        raise RuntimeError(f"rustfmt failed: {result.stderr.strip()}")
+    return result.stdout
+
+
 def artifacts(spec):
     return {
         RUST_PATH: render_rust(spec),
+        TYPED_RUST_PATH: format_rust(render_rust_typed_events(spec)),
         JSON_SPEC_PATH: json.dumps(json_safe(spec), indent=2, ensure_ascii=False) + "\n",
         EVENT_SCHEMA_PATH: render_event_schema(spec),
+        KOTLIN_DOMAIN_PATH: render_kotlin_domain_models(spec),
+        KOTLIN_DECODER_PATH: render_kotlin_decoder(spec),
     }
 
 
@@ -441,11 +1178,11 @@ def main():
     for path, content in artifacts(spec).items():
         if args.check:
             if not path.exists() or path.read_text(encoding="utf-8") != content:
-                print(f"out of date: {path.relative_to(ROOT)}", file=sys.stderr)
+                print(f"out of date: {path.relative_to(WORKSPACE)}", file=sys.stderr)
                 failed = True
         else:
             path.write_text(content, encoding="utf-8")
-            print(f"generated {path.relative_to(ROOT)}")
+            print(f"generated {path.relative_to(WORKSPACE)}")
     return 1 if failed else 0
 
 

@@ -2,6 +2,7 @@ mod parser;
 mod spec_events;
 mod state;
 mod tailer;
+mod typed_events;
 mod websocket;
 
 use std::env;
@@ -13,6 +14,7 @@ use std::sync::{Arc, RwLock, mpsc};
 use parser::parse_line;
 use state::State;
 use tailer::TailMessage;
+use typed_events::TypedCombatLogEvent;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut args = env::args_os().skip(1);
@@ -76,6 +78,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
                 match parse_line(&line) {
                     Ok(Some(event)) => {
+                        match &event.typed_event {
+                            TypedCombatLogEvent::UnrecognizedEvent(data) => eprintln!(
+                                "{}:{line_number}: unrecognized event {}",
+                                path.display(),
+                                data.event_name
+                            ),
+                            TypedCombatLogEvent::MalformedEvent(data) => eprintln!(
+                                "{}:{line_number}: malformed event: {}",
+                                path.display(),
+                                data.reason
+                            ),
+                            _ => {}
+                        }
                         state
                             .write()
                             .map_err(|_| io::Error::other("state lock poisoned"))?

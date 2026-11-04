@@ -30,5 +30,5 @@ fun appModule(websocketUrl: String) = module {
         }
     }
     factory { ProcessCombatEventUseCase(get()) }
-    single { TelemetryViewModel(processCombatEvent = get(), httpClient = get(), spellMetadataRepository = get()) }
+    single { TelemetryViewModel(processCombatEvent = get(), httpClient = get()) }
 }

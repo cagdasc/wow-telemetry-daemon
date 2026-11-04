@@ -1,7 +1,7 @@
 # wow-telemetry-daemon
 
-A lightweight sidecar that tails a WoW combat log and writes recognized events as
-JSON Lines to stdout and to connected WebSocket clients.
+A lightweight sidecar that tails a WoW combat log and writes typed combat-log
+events as JSON Lines to stdout and to connected WebSocket clients.
 
 ## Run
 
@@ -13,7 +13,7 @@ The default path is `WoWCombatLog.txt`. The file must exist when the daemon
 starts. It begins at the current end of the file, so existing lines are skipped.
 
 By default, the daemon listens for WebSocket clients at
-`ws://127.0.0.1:8765`. Each recognized event is sent as one JSON text frame,
+`ws://127.0.0.1:8765`. Each log line is sent as one JSON text frame,
 with the same object shape as the stdout JSON Lines output. To choose another
 address:
 
@@ -116,35 +116,36 @@ event data. CSV commas inside quoted fields and doubled quotes are handled.
 The timestamp is retained as written; its format (including local-time UTC
 offsets) is not validated or normalized. Unknown event names are ignored.
 
-Each JSON object includes the timestamp, event name, raw `fields`, typed
-`decoded_fields`, and applicable convenience fields (`source_guid`,
-`source_name`, `dest_guid`, `dest_name`, `spell_id`, `spell_name`, and
-`amount`). `fields` preserves every CSV value after the event name, in order;
-array index 0 corresponds to event offset 1 in the YAML. A YAML `nil` value is
-emitted as JSON `null`. `decoded_fields` names and converts fields defined by
-the specification; unknown or newly appended fields remain available in raw
-`fields`.
+Each JSON object contains `timestamp`, a tagged `event` object, and raw
+`fields`. The event object has `type` and `data` properties. `type` is the
+combat-log event name; `data` contains that event's typed model. Models share
+`header`, `spell`, and optional `advanced_block` objects where the
+specification defines them, plus event-specific fields. IDs such as spell,
+encounter, map, and GUID values remain strings. Numeric combat values use JSON
+numbers. A YAML `nil` value becomes JSON `null`.
 
-The convenience source/target fields follow the common header offsets in the
-spec. Spell ID and name are extracted for `SPELL_*` and `RANGE_*` events with a
-spell prefix, except the special absorption layouts; `SWING_DAMAGE_LANDED_SUPPORT`
-also has that prefix. `amount` uses the documented base-amount suffix for
-spell/swing damage, healing, energize, and `SPELL_ABSORBED` variants.
-Advanced-logging offsets are selected from row width, not the version header.
+`fields` preserves every CSV value after the event name, in order; array index
+0 corresponds to event offset 1 in the YAML. Unknown or newly appended values
+remain available in `fields`. Advanced-logging offsets are selected from row
+width, not the version header.
 
-The YAML specification generates both the parser's per-event field layouts and
-the JSON artifacts. Inherited layouts, variable `SPELL_ABSORBED` forms,
-optional advanced-logging blocks, nested unit/spell blocks, and
-`COMBATANT_INFO` CSV/bracket fields are handled. Numeric, boolean, and
-hexadecimal values are converted in `decoded_fields`; enum values retain their
-numeric form. A mid-log `COMBAT_LOG_VERSION` clears the daemon's event counters
-and combat-active flag before recording the new version event. The daemon does
-not maintain pet ownership, aura, or encounter-analysis state.
+The YAML specification generates the parser's per-event field layouts, Rust
+and Kotlin event models, and JSON schema. Inherited layouts, variable
+`SPELL_ABSORBED` forms, optional advanced-logging blocks, nested unit/spell
+blocks, and `COMBATANT_INFO` CSV/bracket fields are handled. Numeric, boolean,
+and hexadecimal values are converted to their typed event fields. A mid-log
+`COMBAT_LOG_VERSION` clears the daemon's event counters and combat-active flag
+before recording the new version event. The daemon does not maintain pet
+ownership, aura, or encounter-analysis state.
 
 The generated `resources/combat-log-spec.json` mirrors the YAML reference.
-`resources/combat-log-event.schema.json` describes the WebSocket JSON event
-shape. Both it and the parser's event/prefix metadata are generated from the
-YAML specification:
+`resources/combat-log-event.schema.json` describes the WebSocket JSON shape.
+Unknown event names are emitted as `UNRECOGNIZED_EVENT` with their original
+name and parsed fields. Invalid lines are emitted as `MALFORMED_EVENT` with a
+parse reason and the exact original bytes, so clients can report them rather
+than losing the record.
+The Rust and Kotlin event models and parser metadata are also generated from
+the YAML specification:
 
 ```sh
 python3 -m pip install PyYAML

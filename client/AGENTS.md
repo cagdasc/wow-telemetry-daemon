@@ -28,9 +28,16 @@
 
 ## WebSocket event contract
 
-- The daemon sends one JSON text frame per recognized combat-log event.
-- Current fields are `timestamp`, `event`, `fields`, and optional `source_guid`, `source_name`, `dest_guid`, `dest_name`, `spell_id`, `spell_name`, and `amount`.
-- IDs and timestamps are strings. `fields` preserves ordered string-or-null event data. JSON property names are snake_case.
+- The daemon sends one JSON text frame per combat-log line, including typed
+  `UNRECOGNIZED_EVENT` and `MALFORMED_EVENT` fallbacks.
+- Current fields are `timestamp`, tagged `event`, and raw `fields`. `event` contains a `type` discriminator and a
+  type-specific `data` object.
+- Event data uses generated sealed classes for every spec event. Shared `header`, `spell`, and optional `advanced_block`
+  models represent common layouts.
+- IDs, including spell, encounter, map, and GUID values, remain strings. `fields` preserves ordered string-or-null event
+  data losslessly.
+- Unrecognized events include the original event name and parsed raw fields;
+  malformed events include a reason and the exact original line bytes.
 - The timestamp is copied from the log; it is not synchronized UTC time.
 - Encounter markers arrive as normal events, including `ENCOUNTER_START` and `ENCOUNTER_END`. The protocol has no separate phase triggers or entity-template fields.
 - Coordinate protocol changes with the daemon. Preserve compatibility when practical and test both sides.

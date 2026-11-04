@@ -6,7 +6,7 @@ Read the workspace-root `AGENTS.md` for the system architecture and current WebS
 
 - Tail `WoWCombatLog.txt` out of process.
 - Recognize and parse combat-log events from bytes, using `memchr` for scanning.
-- Write recognized events as JSON lines to stdout and broadcast one JSON text frame per event to WebSocket clients.
+- Write one typed event per log line as JSON lines to stdout and broadcast one JSON text frame per event to WebSocket clients.
 - Keep the daemon independent from client-specific storage, metadata, and presentation.
 
 ## Constraints
@@ -16,6 +16,8 @@ Read the workspace-root `AGENTS.md` for the system architecture and current WebS
   allocate to unescape quoted fields; JSON serialization also allocates.
 - Preserve the raw ordered event fields and support quoted commas, escaped quotes, `nil` fields, and event-specific
   layouts.
+- Publish unknown event names and malformed lines as typed fallback events; retain unknown fields or malformed raw
+  bytes and a parse reason instead of dropping those records.
 - Keep the JSON property names, string ID values, and timestamp semantics in the root contract. Coordinate serialization
   changes with the client.
 - Surface file, parse, serialization, and network failures. Do not silently drop events or replace errors with

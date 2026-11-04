@@ -11,12 +11,13 @@ pub struct State {
 
 impl State {
     pub fn record(&mut self, event: &CombatEvent<'_>) {
-        if event.event == "COMBAT_LOG_VERSION" {
+        let event_name = event.typed_event.event_name();
+        if event_name == "COMBAT_LOG_VERSION" {
             self.reset();
         }
-        *self.event_counts.entry(event.event.to_owned()).or_default() += 1;
-        self.last_timestamp = Some(event.timestamp.to_owned());
-        match event.event {
+        *self.event_counts.entry(event_name.to_owned()).or_default() += 1;
+        self.last_timestamp = Some(event.timestamp.to_string());
+        match event_name {
             "PLAYER_REGEN_DISABLED" => self.combat_active = true,
             "PLAYER_REGEN_ENABLED" => self.combat_active = false,
             _ => {}
