@@ -12,7 +12,8 @@
 - LAN use requires the daemon to bind to a reachable interface, typically
   `0.0.0.0:8765`, and the client to use the daemon host's LAN IP. The current
   listener is unauthenticated and unencrypted; document this limitation.
-- Validate changes with `./gradlew :desktopApp:build` and relevant tests.
+- Do not run client test tasks unless the user explicitly requests them.
+- For client changes, run a production compilation/build only when needed; avoid tasks that invoke tests.
 
 ## Architecture and implementation
 

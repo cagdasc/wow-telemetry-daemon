@@ -11,7 +11,11 @@ sqlite = "2.6.2"
 ksp = "2.3.8"
 kotlinxSerialization = "1.9.0"
 koin = "4.0.2"
-koog = "1.1.1"
+
+# Misc / Libraries
+koog-version = "1.1.1"
+koog-version-beta = "1.1.1-beta"
+xmlutil-version = "0.91.3"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -35,7 +39,10 @@ androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
-koog-agents = { module = "ai.koog:koog-agents", version.ref = "koog" }
+
+# AI
+koog-agents = { module = "ai.koog:koog-agents", version.ref = "koog-version" }
+koog-ollama-client = { module = "ai.koog:prompt-executor-ollama-client", version.ref = "koog-version" }
 
 [plugins]
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }

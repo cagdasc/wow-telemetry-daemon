@@ -20,6 +20,12 @@ fun App(
     viewModel: TelemetryViewModel,
 ) {
     val latestEvent = viewModel.latestEventSummary.collectAsState().value
+    val phrasedEvent = viewModel.phrasedEventSummary.collectAsState().value
+    val isPhrasingEvent = viewModel.isPhrasingEvent.collectAsState().value
+    val phrasingError = viewModel.phrasingError.collectAsState().value
+    val activeBatch = viewModel.activeBatch.collectAsState().value
+    val activeBatchEventCount = viewModel.activeBatchEventCount.collectAsState().value
+    val latestBatch = viewModel.latestBatch.collectAsState().value
     MaterialTheme {
         Column(
             modifier = Modifier
@@ -34,6 +40,34 @@ fun App(
                 latestEvent?.let { "Latest event: $it" } ?: "Waiting for combat events.",
                 modifier = Modifier.fillMaxWidth(),
             )
+            activeBatch?.let {
+                Text(
+                    "Buffering events: ${it.startTimestamp} to ${it.endTimestamp} · $activeBatchEventCount/100",
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            } ?: latestBatch?.let {
+                Text(
+                    "Last batch: ${it.startTimestamp} to ${it.endTimestamp} · ${it.events.size} events",
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            } ?: Text(
+                "Waiting for events to start a batch.",
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Text(
+                when {
+                    isPhrasingEvent -> "AI is rephrasing a batch..."
+                    activeBatch != null -> "Batch processes at 100 events or after 1 second without new events."
+                    else -> "Batches are rephrased automatically."
+                },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            phrasedEvent?.let {
+                Text("AI phrased batch: $it", modifier = Modifier.fillMaxWidth())
+            }
+            phrasingError?.let {
+                Text("AI unavailable: $it", modifier = Modifier.fillMaxWidth())
+            }
             Text(
                 "If the daemon is unavailable, the client retries every 3 seconds.",
                 modifier = Modifier.fillMaxWidth(),

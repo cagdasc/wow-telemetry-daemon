@@ -38,10 +38,16 @@ from the daemon's combat-log specification.
   and the event observation use case.
 - `data/` contains the Ktor WebSocket repository, JSON DTO mapping, and Room
   schema for spell and NPC metadata.
-- `desktopApp/` contains the presentation layer, JVM WebSocket engine, and
-  application lifecycle. Koin modules wire app and data dependencies.
-- Koog is available in `desktopApp` for a future AI presentation feature; no
-  agent or provider is configured.
+- `desktopApp/` contains the presentation layer, JVM WebSocket engine, Koog
+  event phrasing, and application lifecycle. Koin modules wire app and data
+  dependencies.
+- The client batches streamed events until 100 events arrive or 1 second passes
+  without a new event, then automatically rephrases the batch with a Koog agent
+  and Ollama at `http://localhost:11434` using the
+  `llama3.2:3b` model. Start Ollama and pull the model (`ollama pull llama3.2:3b`) to use it. Each batch displays its
+  first and last
+  log timestamps. The agent only phrases deterministic event summaries and
+  does not analyze combat or infer facts.
 
 The Room schema and indexed metadata repositories are ready, but metadata import
 and encounter analysis are not implemented yet.

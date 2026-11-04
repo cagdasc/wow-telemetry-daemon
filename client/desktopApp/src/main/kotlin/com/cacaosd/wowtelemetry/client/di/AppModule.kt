@@ -1,5 +1,6 @@
 package com.cacaosd.wowtelemetry.client.di
 
+import com.cacaosd.wowtelemetry.client.CombatEventNarrator
 import com.cacaosd.wowtelemetry.client.TelemetryViewModel
 import com.cacaosd.wowtelemetry.data.database.AppDatabase
 import com.cacaosd.wowtelemetry.data.database.RoomNpcMetadataRepository
@@ -30,5 +31,12 @@ fun appModule(websocketUrl: String) = module {
         }
     }
     factory { ProcessCombatEventUseCase(get()) }
-    single { TelemetryViewModel(processCombatEvent = get(), httpClient = get()) }
+    single { CombatEventNarrator() }
+    single {
+        TelemetryViewModel(
+            processCombatEvent = get(),
+            httpClient = get(),
+            combatEventNarrator = get(),
+        )
+    }
 }
