@@ -1,0 +1,7 @@
+06/Nov/2026 - 23:33:44.784 [main] DEBUG c.cacaosd.droidmind.generic_logger - Application config manager initialized successfully
+06/Nov/2026 - 23:33:44.811 [main] DEBUG c.cacaosd.droidmind.generic_logger - Config directory: /home/cagdas/.config/droidmind
+06/Nov/2026 - 23:33:44.901 [main] DEBUG c.cacaosd.droidmind.generic_logger - ANDROID_HOME: /opt/intellij/Sdk
+06/Nov/2026 - 23:33:46.730 [main] INFO  c.cacaosd.droidmind.generic_logger - Starting ACP Agent
+06/Nov/2026 - 23:33:46.817 [DefaultDispatcher-worker-2] INFO  c.cacaosd.droidmind.generic_logger - Agent initialized, starting protocol
+06/Nov/2026 - 23:33:46.836 [DefaultDispatcher-worker-1] INFO  c.cacaosd.droidmind.generic_logger - Initializing ACP agent for client with capabilities: ClientCapabilities(fs=FileSystemCapability(readTextFile=true, writeTextFile=true, _meta=null), terminal=false, _meta={"terminal-auth":true,"mermaid-rendering":true})
+06/Nov/2026 - 23:33:46.874 [DefaultDispatcher-worker-1] INFO  c.cacaosd.droidmind.generic_logger - Creating new session with ID: 94b44375-7f4a-4444-8558-2264f6cefddc

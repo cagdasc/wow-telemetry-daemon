@@ -1,5 +1,6 @@
 package com.cacaosd.wowtelemetry.client.di
 
+import ai.koog.utils.time.KoogClock
 import com.cacaosd.wowtelemetry.agent.CombatEventNarrator
 import com.cacaosd.wowtelemetry.client.TelemetryViewModel
 import com.cacaosd.wowtelemetry.combatlog.CombatEventEnricher
@@ -7,7 +8,8 @@ import com.cacaosd.wowtelemetry.data.database.AppDatabase
 import com.cacaosd.wowtelemetry.data.database.CharacterProfileDatabase
 import com.cacaosd.wowtelemetry.data.database.createAppDatabase
 import com.cacaosd.wowtelemetry.data.database.createCharacterProfileDatabase
-import com.cacaosd.wowtelemetry.data.di.dataModule
+import com.cacaosd.wowtelemetry.data.di.localDataModule
+import com.cacaosd.wowtelemetry.data.di.networkDataModule
 import com.cacaosd.wowtelemetry.domain.ProcessCombatEventUseCase
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
@@ -15,7 +17,7 @@ import io.ktor.client.plugins.websocket.*
 import org.koin.dsl.module
 
 fun appModule(websocketUrl: String) = module {
-    includes(dataModule(websocketUrl))
+    includes(networkDataModule(websocketUrl), localDataModule())
 
     single<AppDatabase> { createAppDatabase("/home/cagdas/wow_db/wow-telemetry.db") }
     single<CharacterProfileDatabase> {
@@ -28,7 +30,8 @@ fun appModule(websocketUrl: String) = module {
     }
     factory { ProcessCombatEventUseCase(get()) }
     single { CombatEventEnricher() }
-    single { CombatEventNarrator() }
+    single<KoogClock> { KoogClock.System }
+    single { CombatEventNarrator(get()) }
     single {
         TelemetryViewModel(
             processCombatEvent = get(),

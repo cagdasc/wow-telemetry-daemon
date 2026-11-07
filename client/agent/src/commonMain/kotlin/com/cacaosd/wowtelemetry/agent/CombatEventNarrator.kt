@@ -3,18 +3,24 @@ package com.cacaosd.wowtelemetry.agent
 import ai.koog.agents.chatMemory.feature.ChatMemory
 import ai.koog.agents.chatMemory.feature.InMemoryChatHistoryProvider
 import ai.koog.agents.core.agent.AIAgent
+import ai.koog.agents.core.agent.config.AIAgentConfig
 import ai.koog.agents.core.agent.functionalStrategy
+import ai.koog.prompt.dsl.prompt
 import ai.koog.prompt.executor.llms.MultiLLMPromptExecutor
 import ai.koog.prompt.executor.ollama.client.OllamaClient
 import ai.koog.prompt.executor.ollama.client.OllamaModels
 import ai.koog.prompt.message.Message
 import ai.koog.prompt.message.MessagePart
 import ai.koog.prompt.message.RequestMetaInfo
+import ai.koog.prompt.params.LLMParams
+import ai.koog.utils.time.KoogClock
 import com.cacaosd.wowtelemetry.combatlog.CombatEventBatch
 import com.cacaosd.wowtelemetry.combatlog.EnrichedCombatEvent
 import com.cacaosd.wowtelemetry.domain.CharacterProfile
 
-class CombatEventNarrator {
+class CombatEventNarrator(
+    private val clock: KoogClock,
+) {
     private val chatHistoryProvider = InMemoryChatHistoryProvider()
 
     suspend fun respond(
@@ -24,33 +30,43 @@ class CombatEventNarrator {
     ): String {
         addProfileAsFirstUserMessage(sessionId, profile)
         val executor = MultiLLMPromptExecutor(OllamaClient())
-        val agent = AIAgent<String, String>(
-            systemPrompt = """
-                $systemPrompt
-
-                Never ask the user questions. Respond as a self-contained monologue.
-                Never quote or display raw combat-log rows.
-            """.trimIndent(),
+        val agent = AIAgent(
+            agentConfig = AIAgentConfig(
+                prompt = prompt(
+                    id = sessionId,
+                    params = LLMParams(temperature = 0.5),
+                    clock = clock,
+                ) {
+                    system(
+                        """
+                            $systemPrompt
+                            Never ask the user questions. 
+                            Respond as a self-contained monologue.
+                            Never quote or display raw combat-log rows.
+                            """.trimIndent(),
+                    )
+                },
+                model = OllamaModels.Meta.LLAMA_3_2_3B.copy(id = "llama3.2:latest"),
+                maxAgentIterations = 50
+            ),
             promptExecutor = executor,
             strategy = functionalStrategy { input: String ->
                 requestLLM(input).parts
                     .filterIsInstance<MessagePart.Text>()
                     .joinToString("\n") { it.text }
             },
-            llmModel = OllamaModels.Meta.LLAMA_3_2_3B.copy(id = "llama3.2:latest"),
-        ) {
-            install(ChatMemory) {
-                chatHistoryProvider = this@CombatEventNarrator.chatHistoryProvider
+            installFeatures = {
+                install(ChatMemory) {
+                    chatHistoryProvider = this@CombatEventNarrator.chatHistoryProvider
+                }
             }
-        }
+        )
 
         return try {
             agent.run(batch.toPromptText(), sessionId)
         } finally {
-            try {
+            executor.use {
                 agent.close()
-            } finally {
-                executor.close()
             }
         }
     }

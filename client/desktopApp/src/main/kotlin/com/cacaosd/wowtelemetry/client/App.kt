@@ -20,15 +20,15 @@ fun App(
     websocketUrl: String,
     viewModel: TelemetryViewModel,
 ) {
-    val chatHistory = viewModel.chatHistory.collectAsState().value
-    val isChatActive = viewModel.isChatActive.collectAsState().value
-    val isPhrasingEvent = viewModel.isPhrasingEvent.collectAsState().value
-    val phrasingError = viewModel.phrasingError.collectAsState().value
-    val activeBatch = viewModel.activeBatch.collectAsState().value
-    val activeBatchEventCount = viewModel.activeBatchEventCount.collectAsState().value
-    val latestBatch = viewModel.latestBatch.collectAsState().value
-    val characterProfile = viewModel.profile.collectAsState().value ?: CharacterProfile()
-    val profileError = viewModel.profileError.collectAsState().value
+    val uiState = viewModel.uiState.collectAsState().value
+    val chatHistory = uiState.chatHistory
+    val isChatActive = uiState.isChatActive
+    val isPhrasingEvent = uiState.isPhrasingEvent
+    val phrasingError = uiState.phrasingError
+    val activeBatch = uiState.activeBatch
+    val latestBatch = uiState.latestBatch
+    val characterProfile = uiState.profile ?: CharacterProfile()
+    val profileError = uiState.profileError
     var isSettingsVisible by remember { mutableStateOf(false) }
     val assistantTurns = chatHistory.filter { it.role == "Assistant" }
     val scrollState = rememberScrollState()
@@ -118,7 +118,7 @@ fun App(
                         if (batch != null) {
                             Text(
                                 "${batch.startTimestamp} – ${batch.endTimestamp}  ·  " +
-                                        "${activeBatchEventCount.takeIf { activeBatch != null } ?: batch.events.size} events",
+                                        "${batch.events.size} events",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
