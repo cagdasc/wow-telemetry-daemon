@@ -29,13 +29,25 @@ queue fills apply backpressure: the daemon pauses event processing until the
 client catches up instead of dropping events or disconnecting it. This can
 delay processing while a client is persistently slow.
 
-On Windows, build the executable for `x86_64-pc-windows-gnu`, then edit
-`LOG_DIR` in `run-windows.bat` to the directory containing
-`WoWCombatLog-MMDDYY_HHMMSS.txt` files. Double-click the batch file to start the
-daemon using the newest timestamped log. You can override the folder by setting
-`WOW_COMBAT_LOG_DIR` before running the batch file. It binds to
-`0.0.0.0:8765`, so allow that port through Windows Firewall if a client connects
-from another computer.
+For the Windows launcher, cross-build the latest executable for
+`x86_64-pc-windows-gnu` and copy it beside `run-windows.ps1`:
+
+```sh
+cargo build --release --target x86_64-pc-windows-gnu
+cp target/x86_64-pc-windows-gnu/release/wow-telemetry-daemon.exe scripts/wow-telemetry-daemon.exe
+```
+
+Then edit `LOG_DIR` in `run-windows.bat` to the World of Warcraft `Logs`
+directory. The launcher checks that the executable supports `--from-start`
+before backing up or removing any logs.
+Double-click the batch file before enabling combat logging. The launcher copies
+existing `WoWCombatLog-*.txt` files into a timestamped `Backups` directory under
+`Logs`, removes the originals after all copies succeed, waits for a new
+timestamped log, then starts the daemon on that file. The daemon reads the new
+file from its beginning, including bytes written before it opens the file. You
+can override the folder by setting `WOW_COMBAT_LOG_DIR` before running the
+batch file. The daemon binds to `0.0.0.0:8765`, so allow that port through
+Windows Firewall if a client connects from another computer.
 
 ## Generate a mock event stream
 

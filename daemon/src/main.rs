@@ -21,19 +21,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut path = None;
     let mut websocket_address: SocketAddr = "127.0.0.1:8765".parse()?;
     let mut websocket_enabled = true;
+    let mut start_at_end = true;
 
     while let Some(arg) = args.next() {
         match arg.to_str() {
             Some("--help" | "-h") => {
                 println!(
-                    "Usage: wow-telemetry-daemon [PATH] [--ws-addr ADDRESS] [--no-websocket]\n\n\
+                    "Usage: wow-telemetry-daemon [PATH] [--ws-addr ADDRESS] [--no-websocket] [--from-start]\n\n\
                      Tails PATH (default: WoWCombatLog.txt), writes parsed events as JSON lines,\n\
                      and broadcasts them to WebSocket clients (default: 127.0.0.1:8765).\n\
-                     Use --ws-addr 0.0.0.0:8765 to accept connections from other machines."
+                     Use --ws-addr 0.0.0.0:8765 to accept connections from other machines.\n\
+                     Use --from-start to read existing file contents instead of seeking to EOF."
                 );
                 return Ok(());
             }
             Some("--no-websocket") => websocket_enabled = false,
+            Some("--from-start") => start_at_end = false,
             Some("--ws-addr") => {
                 let address = args.next().ok_or("--ws-addr requires an address")?;
                 websocket_address = address
@@ -63,7 +66,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let tail_path = path.clone();
     let tail_thread = std::thread::Builder::new()
         .name("combat-log-tailer".into())
-        .spawn(move || tailer::tail_file(tail_path, sender))?;
+        .spawn(move || tailer::tail_file(tail_path, sender, start_at_end))?;
     let state = Arc::new(RwLock::new(State::default()));
     let stdout = io::stdout();
     let mut output = BufWriter::new(stdout.lock());
