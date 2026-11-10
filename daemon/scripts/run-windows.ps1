@@ -18,11 +18,10 @@ if (-not (Test-Path -LiteralPath $LogDirectory -PathType Container)) {
     throw "Combat log directory not found: $LogDirectory. Edit LOG_DIR in run-windows.bat or set WOW_COMBAT_LOG_DIR."
 }
 
-$existingLogs = @(Get-ChildItem -LiteralPath $LogDirectory -File -Filter "WoWCombatLog-*.txt")
-$existingNames = @{}
-foreach ($file in $existingLogs) {
-    $existingNames[$file.Name] = $true
-}
+$existingLogs = @(
+    Get-ChildItem -LiteralPath $LogDirectory -File |
+        Where-Object { $_.Name -like "WoWCombatLog-*.txt" }
+)
 
 $backupDirectory = Join-Path $LogDirectory "Backups\$(Get-Date -Format 'yyyyMMdd-HHmmss')-$PID"
 New-Item -ItemType Directory -Path $backupDirectory -Force | Out-Null
@@ -33,14 +32,11 @@ foreach ($file in $existingLogs) {
     Remove-Item -LiteralPath $file.FullName
 }
 Write-Host "Backed up and removed $($existingLogs.Count) existing combat log(s): $backupDirectory"
-Write-Host "Waiting for a new WoWCombatLog-MMDDYY_HHMMSS.txt file..."
+Write-Host "Waiting for a new WoWCombatLog-*.txt file..."
 
 while ($true) {
-    $newFile = Get-ChildItem -LiteralPath $LogDirectory -File -Filter "WoWCombatLog-*.txt" |
-        Where-Object {
-            $_.Name -match '^WoWCombatLog-\d{6}_\d{6}\.txt$' -and
-                -not $existingNames.ContainsKey($_.Name)
-        } |
+    $newFile = Get-ChildItem -LiteralPath $LogDirectory -File |
+        Where-Object { $_.Name -like "WoWCombatLog-*.txt" } |
         Sort-Object -Property CreationTimeUtc |
         Select-Object -First 1
 

@@ -9,6 +9,7 @@ const EOF_SLEEP: Duration = Duration::from_millis(2);
 
 pub enum TailMessage {
     Line(Vec<u8>),
+    CaughtUp,
     Error(io::Error),
 }
 
@@ -25,10 +26,12 @@ fn tail_loop(
 ) -> io::Result<()> {
     let mut reader = open_reader(path, start_at_end)?;
     let mut pending = Vec::new();
+    let mut caught_up = false;
 
     loop {
         let bytes_read = reader.read_until(b'\n', &mut pending)?;
         if bytes_read > 0 {
+            caught_up = false;
             if pending.last() == Some(&b'\n') {
                 sender
                     .send(TailMessage::Line(std::mem::take(&mut pending)))
@@ -46,8 +49,16 @@ fn tail_loop(
             {
                 reader = BufReader::new(File::open(path)?);
                 pending.clear();
+                caught_up = false;
                 continue;
             }
+        }
+
+        if !caught_up {
+            sender
+                .send(TailMessage::CaughtUp)
+                .map_err(|_| io::Error::new(io::ErrorKind::BrokenPipe, "event receiver closed"))?;
+            caught_up = true;
         }
 
         thread::sleep(EOF_SLEEP);
@@ -126,6 +137,7 @@ mod tests {
         let tail_path = path.clone();
         let tail_thread = thread::spawn(move || tail_file(tail_path, sender, false));
 
+        receive_caught_up(&receiver);
         assert!(matches!(
             receiver.recv_timeout(Duration::from_millis(50)),
             Err(mpsc::RecvTimeoutError::Timeout)
@@ -140,13 +152,58 @@ mod tests {
         fs::remove_file(path).expect("remove fixture");
     }
 
+    #[test]
+    fn emits_caught_up_once_after_each_available_batch() {
+        let path = temporary_log_path();
+        File::create(&path).expect("create empty fixture");
+
+        let (sender, receiver) = mpsc::sync_channel(4);
+        let tail_path = path.clone();
+        let tail_thread = thread::spawn(move || tail_file(tail_path, sender, false));
+
+        receive_caught_up(&receiver);
+        assert!(matches!(
+            receiver.recv_timeout(Duration::from_millis(50)),
+            Err(mpsc::RecvTimeoutError::Timeout)
+        ));
+
+        append_line(&path, b"later event\n");
+        assert_eq!(receive_line(&receiver), b"later event\n");
+        receive_caught_up(&receiver);
+        assert!(matches!(
+            receiver.recv_timeout(Duration::from_millis(50)),
+            Err(mpsc::RecvTimeoutError::Timeout)
+        ));
+
+        drop(receiver);
+        append_line(&path, b"stop event\n");
+        tail_thread.join().expect("join tailer thread");
+        fs::remove_file(path).expect("remove fixture");
+    }
+
     fn receive_line(receiver: &mpsc::Receiver<TailMessage>) -> Vec<u8> {
-        match receiver
-            .recv_timeout(Duration::from_secs(2))
-            .expect("receive tailed line")
-        {
-            TailMessage::Line(line) => line,
-            TailMessage::Error(error) => panic!("tailer failed: {error}"),
+        loop {
+            match receiver
+                .recv_timeout(Duration::from_secs(2))
+                .expect("receive tailed line")
+            {
+                TailMessage::Line(line) => return line,
+                TailMessage::CaughtUp => {}
+                TailMessage::Error(error) => panic!("tailer failed: {error}"),
+            }
+        }
+    }
+
+    fn receive_caught_up(receiver: &mpsc::Receiver<TailMessage>) {
+        loop {
+            match receiver
+                .recv_timeout(Duration::from_secs(2))
+                .expect("receive caught-up marker")
+            {
+                TailMessage::CaughtUp => return,
+                TailMessage::Line(_) => {}
+                TailMessage::Error(error) => panic!("tailer failed: {error}"),
+            }
         }
     }
 

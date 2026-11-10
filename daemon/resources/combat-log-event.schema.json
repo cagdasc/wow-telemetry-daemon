@@ -2630,13 +2630,13 @@
                 },
                 "amount": {
                   "type": [
-                    "integer",
+                    "number",
                     "null"
                   ]
                 },
                 "over_energize": {
                   "type": [
-                    "integer",
+                    "number",
                     "null"
                   ]
                 },
@@ -2689,13 +2689,13 @@
                 },
                 "amount": {
                   "type": [
-                    "integer",
+                    "number",
                     "null"
                   ]
                 },
                 "over_energize": {
                   "type": [
-                    "integer",
+                    "number",
                     "null"
                   ]
                 },
@@ -2748,13 +2748,13 @@
                 },
                 "amount": {
                   "type": [
-                    "integer",
+                    "number",
                     "null"
                   ]
                 },
                 "over_energize": {
                   "type": [
-                    "integer",
+                    "number",
                     "null"
                   ]
                 },
@@ -2807,13 +2807,13 @@
                 },
                 "amount": {
                   "type": [
-                    "integer",
+                    "number",
                     "null"
                   ]
                 },
                 "over_energize": {
                   "type": [
-                    "integer",
+                    "number",
                     "null"
                   ]
                 },

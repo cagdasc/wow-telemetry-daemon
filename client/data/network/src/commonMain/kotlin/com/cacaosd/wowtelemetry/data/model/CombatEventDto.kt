@@ -1,6 +1,6 @@
-package com.cacaosd.wowtelemetry.data.network
+package com.cacaosd.wowtelemetry.data.model
 
-import com.cacaosd.wowtelemetry.domain.CombatEvent
+import com.cacaosd.wowtelemetry.data.mapper.decodeCombatLogEvent
 import com.cacaosd.wowtelemetry.domain.CombatLogEvent
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.*
@@ -10,23 +10,10 @@ data class CombatEventDto(
     val event: CombatLogEvent,
     val fields: List<String?>,
 ) {
-    fun toDomain() = CombatEvent(
-        timestamp = timestamp,
-        event = event,
-        fields = fields,
-    )
-
     companion object {
-        private val json = Json
+        fun decode(payload: String): CombatEventDto = decode(parseCombatEventRoot(payload))
 
-        fun decode(payload: String): CombatEventDto {
-            val root = try {
-                json.parseToJsonElement(payload) as? JsonObject
-                    ?: throw CombatEventDecodeException("Event payload must be a JSON object")
-            } catch (error: SerializationException) {
-                throw CombatEventDecodeException("Malformed event JSON", error)
-            }
-
+        internal fun decode(root: JsonObject): CombatEventDto {
             val fields = root["fields"] as? JsonArray
                 ?: throw CombatEventDecodeException("Event payload must include a fields array")
             val eventObject = root.requiredObject("event")
@@ -41,6 +28,15 @@ data class CombatEventDto(
                 fields = fields.mapIndexed { index, value -> value.stringOrNull("fields[$index]") },
             )
         }
+    }
+}
+
+internal fun parseCombatEventRoot(payload: String): JsonObject {
+    try {
+        return Json.parseToJsonElement(payload) as? JsonObject
+            ?: throw CombatEventDecodeException("Event payload must be a JSON object")
+    } catch (error: SerializationException) {
+        throw CombatEventDecodeException("Malformed event JSON", error)
     }
 }
 
@@ -62,5 +58,6 @@ private fun JsonElement.stringOrNull(field: String): String? = when (this) {
     is JsonPrimitive -> if (isString) content else {
         throw CombatEventDecodeException("'$field' must be a string or null")
     }
+
     else -> throw CombatEventDecodeException("'$field' must be a string or null")
 }

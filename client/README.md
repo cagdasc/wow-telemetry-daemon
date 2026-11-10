@@ -26,10 +26,14 @@ WOW_TELEMETRY_WS_URL=ws://192.168.1.50:8765 ./gradlew :desktopApp:run
 
 The client retries the connection every three seconds if the daemon is not
 reachable or disconnects. The data layer decodes one JSON text frame per event,
-preserves raw string IDs and ordered fields, and exposes events as a Flow. Each
-frame carries a tagged `event` object with a `type` discriminator and a
-type-specific `data` object. The sealed event classes and decoder are generated
-from the daemon's combat-log specification.
+preserves raw string IDs and ordered fields, and exposes the stream as a Flow.
+The client sends a WebSocket Ping every 20 seconds to keep idle connections
+active; the daemon responds with Pong frames.
+The daemon also sends `{"control":"LOG_CAUGHT_UP"}` after draining currently
+available complete log lines; this flushes the current client batch and does
+not mean logging has ended. Event frames carry a tagged `event` object with a
+`type` discriminator and a type-specific `data` object. The sealed event
+classes and decoder are generated from the daemon's combat-log specification.
 
 ## Architecture
 
@@ -43,8 +47,9 @@ from the daemon's combat-log specification.
 - `agent/` owns Koog/Ollama narration and role-based chat memory.
 - `presentation/` owns the lifecycle-aware ViewModel and reactive state;
   `desktopApp/` owns Compose UI and JVM-specific startup/wiring.
-- The client batches streamed events until 100 events arrive or 1 second passes
-  without a new event, then automatically rephrases the batch with a Koog agent
+- The client batches streamed events until the daemon's caught-up marker arrives (with a quiet-time fallback for older
+  daemons), then automatically rephrases
+  the batch with a Koog agent
   and Ollama at `http://localhost:11434` using the
   `llama3.2:latest` model. Start Ollama and pull the model (`ollama pull llama3.2:latest`) to use it. Each batch
   displays its first and last

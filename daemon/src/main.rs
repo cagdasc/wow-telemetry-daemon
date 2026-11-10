@@ -112,6 +112,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
                 }
             }
+            TailMessage::CaughtUp => {
+                if let Some(websocket) = &websocket {
+                    websocket.broadcast(Arc::from(r#"{"control":"LOG_CAUGHT_UP"}"#))?;
+                }
+            }
             TailMessage::Error(error) => return Err(error.into()),
         }
     }

@@ -134,12 +134,14 @@ fn serve_connection(stream: TcpStream, id: ClientId, clients: &Clients) -> Resul
             Err(error) => return Err(error.to_string()),
         }
 
-        match receiver.try_recv() {
-            Ok(payload) => websocket
-                .send(Message::Text(payload.to_string().into()))
-                .map_err(|error| error.to_string())?,
-            Err(TryRecvError::Empty) => {}
-            Err(TryRecvError::Disconnected) => return Ok(()),
+        for _ in 0..CLIENT_QUEUE_SIZE {
+            match receiver.try_recv() {
+                Ok(payload) => websocket
+                    .send(Message::Text(payload.to_string().into()))
+                    .map_err(|error| error.to_string())?,
+                Err(TryRecvError::Empty) => break,
+                Err(TryRecvError::Disconnected) => return Ok(()),
+            }
         }
     }
 }
@@ -152,6 +154,7 @@ mod tests {
     use std::sync::mpsc;
     use std::thread;
     use std::time::Duration;
+    use tungstenite::Message;
 
     #[test]
     fn broadcasts_event_json_to_connected_clients() {
@@ -161,9 +164,28 @@ mod tests {
         server
             .broadcast(Arc::from(r#"{"event":"SPELL_DAMAGE"}"#))
             .unwrap();
+        server
+            .broadcast(Arc::from(r#"{"control":"LOG_CAUGHT_UP"}"#))
+            .unwrap();
 
         let message = client.read().unwrap().into_text().unwrap();
         assert_eq!(message, r#"{"event":"SPELL_DAMAGE"}"#);
+        let marker = client.read().unwrap().into_text().unwrap();
+        assert_eq!(marker, r#"{"control":"LOG_CAUGHT_UP"}"#);
+    }
+
+    #[test]
+    fn responds_to_client_ping_frames() {
+        let server = WebSocketServer::bind("127.0.0.1:0".parse().unwrap()).unwrap();
+        let (mut client, _) = tungstenite::connect(format!("ws://{}", server.address())).unwrap();
+        let payload = vec![1, 2, 3];
+
+        client.send(Message::Ping(payload.clone().into())).unwrap();
+
+        assert!(matches!(
+            client.read().unwrap(),
+            Message::Pong(response) if response.as_ref() == payload
+        ));
     }
 
     #[test]

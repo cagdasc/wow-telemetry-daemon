@@ -15,8 +15,8 @@ import ai.koog.prompt.message.RequestMetaInfo
 import ai.koog.prompt.params.LLMParams
 import ai.koog.utils.time.KoogClock
 import com.cacaosd.wowtelemetry.combatlog.CombatEventBatch
-import com.cacaosd.wowtelemetry.combatlog.EnrichedCombatEvent
-import com.cacaosd.wowtelemetry.domain.CharacterProfile
+import com.cacaosd.wowtelemetry.domain.*
+import kotlin.math.max
 
 class CombatEventNarrator(
     private val clock: KoogClock,
@@ -63,7 +63,9 @@ class CombatEventNarrator(
         )
 
         return try {
-            agent.run(batch.toPromptText(), sessionId)
+            agent.run(batch.toPromptText().also {
+//                println(it)
+            }, sessionId)
         } finally {
             executor.use {
                 agent.close()
@@ -107,21 +109,45 @@ private fun CharacterProfile.toChatMessage(): String? {
 }
 
 private fun CombatEventBatch.toPromptText(): String = buildString {
-    appendLine("Combat log batch")
+    appendLine("Combat log batch to be narrated:")
     appendLine("Start: $startTimestamp")
     appendLine("End: $endTimestamp")
     appendLine("Events: ${events.size}")
-    appendLine("<combat-log-data>")
-    events.forEach { appendLine(it.toPromptText()) }
-    append("</combat-log-data>")
+
+    events.forEach {
+        appendLine(it.toString())
+//        buildString {
+//            (it.event as? HasCommonHeader)?.header?.let { header -> appendLine(header.toPromptText()) }
+//            (it.event as? HasSpellPrefix)?.spell?.let { spell -> appendLine(spell.toPromptText()) }
+//
+//            (it.event as? SpellDamageEvent)?.let { damageEvent -> appendLine(damageEvent.toPromptText()) }
+//            (it.event as? RangeDamageEvent)?.let { damageEvent -> appendLine(damageEvent.toPromptText()) }
+//        }
+    }
 }
 
-private fun EnrichedCombatEvent.toPromptText(): String = buildString {
-    appendLine("Summary: $summary")
-    appendLine("Source GUID: ${sourceGuid ?: "unknown"}")
-    appendLine("Target GUID: ${targetGuid ?: "unknown"}")
-    spellId?.let { appendLine("Spell ID: $it") }
-    spellName?.let { appendLine("Spell name: $it") }
-    amount?.let { appendLine("Amount: $it") }
-    append("Full typed event and raw fields: $details")
+private fun CommonHeader.toPromptText(): String = buildString {
+    appendLine("Common Header:")
+    sourceName?.let { appendLine("Source Name: $it") }
+    sourceGuid?.let { appendLine("Source GUID: $it") }
+    destName?.let { appendLine("Destination Name: $it") }
+    destGuid?.let { appendLine("Destination GUID: $it") }
+}
+
+private fun SpellPrefix.toPromptText(): String = buildString {
+    appendLine("Spell Prefix:")
+    appendLine("Spell ID: $spellId")
+    spellName?.let { appendLine("Spell Name: $it") }
+}
+
+private fun SpellDamageEvent.toPromptText(): String = buildString {
+    appendLine("Spell Damage Event:")
+    val effectiveDamage = max(0L, baseAmount!! + blocked!! + resisted!! - max(0, overkill!!))
+    appendLine("Amount: $effectiveDamage")
+}
+
+private fun RangeDamageEvent.toPromptText(): String = buildString {
+    appendLine("Spell Damage Event:")
+    val effectiveDamage = max(0L, baseAmount!! + blocked!! + resisted!! - max(0, overkill!!))
+    appendLine("Amount: $effectiveDamage")
 }

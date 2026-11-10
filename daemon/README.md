@@ -13,9 +13,12 @@ The default path is `WoWCombatLog.txt`. The file must exist when the daemon
 starts. It begins at the current end of the file, so existing lines are skipped.
 
 By default, the daemon listens for WebSocket clients at
-`ws://127.0.0.1:8765`. Each log line is sent as one JSON text frame,
-with the same object shape as the stdout JSON Lines output. To choose another
-address:
+`ws://127.0.0.1:8765`. Each parsed log line is sent as one JSON text frame,
+with the same object shape as the stdout JSON Lines output. After reading all
+currently available complete lines, the daemon sends
+`{"control":"LOG_CAUGHT_UP"}` once for that idle period. This is a temporary
+watermark, not a terminal end-of-log signal; the daemon continues tailing and
+sends another marker after later lines. To choose another address:
 
 ```sh
 cargo run -- [PATH] --ws-addr 127.0.0.1:9000

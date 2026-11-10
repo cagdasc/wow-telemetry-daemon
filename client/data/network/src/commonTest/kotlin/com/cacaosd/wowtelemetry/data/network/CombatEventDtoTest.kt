@@ -54,7 +54,10 @@ class CombatEventDtoTest {
         assertEquals(TalentEntry(101, 201, 2), event.talents?.single())
         assertEquals(listOf(4L, 5L), event.pvpTalents)
         assertEquals(GearSlot(6, 700, listOf(8), listOf(9, 10), listOf(11)), event.gear?.single())
-        assertEquals("Player-1", event.activeAuras?.single()?.first()?.toString()?.trim('"'))
+        assertEquals(
+            ActiveAura(sourceGuid = "Player-1", spellId = "1234", remaining = emptyList()),
+            event.activeAuras?.single()
+        )
     }
 
     @Test

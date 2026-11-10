@@ -962,12 +962,12 @@
         {
           "offset": 31,
           "name": "amount",
-          "type": "integer"
+          "type": "float"
         },
         {
           "offset": 32,
           "name": "over_energize",
-          "type": "integer"
+          "type": "float"
         },
         {
           "offset": 33,

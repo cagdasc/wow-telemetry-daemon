@@ -772,10 +772,27 @@ def render_rust_typed_events(spec):
             lines.append('            data.insert("spell".to_owned(), Value::Object(spell));')
         if advanced_fields:
             lines.append("            let mut advanced = Map::new();")
-            advanced_names = tuple(field[1] for field in advanced_fields)
+            extra_names = {field[1] for field in extra_fields}
+            advanced_aliases = tuple(
+                field[1] for field in advanced_fields if field[1] in extra_names
+            )
+            advanced_names = tuple(
+                f"advanced_block_{field[1]}"
+                if field[1] in advanced_aliases
+                else field[1]
+                for field in advanced_fields
+            )
             lines.append(
                 f"            move_fields(&mut decoded_fields, &mut advanced, {rust_string_slice(advanced_names)});"
             )
+            for field_name in advanced_aliases:
+                lines.append(
+                    f'            if let Some(value) = advanced.remove("advanced_block_{field_name}") {{'
+                )
+                lines.append(
+                    f'                advanced.insert("{field_name}".to_owned(), value);'
+                )
+                lines.append("            }")
             lines.append('            if let Some(unit) = decoded_fields.remove("advanced_block_unit") {')
             lines.append('                advanced.insert("unit".to_owned(), unit);')
             lines.append("            }")

@@ -366,8 +366,17 @@ fn parsed_fields<'a>(
         let Some(value) = fields.get(offset.saturating_sub(1)) else {
             continue;
         };
+        let field_name = if spec_field.advanced
+            && layout
+                .iter()
+                .any(|field| !field.advanced && field.name == spec_field.name)
+        {
+            format!("advanced_block_{}", spec_field.name)
+        } else {
+            spec_field.name.to_owned()
+        };
         let Some(value) = value.as_deref() else {
-            decoded.insert(spec_field.name.to_owned(), Value::Null);
+            decoded.insert(field_name, Value::Null);
             continue;
         };
         let parsed = if is_identifier_field(spec_field.name) {
@@ -378,7 +387,7 @@ fn parsed_fields<'a>(
         if spec_field.name == "base_amount" || spec_field.name == "amount" {
             amount = fields.get(offset.saturating_sub(1)).cloned().flatten();
         }
-        decoded.insert(spec_field.name.to_owned(), parsed);
+        decoded.insert(field_name, parsed);
     }
     (decoded, amount)
 }
@@ -755,6 +764,22 @@ mod tests {
                 .as_deref(),
             Some("1300")
         );
+    }
+
+    #[test]
+    fn parses_fractional_energize_suffix_values_with_advanced_logging() {
+        let line = br#"11/10/2026 00:33:56.7940  SPELL_ENERGIZE,Player-3681-092E3A6D,"Truedmg-Magtheridon-EU",0x518,0x80000000,Player-3681-092E3A6D,"Truedmg-Magtheridon-EU",0x518,0x80000000,203961,"Blood Frenzy",0x8,Player-3681-092E3A6D,0000000000000000,1193961,1193961,3842,620,9313,2340,119,358188,1,1000,1000,0,8176.88,-4353.63,2393,2.5952,308,0.0000,3.0000,1,1000"#;
+        let event = parse_line(line).unwrap().unwrap();
+        let data = event_data(&event);
+
+        assert_eq!(event.event, "SPELL_ENERGIZE");
+        assert_eq!(data["amount"].as_f64(), Some(0.0));
+        assert_eq!(data["over_energize"].as_f64(), Some(3.0));
+        assert_eq!(data["power_type"].as_i64(), Some(1));
+        assert_eq!(data["max_power"].as_i64(), Some(1000));
+        assert_eq!(data["advanced_block"]["power_type"].as_i64(), Some(1));
+        assert_eq!(data["advanced_block"]["max_power"].as_i64(), Some(1000));
+        assert_eq!(data["advanced_block"]["position_x"].as_f64(), Some(8176.88));
     }
 
     #[test]

@@ -3,7 +3,6 @@ package com.cacaosd.wowtelemetry.client.di
 import ai.koog.utils.time.KoogClock
 import com.cacaosd.wowtelemetry.agent.CombatEventNarrator
 import com.cacaosd.wowtelemetry.client.TelemetryViewModel
-import com.cacaosd.wowtelemetry.combatlog.CombatEventEnricher
 import com.cacaosd.wowtelemetry.data.database.AppDatabase
 import com.cacaosd.wowtelemetry.data.database.CharacterProfileDatabase
 import com.cacaosd.wowtelemetry.data.database.createAppDatabase
@@ -15,6 +14,7 @@ import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.websocket.*
 import org.koin.dsl.module
+import kotlin.time.Duration.Companion.seconds
 
 fun appModule(websocketUrl: String) = module {
     includes(networkDataModule(websocketUrl), localDataModule())
@@ -25,17 +25,17 @@ fun appModule(websocketUrl: String) = module {
     }
     single {
         HttpClient(CIO) {
-            install(WebSockets)
+            install(WebSockets) {
+                pingInterval = 10.seconds
+            }
         }
     }
     factory { ProcessCombatEventUseCase(get()) }
-    single { CombatEventEnricher() }
     single<KoogClock> { KoogClock.System }
     single { CombatEventNarrator(get()) }
     single {
         TelemetryViewModel(
             processCombatEvent = get(),
-            combatEventEnricher = get(),
             characterProfileRepository = get(),
             combatEventNarrator = get(),
         )

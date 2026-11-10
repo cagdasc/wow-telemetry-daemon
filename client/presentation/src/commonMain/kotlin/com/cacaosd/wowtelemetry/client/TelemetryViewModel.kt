@@ -4,11 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cacaosd.wowtelemetry.agent.CombatEventNarrator
 import com.cacaosd.wowtelemetry.combatlog.CombatEventBatch
-import com.cacaosd.wowtelemetry.combatlog.CombatEventEnricher
-import com.cacaosd.wowtelemetry.combatlog.EnrichedCombatEvent
-import com.cacaosd.wowtelemetry.domain.CharacterProfile
-import com.cacaosd.wowtelemetry.domain.CharacterProfileRepository
-import com.cacaosd.wowtelemetry.domain.ProcessCombatEventUseCase
+import com.cacaosd.wowtelemetry.domain.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -45,7 +41,6 @@ private data class QueuedChatBatch(
 
 class TelemetryViewModel(
     private val processCombatEvent: ProcessCombatEventUseCase,
-    private val combatEventEnricher: CombatEventEnricher,
     private val characterProfileRepository: CharacterProfileRepository,
     private val combatEventNarrator: CombatEventNarrator,
 ) : ViewModel() {
@@ -54,7 +49,7 @@ class TelemetryViewModel(
     val uiState: StateFlow<TelemetryUiState> = _uiState.asStateFlow()
 
     private val batchMutex = Mutex()
-    private val batchEvents = mutableListOf<EnrichedCombatEvent>()
+    private val batchEvents = mutableListOf<CombatEvent>()
     private var batchStartTimestamp: String? = null
     private var batchEndTimestamp: String? = null
     private var batchChatGeneration = 0L
@@ -130,10 +125,16 @@ class TelemetryViewModel(
                 }
             }
 
-            processCombatEvent().collect { event ->
-                val enriched = combatEventEnricher.enrich(event)
-                _uiState.update { it.copy(latestEventSummary = event.toString()) } // enriched.summary
-                collectBatchEvent(enriched)
+            processCombatEvent().collect { message ->
+                when (message) {
+                    is CombatStreamMessage.Event -> {
+                        val event = message.combatEvent
+                        _uiState.update { it.copy(latestEventSummary = event.toString()) } // enriched.summary
+                        collectBatchEvent(event)
+                    }
+
+                    CombatStreamMessage.CaughtUp -> flushBatch()
+                }
             }
         }
     }
@@ -180,7 +181,7 @@ class TelemetryViewModel(
         }
     }
 
-    private suspend fun collectBatchEvent(event: EnrichedCombatEvent) {
+    private suspend fun collectBatchEvent(event: CombatEvent) {
         val isFull = batchMutex.withLock {
             if (batchEvents.isEmpty()) {
                 batchStartTimestamp = event.timestamp

@@ -498,8 +498,8 @@ pub struct SpellEnergizeEventData {
     pub header: CommonHeader,
     pub spell: SpellPrefix,
     pub advanced_block: Option<AdvancedLoggingBlock>,
-    pub amount: Option<i64>,
-    pub over_energize: Option<i64>,
+    pub amount: Option<f64>,
+    pub over_energize: Option<f64>,
     pub power_type: Option<i64>,
     pub max_power: Option<i64>,
 }
@@ -509,8 +509,8 @@ pub struct SpellDrainEventData {
     pub header: CommonHeader,
     pub spell: SpellPrefix,
     pub advanced_block: Option<AdvancedLoggingBlock>,
-    pub amount: Option<i64>,
-    pub over_energize: Option<i64>,
+    pub amount: Option<f64>,
+    pub over_energize: Option<f64>,
     pub power_type: Option<i64>,
     pub max_power: Option<i64>,
 }
@@ -520,8 +520,8 @@ pub struct SpellLeechEventData {
     pub header: CommonHeader,
     pub spell: SpellPrefix,
     pub advanced_block: Option<AdvancedLoggingBlock>,
-    pub amount: Option<i64>,
-    pub over_energize: Option<i64>,
+    pub amount: Option<f64>,
+    pub over_energize: Option<f64>,
     pub power_type: Option<i64>,
     pub max_power: Option<i64>,
 }
@@ -531,8 +531,8 @@ pub struct SpellPeriodicEnergizeEventData {
     pub header: CommonHeader,
     pub spell: SpellPrefix,
     pub advanced_block: Option<AdvancedLoggingBlock>,
-    pub amount: Option<i64>,
-    pub over_energize: Option<i64>,
+    pub amount: Option<f64>,
+    pub over_energize: Option<f64>,
     pub power_type: Option<i64>,
     pub max_power: Option<i64>,
 }
@@ -2596,9 +2596,9 @@ pub fn from_decoded(
                     "absorb",
                     "unknown_1",
                     "unknown_2",
-                    "power_type",
+                    "advanced_block_power_type",
                     "current_power",
-                    "max_power",
+                    "advanced_block_max_power",
                     "power_cost",
                     "position_x",
                     "position_y",
@@ -2607,6 +2607,12 @@ pub fn from_decoded(
                     "item_level",
                 ],
             );
+            if let Some(value) = advanced.remove("advanced_block_power_type") {
+                advanced.insert("power_type".to_owned(), value);
+            }
+            if let Some(value) = advanced.remove("advanced_block_max_power") {
+                advanced.insert("max_power".to_owned(), value);
+            }
             if let Some(unit) = decoded_fields.remove("advanced_block_unit") {
                 advanced.insert("unit".to_owned(), unit);
             }
@@ -2658,9 +2664,9 @@ pub fn from_decoded(
                     "absorb",
                     "unknown_1",
                     "unknown_2",
-                    "power_type",
+                    "advanced_block_power_type",
                     "current_power",
-                    "max_power",
+                    "advanced_block_max_power",
                     "power_cost",
                     "position_x",
                     "position_y",
@@ -2669,6 +2675,12 @@ pub fn from_decoded(
                     "item_level",
                 ],
             );
+            if let Some(value) = advanced.remove("advanced_block_power_type") {
+                advanced.insert("power_type".to_owned(), value);
+            }
+            if let Some(value) = advanced.remove("advanced_block_max_power") {
+                advanced.insert("max_power".to_owned(), value);
+            }
             if let Some(unit) = decoded_fields.remove("advanced_block_unit") {
                 advanced.insert("unit".to_owned(), unit);
             }
@@ -2720,9 +2732,9 @@ pub fn from_decoded(
                     "absorb",
                     "unknown_1",
                     "unknown_2",
-                    "power_type",
+                    "advanced_block_power_type",
                     "current_power",
-                    "max_power",
+                    "advanced_block_max_power",
                     "power_cost",
                     "position_x",
                     "position_y",
@@ -2731,6 +2743,12 @@ pub fn from_decoded(
                     "item_level",
                 ],
             );
+            if let Some(value) = advanced.remove("advanced_block_power_type") {
+                advanced.insert("power_type".to_owned(), value);
+            }
+            if let Some(value) = advanced.remove("advanced_block_max_power") {
+                advanced.insert("max_power".to_owned(), value);
+            }
             if let Some(unit) = decoded_fields.remove("advanced_block_unit") {
                 advanced.insert("unit".to_owned(), unit);
             }
@@ -2782,9 +2800,9 @@ pub fn from_decoded(
                     "absorb",
                     "unknown_1",
                     "unknown_2",
-                    "power_type",
+                    "advanced_block_power_type",
                     "current_power",
-                    "max_power",
+                    "advanced_block_max_power",
                     "power_cost",
                     "position_x",
                     "position_y",
@@ -2793,6 +2811,12 @@ pub fn from_decoded(
                     "item_level",
                 ],
             );
+            if let Some(value) = advanced.remove("advanced_block_power_type") {
+                advanced.insert("power_type".to_owned(), value);
+            }
+            if let Some(value) = advanced.remove("advanced_block_max_power") {
+                advanced.insert("max_power".to_owned(), value);
+            }
             if let Some(unit) = decoded_fields.remove("advanced_block_unit") {
                 advanced.insert("unit".to_owned(), unit);
             }

@@ -8494,7 +8494,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 31,
         name: "amount",
-        field_type: FieldType::Integer,
+        field_type: FieldType::Float,
         advanced: false,
         advanced_min_fields: 35,
         advanced_unit: "target",
@@ -8503,7 +8503,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 32,
         name: "over_energize",
-        field_type: FieldType::Integer,
+        field_type: FieldType::Float,
         advanced: false,
         advanced_min_fields: 35,
         advanced_unit: "target",
@@ -8800,7 +8800,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 31,
         name: "amount",
-        field_type: FieldType::Integer,
+        field_type: FieldType::Float,
         advanced: false,
         advanced_min_fields: 35,
         advanced_unit: "target",
@@ -8809,7 +8809,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 32,
         name: "over_energize",
-        field_type: FieldType::Integer,
+        field_type: FieldType::Float,
         advanced: false,
         advanced_min_fields: 35,
         advanced_unit: "target",
@@ -9106,7 +9106,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 31,
         name: "amount",
-        field_type: FieldType::Integer,
+        field_type: FieldType::Float,
         advanced: false,
         advanced_min_fields: 35,
         advanced_unit: "target",
@@ -9115,7 +9115,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 32,
         name: "over_energize",
-        field_type: FieldType::Integer,
+        field_type: FieldType::Float,
         advanced: false,
         advanced_min_fields: 35,
         advanced_unit: "target",
@@ -9412,7 +9412,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 31,
         name: "amount",
-        field_type: FieldType::Integer,
+        field_type: FieldType::Float,
         advanced: false,
         advanced_min_fields: 35,
         advanced_unit: "target",
@@ -9421,7 +9421,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 32,
         name: "over_energize",
-        field_type: FieldType::Integer,
+        field_type: FieldType::Float,
         advanced: false,
         advanced_min_fields: 35,
         advanced_unit: "target",

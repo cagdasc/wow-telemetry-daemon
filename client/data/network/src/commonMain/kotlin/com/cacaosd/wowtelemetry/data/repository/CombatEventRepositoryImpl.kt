@@ -1,6 +1,10 @@
-package com.cacaosd.wowtelemetry.data.network
+package com.cacaosd.wowtelemetry.data.repository
 
+import com.cacaosd.wowtelemetry.data.mapper.CombatEventMapper
+import com.cacaosd.wowtelemetry.data.mapper.CombatStreamMessageDecoder
+import com.cacaosd.wowtelemetry.data.model.CombatEventDecodeException
 import com.cacaosd.wowtelemetry.domain.CombatEventRepository
+import com.cacaosd.wowtelemetry.domain.CombatStreamMessage
 import io.ktor.client.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.websocket.*
@@ -11,12 +15,15 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.retryWhen
 import kotlin.time.Duration.Companion.seconds
 
-class WebSocketCombatEventRepository(
+class CombatEventRepositoryImpl(
     private val httpClient: HttpClient,
     private val url: String,
+    private val combatEventMapper: CombatEventMapper,
     private val logError: (String) -> Unit = ::println,
 ) : CombatEventRepository {
-    override fun events(): Flow<com.cacaosd.wowtelemetry.domain.CombatEvent> = flow {
+    private val streamMessageDecoder = CombatStreamMessageDecoder(combatEventMapper)
+
+    override fun events(): Flow<CombatStreamMessage> = flow {
         while (currentCoroutineContext().isActive) {
             connectionEvents()
                 .retryWhen { error, _ ->
@@ -40,12 +47,16 @@ class WebSocketCombatEventRepository(
             for (frame in incoming) {
                 if (frame !is Frame.Text) continue
                 val payload = frame.readText()
+                println(payload)
                 try {
-                    emit(CombatEventDto.decode(payload).toDomain())
+                    emit(streamMessageDecoder.decode(payload))
                 } catch (error: CombatEventDecodeException) {
-                    logError("Rejected invalid combat event from $url: ${error.message}")
+                    logError("Rejected invalid WebSocket message from $url: ${error.message}")
                 }
             }
+            val close = closeReason.await()
+            val description = close?.let { "${it.code}: ${it.message}" } ?: "no close frame"
+            logError("WebSocket connection to $url closed: $description")
         }
     }
 
