@@ -1,7 +1,7 @@
-use std::fs::{self, File};
+use std::fs::{self, File, OpenOptions};
 use std::io::{self, BufRead, BufReader, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
-use std::sync::mpsc::SyncSender;
+use std::sync::mpsc::{Receiver, SyncSender, TryRecvError};
 use std::thread;
 use std::time::Duration;
 
@@ -10,11 +10,21 @@ const EOF_SLEEP: Duration = Duration::from_millis(2);
 pub enum TailMessage {
     Line(Vec<u8>),
     CaughtUp,
+    LogCleared(SyncSender<Result<(), String>>),
     Error(io::Error),
 }
 
-pub fn tail_file(path: PathBuf, sender: SyncSender<TailMessage>, start_at_end: bool) {
-    if let Err(error) = tail_loop(&path, &sender, start_at_end) {
+pub enum TailCommand {
+    ClearLog(SyncSender<Result<(), String>>),
+}
+
+pub fn tail_file(
+    path: PathBuf,
+    sender: SyncSender<TailMessage>,
+    commands: Receiver<TailCommand>,
+    start_at_end: bool,
+) {
+    if let Err(error) = tail_loop(&path, &sender, &commands, start_at_end) {
         let _ = sender.send(TailMessage::Error(error));
     }
 }
@@ -22,22 +32,55 @@ pub fn tail_file(path: PathBuf, sender: SyncSender<TailMessage>, start_at_end: b
 fn tail_loop(
     path: &PathBuf,
     sender: &SyncSender<TailMessage>,
+    commands: &Receiver<TailCommand>,
     start_at_end: bool,
 ) -> io::Result<()> {
     let mut reader = open_reader(path, start_at_end)?;
     let mut pending = Vec::new();
     let mut caught_up = false;
+    let mut discard_until_newline = false;
 
     loop {
+        loop {
+            match commands.try_recv() {
+                Ok(TailCommand::ClearLog(response)) => {
+                    match truncate_log(path, &mut reader, &mut pending) {
+                        Ok(()) => {
+                            discard_until_newline = false;
+                            caught_up = false;
+                            sender
+                                .send(TailMessage::LogCleared(response))
+                                .map_err(|_| {
+                                    io::Error::new(
+                                        io::ErrorKind::BrokenPipe,
+                                        "event receiver closed",
+                                    )
+                                })?;
+                        }
+                        Err(error) => {
+                            let _ = response.send(Err(error.to_string()));
+                        }
+                    }
+                }
+                Err(TryRecvError::Empty | TryRecvError::Disconnected) => break,
+            }
+        }
+
         let bytes_read = reader.read_until(b'\n', &mut pending)?;
         if bytes_read > 0 {
             caught_up = false;
             if pending.last() == Some(&b'\n') {
-                sender
-                    .send(TailMessage::Line(std::mem::take(&mut pending)))
-                    .map_err(|_| {
-                        io::Error::new(io::ErrorKind::BrokenPipe, "event receiver closed")
-                    })?;
+                if discard_until_newline {
+                    pending.clear();
+                    discard_until_newline = false;
+                } else {
+                    let line = without_leading_nuls(std::mem::take(&mut pending));
+                    if line.iter().any(|byte| !byte.is_ascii_whitespace()) {
+                        sender.send(TailMessage::Line(line)).map_err(|_| {
+                            io::Error::new(io::ErrorKind::BrokenPipe, "event receiver closed")
+                        })?;
+                    }
+                }
             }
             continue;
         }
@@ -63,6 +106,25 @@ fn tail_loop(
 
         thread::sleep(EOF_SLEEP);
     }
+}
+
+/// Truncates the log in place. WoW keeps writing at its old offset, so the file
+/// may start with a NUL-filled gap; `without_leading_nuls` strips it from the first line.
+fn truncate_log(
+    path: &Path,
+    reader: &mut BufReader<File>,
+    pending: &mut Vec<u8>,
+) -> io::Result<()> {
+    OpenOptions::new().write(true).open(path)?.set_len(0)?;
+    reader.seek(SeekFrom::Start(0))?;
+    pending.clear();
+    Ok(())
+}
+
+fn without_leading_nuls(mut line: Vec<u8>) -> Vec<u8> {
+    let nuls = line.iter().take_while(|byte| **byte == 0).count();
+    line.drain(..nuls);
+    line
 }
 
 fn open_reader(path: &Path, start_at_end: bool) -> io::Result<BufReader<File>> {
@@ -115,7 +177,8 @@ mod tests {
 
         let (sender, receiver) = mpsc::sync_channel(4);
         let tail_path = path.clone();
-        let tail_thread = thread::spawn(move || tail_file(tail_path, sender, false));
+        let (_, commands) = mpsc::sync_channel(4);
+        let tail_thread = thread::spawn(move || tail_file(tail_path, sender, commands, false));
 
         assert_eq!(receive_line(&receiver), b"existing event\n",);
 
@@ -135,7 +198,8 @@ mod tests {
 
         let (sender, receiver) = mpsc::sync_channel(4);
         let tail_path = path.clone();
-        let tail_thread = thread::spawn(move || tail_file(tail_path, sender, false));
+        let (_, commands) = mpsc::sync_channel(4);
+        let tail_thread = thread::spawn(move || tail_file(tail_path, sender, commands, false));
 
         receive_caught_up(&receiver);
         assert!(matches!(
@@ -159,7 +223,8 @@ mod tests {
 
         let (sender, receiver) = mpsc::sync_channel(4);
         let tail_path = path.clone();
-        let tail_thread = thread::spawn(move || tail_file(tail_path, sender, false));
+        let (_, commands) = mpsc::sync_channel(4);
+        let tail_thread = thread::spawn(move || tail_file(tail_path, sender, commands, false));
 
         receive_caught_up(&receiver);
         assert!(matches!(
@@ -181,6 +246,68 @@ mod tests {
         fs::remove_file(path).expect("remove fixture");
     }
 
+    #[test]
+    fn clearing_log_truncates_file_and_ignores_nul_gap_from_stale_writer_offset() {
+        let path = temporary_log_path();
+        fs::write(&path, b"old event\npartial").expect("write fixture");
+        let mut writer = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .open(&path)
+            .expect("open fixture writer");
+        writer.seek(SeekFrom::End(0)).expect("seek writer to end");
+
+        let (sender, receiver) = mpsc::sync_channel(4);
+        let (commands_sender, commands_receiver) = mpsc::sync_channel(4);
+        let tail_path = path.clone();
+        let tail_thread =
+            thread::spawn(move || tail_file(tail_path, sender, commands_receiver, true));
+        receive_caught_up(&receiver);
+
+        let (response_sender, response_receiver) = mpsc::sync_channel(1);
+        commands_sender
+            .send(TailCommand::ClearLog(response_sender))
+            .expect("send clear command");
+        loop {
+            match receiver
+                .recv_timeout(Duration::from_secs(2))
+                .expect("receive clear acknowledgement")
+            {
+                TailMessage::LogCleared(response) => {
+                    response.send(Ok(())).expect("acknowledge clear");
+                    break;
+                }
+                TailMessage::Line(_) | TailMessage::CaughtUp => {}
+                TailMessage::Error(error) => panic!("tailer failed: {error}"),
+            }
+        }
+        response_receiver
+            .recv_timeout(Duration::from_secs(2))
+            .expect("receive clear result")
+            .expect("clear log");
+
+        writer
+            .write_all(b" suffix\nnew event\n")
+            .expect("append fixture events");
+        writer.flush().expect("flush fixture writer");
+        assert_eq!(receive_line(&receiver), b" suffix\n");
+        assert_eq!(receive_line(&receiver), b"new event\n");
+        assert_eq!(
+            fs::read(&path).expect("read log"),
+            b"old event\npartial"
+                .iter()
+                .map(|_| 0)
+                .chain(b" suffix\nnew event\n".iter().copied())
+                .collect::<Vec<u8>>()
+        );
+
+        drop(writer);
+        drop(receiver);
+        append_line(&path, b"stop event\n");
+        tail_thread.join().expect("join tailer thread");
+        fs::remove_file(path).expect("remove fixture");
+    }
+
     fn receive_line(receiver: &mpsc::Receiver<TailMessage>) -> Vec<u8> {
         loop {
             match receiver
@@ -189,6 +316,9 @@ mod tests {
             {
                 TailMessage::Line(line) => return line,
                 TailMessage::CaughtUp => {}
+                TailMessage::LogCleared(response) => {
+                    let _ = response.send(Ok(()));
+                }
                 TailMessage::Error(error) => panic!("tailer failed: {error}"),
             }
         }
@@ -202,6 +332,9 @@ mod tests {
             {
                 TailMessage::CaughtUp => return,
                 TailMessage::Line(_) => {}
+                TailMessage::LogCleared(response) => {
+                    let _ = response.send(Ok(()));
+                }
                 TailMessage::Error(error) => panic!("tailer failed: {error}"),
             }
         }

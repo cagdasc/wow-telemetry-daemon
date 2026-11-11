@@ -15,6 +15,7 @@ dependencies {
 
     implementation(libs.ktor.client.cio)
     implementation(libs.ktor.client.websockets)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.koin.core)
     implementation(libs.koog.agents)
     implementation(libs.koog.ollama.client)

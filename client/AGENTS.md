@@ -15,6 +15,20 @@
 - Do not run client test tasks unless the user explicitly requests them.
 - For client changes, run a production compilation/build only when needed; avoid tasks that invoke tests.
 
+## Stream handling
+
+- `CombatEventRepositoryImpl` tracks `epoch` and last `seq`, sends `RESUME` after reconnect, drops duplicates, logs
+  `REPLAY_GAP`, and prints every raw payload from a separate unbounded channel/coroutine so console speed cannot block
+  receiving.
+- Batches flush only on `LOG_CAUGHT_UP` or `LOG_CLEARED`, plus the strategy in `NarrationSettings.batchFlushStrategy`:
+  `SILENCE_WATCHDOG` (default, `batchSilenceTimeoutSeconds` 5-600, default 30) or `FLUSH_ON_DISCONNECT`. Do not
+  reintroduce a short idle timeout or size cap.
+- The narration batch queue is unbounded so slow Ollama never blocks event receipt.
+- Connection is manual (Connect/Disconnect); `--ws-url` and `WOW_TELEMETRY_WS_URL` only prefill the address. Clear
+  client history and Clear daemon backlog are independent actions.
+- Ollama models are discovered from `/api/tags`; build `LLModel(provider = LLMProvider.Ollama, id = selectedModel)`,
+  never copy another model's metadata. Supporting docs come from `./knowledge` (`.md`/`.txt`).
+
 ## Architecture and implementation
 
 - The client owns metadata, persistence, deterministic analysis, and presentation. The daemon owns combat-log file I/O, parsing, and event publishing.

@@ -89,6 +89,9 @@ The daemon sends one JSON text frame for each recognized combat-log event. The c
 - `fields` is an ordered array of strings or `null`; `"nil"` input fields become `null`. It preserves raw event data losslessly alongside the typed event.
 - IDs, including spell, encounter, map, and GUID values, remain strings at the boundary. Do not assume every combat-log ID fits a numeric type or discard the original `fields`.
 - `timestamp` is the original timestamp from the combat log, not a synchronized UTC timestamp or a daemon-generated clock value.
+- Every frame (events and control messages) carries a monotonic `"seq"` number added by the daemon. A new connection first receives `{"control":"HELLO","epoch":E,"last_seq":N}`; `epoch` changes on each daemon restart.
+- Control messages (`{"control":...}`): `HELLO`, `LOG_CAUGHT_UP` (end of an available batch; the client flushes its batch on it), `LOG_CLEARED`, `REPLAY_GAP` (`reason`: `EPOCH_CHANGED`, `INVALID_RESUME`, `BUFFER_EVICTED`), and `CLEAR_LOG_RESULT`.
+- Client commands: `{"command":"RESUME","epoch":E,"from_seq":N}` replays frames after `N` from the daemon's 10 MB in-memory ring buffer; `{"command":"CLEAR_LOG"}` truncates the combat-log file and empties that buffer. The client deduplicates by `seq`. A daemon restart cannot be replayed.
 - Encounter and combat signals arrive as ordinary events, such as `ENCOUNTER_START`, `ENCOUNTER_END`, `PLAYER_REGEN_DISABLED`, and `PLAYER_REGEN_ENABLED`. The current protocol has no separate phase-trigger or entity-template fields.
 
 Treat this shape as the current contract, not a promise that all future events have identical fields. When changing serialization, coordinate daemon and client changes and add contract-focused tests. Keep additions backward-compatible when practical; document any breaking change.

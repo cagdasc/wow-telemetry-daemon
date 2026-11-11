@@ -27,6 +27,15 @@ Read the workspace-root `AGENTS.md` for the system architecture and current WebS
 - Keep dependencies focused. Use clear Rust ownership and explicit error types; use `thiserror` or `anyhow` only where
   their error model fits.
 
+## Streaming, replay, and clearing
+
+- Every frame gets a monotonic `seq`; `websocket.rs` keeps a 10 MB in-memory replay ring (`ReplayBuffer`). Preserve `HELLO`, `RESUME`, and `REPLAY_GAP` semantics and the epoch-per-restart rule.
+- `LOG_CAUGHT_UP` is emitted by `tailer.rs` once per idle period after available lines are read; clients rely on it to close batches.
+- `CLEAR_LOG` truncates the file (`set_len(0)`), rewinds the reader, and empties the replay buffer (`clear_replay`, then `LOG_CLEARED`). WoW keeps writing at its old offset, so the file starts with NUL bytes; the tailer strips leading NULs and skips blank lines.
+- In tests, read `HELLO` before broadcasting; frames sent before a client registers are not delivered live.
+- Do not add per-event sleeps; they only reduce throughput. Raise buffer sizes or coalesce writes instead.
+- `cargo test` runs on Linux and finishes in seconds. A hang means a test deadlock. Release builds target `x86_64-pc-windows-gnu`; keep them warning-free.
+
 ## Validation
 
 Run `cargo test` from `daemon/`. For protocol changes, also build/test the client and verify the actual serialized event

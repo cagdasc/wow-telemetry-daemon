@@ -2,7 +2,7 @@ package com.cacaosd.wowtelemetry.client
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.cacaosd.wowtelemetry.agent.CombatEventNarrator
+import com.cacaosd.wowtelemetry.agent.*
 import com.cacaosd.wowtelemetry.combatlog.CombatEventBatch
 import com.cacaosd.wowtelemetry.domain.*
 import kotlinx.coroutines.*
@@ -25,13 +25,21 @@ data class CombatChatTurn(
 data class TelemetryUiState(
     val latestEventSummary: String? = null,
     val chatHistory: List<CombatChatTurn> = emptyList(),
-    val isChatActive: Boolean = true,
     val isPhrasingEvent: Boolean = false,
     val phrasingError: String? = null,
     val profile: CharacterProfile? = null,
     val profileError: String? = null,
     val activeBatch: CombatEventBatch? = null,
     val latestBatch: CombatEventBatch? = null,
+    val daemonConnection: DaemonConnectionState = DaemonConnectionState(),
+    val narrationSettings: NarrationSettings = NarrationSettings(),
+    val settingsError: String? = null,
+    val daemonBacklogMessage: String? = null,
+    val daemonBacklogError: Boolean = false,
+    val isClearingDaemonBacklog: Boolean = false,
+    val ollamaModels: List<String> = emptyList(),
+    val isDiscoveringOllamaModels: Boolean = false,
+    val ollamaModelError: String? = null,
 )
 
 private data class QueuedChatBatch(
@@ -41,7 +49,10 @@ private data class QueuedChatBatch(
 
 class TelemetryViewModel(
     private val processCombatEvent: ProcessCombatEventUseCase,
+    private val combatEventRepository: CombatEventRepository,
     private val characterProfileRepository: CharacterProfileRepository,
+    private val narrationSettingsRepository: NarrationSettingsRepository,
+    private val ollamaModelRepository: OllamaModelRepository,
     private val combatEventNarrator: CombatEventNarrator,
 ) : ViewModel() {
 
@@ -53,26 +64,27 @@ class TelemetryViewModel(
     private var batchStartTimestamp: String? = null
     private var batchEndTimestamp: String? = null
     private var batchChatGeneration = 0L
-    private var batchTimeout: Job? = null
+    private var batchWatchdog: Job? = null
     private var chatGeneration = 0L
     private var chatSessionId = sessionId(chatGeneration)
     private var activeResponse: Deferred<String>? = null
     private var started = false
-    private val batchQueue = Channel<QueuedChatBatch>(capacity = 1)
+    private val batchQueue = Channel<QueuedChatBatch>(Channel.UNLIMITED)
 
     private val batchWorker = viewModelScope.launch(start = CoroutineStart.LAZY) {
         for ((generation, batch) in batchQueue) {
-            if (!_uiState.value.isChatActive || generation != chatGeneration) continue
+            if (generation != chatGeneration) continue
 
+            val responseSessionId = chatSessionId
             val response = viewModelScope.async(Dispatchers.IO) {
-                combatEventNarrator.respond(chatSessionId, _uiState.value.profile, batch)
+                combatEventNarrator.respond(responseSessionId, _uiState.value.profile, batch)
             }
             activeResponse = response
             _uiState.update { it.copy(isPhrasingEvent = true) }
             try {
                 val answer = response.await()
                 check(answer.isNotBlank()) { "Ollama returned an empty response." }
-                if (_uiState.value.isChatActive && generation == chatGeneration) {
+                if (generation == chatGeneration) {
                     _uiState.update { state ->
                         state.copy(
                             chatHistory = state.chatHistory + listOf(
@@ -95,7 +107,7 @@ class TelemetryViewModel(
             } catch (error: CancellationException) {
                 if (!viewModelScope.isActive) throw error
             } catch (error: Exception) {
-                if (_uiState.value.isChatActive && generation == chatGeneration) {
+                if (generation == chatGeneration) {
                     _uiState.update {
                         it.copy(
                             phrasingError = error.message ?: "Could not reach the local Ollama service."
@@ -113,6 +125,18 @@ class TelemetryViewModel(
         if (started) return
         started = true
         batchWorker.start()
+        viewModelScope.launch {
+            combatEventRepository.connectionState.collect { connection ->
+                _uiState.update { it.copy(daemonConnection = connection) }
+                if (
+                    connection.status != DaemonConnectionState.Status.CONNECTED &&
+                    _uiState.value.narrationSettings.batchFlushStrategy ==
+                    BatchFlushStrategy.FLUSH_ON_DISCONNECT
+                ) {
+                    flushBatch()
+                }
+            }
+        }
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val profile = characterProfileRepository.getProfile()
@@ -121,6 +145,16 @@ class TelemetryViewModel(
                 _uiState.update {
                     it.copy(
                         profileError = error.message ?: "Could not load the saved character profile."
+                    )
+                }
+            }
+            try {
+                val settings = narrationSettingsRepository.load()
+                _uiState.update { it.copy(narrationSettings = settings, settingsError = null) }
+            } catch (error: Exception) {
+                _uiState.update {
+                    it.copy(
+                        settingsError = error.message ?: "Could not load narration settings."
                     )
                 }
             }
@@ -134,6 +168,96 @@ class TelemetryViewModel(
                     }
 
                     CombatStreamMessage.CaughtUp -> flushBatch()
+
+                    CombatStreamMessage.LogCleared -> flushBatch()
+                }
+            }
+        }
+    }
+
+    fun connectToDaemon(url: String) {
+        _uiState.update { it.copy(daemonBacklogMessage = null) }
+        combatEventRepository.connect(url)
+    }
+
+    fun disconnectDaemon() {
+        combatEventRepository.disconnect()
+    }
+
+    fun clearDaemonBacklog() {
+        if (_uiState.value.isClearingDaemonBacklog) return
+        _uiState.update { it.copy(isClearingDaemonBacklog = true, daemonBacklogMessage = null) }
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                combatEventRepository.clearDaemonBacklog()
+                _uiState.update {
+                    it.copy(
+                        isClearingDaemonBacklog = false,
+                        daemonBacklogMessage = "Daemon log file cleared.",
+                        daemonBacklogError = false,
+                    )
+                }
+            } catch (error: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isClearingDaemonBacklog = false,
+                        daemonBacklogMessage = error.message ?: "Could not clear daemon backlog.",
+                        daemonBacklogError = true,
+                    )
+                }
+            }
+        }
+    }
+
+    fun clearHistory() {
+        val previousSessionId = chatSessionId
+        chatGeneration++
+        chatSessionId = sessionId(chatGeneration)
+        activeResponse?.cancel()
+        _uiState.update {
+            it.copy(
+                chatHistory = emptyList(),
+                phrasingError = null,
+            )
+        }
+        viewModelScope.launch {
+            batchMutex.withLock {
+                if (batchEvents.isNotEmpty()) batchChatGeneration = chatGeneration
+            }
+            combatEventNarrator.clearChat(previousSessionId)
+        }
+    }
+
+    fun saveNarrationSettings(settings: NarrationSettings) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                narrationSettingsRepository.save(settings)
+                _uiState.update { it.copy(narrationSettings = settings, settingsError = null) }
+            } catch (error: Exception) {
+                _uiState.update {
+                    it.copy(settingsError = error.message ?: "Could not save narration settings.")
+                }
+            }
+        }
+    }
+
+    fun discoverOllamaModels() {
+        if (_uiState.value.isDiscoveringOllamaModels) return
+        _uiState.update {
+            it.copy(isDiscoveringOllamaModels = true, ollamaModelError = null)
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val models = ollamaModelRepository.discoverModels()
+                _uiState.update {
+                    it.copy(ollamaModels = models, isDiscoveringOllamaModels = false)
+                }
+            } catch (error: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isDiscoveringOllamaModels = false,
+                        ollamaModelError = error.message ?: "Could not discover Ollama models.",
+                    )
                 }
             }
         }
@@ -161,28 +285,9 @@ class TelemetryViewModel(
         }
     }
 
-    fun stopChat() {
-        if (!_uiState.value.isChatActive) return
-        val previousSessionId = chatSessionId
-        chatGeneration++
-        _uiState.update {
-            it.copy(isChatActive = false, chatHistory = emptyList(), phrasingError = null)
-        }
-        activeResponse?.cancel()
-        viewModelScope.launch { combatEventNarrator.clearChat(previousSessionId) }
-    }
-
-    fun startChat() {
-        if (_uiState.value.isChatActive) return
-        chatGeneration++
-        chatSessionId = sessionId(chatGeneration)
-        _uiState.update {
-            it.copy(isChatActive = true, chatHistory = emptyList(), phrasingError = null)
-        }
-    }
-
     private suspend fun collectBatchEvent(event: CombatEvent) {
-        val isFull = batchMutex.withLock {
+        batchMutex.withLock {
+            armWatchdog()
             if (batchEvents.isEmpty()) {
                 batchStartTimestamp = event.timestamp
                 batchChatGeneration = chatGeneration
@@ -205,21 +310,27 @@ class TelemetryViewModel(
                     )
                 )
             }
-            batchTimeout?.cancel()
-            batchTimeout = viewModelScope.launch {
-                delay(BATCH_TIMEOUT)
-                flushBatch(cancelTimeout = false)
-            }
-            batchEvents.size >= MAX_BATCH_EVENTS
         }
-        if (isFull) flushBatch()
     }
 
-    private suspend fun flushBatch(cancelTimeout: Boolean = true) {
+    private fun armWatchdog() {
+        batchWatchdog?.cancel()
+        batchWatchdog = null
+        val settings = _uiState.value.narrationSettings
+        if (settings.batchFlushStrategy != BatchFlushStrategy.SILENCE_WATCHDOG) return
+        batchWatchdog = viewModelScope.launch {
+            delay(settings.batchSilenceTimeoutSeconds.seconds)
+            flushBatch(cancelWatchdog = false)
+        }
+    }
+
+    private suspend fun flushBatch(cancelWatchdog: Boolean = true) {
         val queuedBatch = batchMutex.withLock {
+            if (cancelWatchdog) {
+                batchWatchdog?.cancel()
+                batchWatchdog = null
+            }
             if (batchEvents.isEmpty()) return
-            if (cancelTimeout) batchTimeout?.cancel()
-            batchTimeout = null
             val result = CombatEventBatch(
                 startTimestamp = batchStartTimestamp!!,
                 endTimestamp = batchEndTimestamp!!,
@@ -234,13 +345,13 @@ class TelemetryViewModel(
             }
             QueuedChatBatch(generation, result)
         }
-        if (_uiState.value.isChatActive && queuedBatch.generation == chatGeneration) {
+        if (queuedBatch.generation == chatGeneration) {
             batchQueue.send(queuedBatch)
         }
     }
 
     override fun onCleared() {
-        batchTimeout?.cancel()
+        batchWatchdog?.cancel()
         activeResponse?.cancel()
         batchQueue.close()
         super.onCleared()
@@ -250,8 +361,6 @@ class TelemetryViewModel(
         "Combat batch from $startTimestamp to $endTimestamp with ${events.size} events."
 
     private companion object {
-        const val MAX_BATCH_EVENTS = 10000
-        val BATCH_TIMEOUT = 1.5.seconds
 
         fun sessionId(generation: Long) = "combat-chat-$generation"
     }

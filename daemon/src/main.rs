@@ -54,8 +54,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     let path = path.unwrap_or_else(|| PathBuf::from("WoWCombatLog.txt"));
 
+    let (control_sender, control_receiver) = mpsc::sync_channel(8);
     let websocket = if websocket_enabled {
-        let server = websocket::WebSocketServer::bind(websocket_address)?;
+        let server =
+            websocket::WebSocketServer::bind_with_clear_log(websocket_address, control_sender)?;
         eprintln!("WebSocket server listening on ws://{}", server.address());
         Some(server)
     } else {
@@ -66,7 +68,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let tail_path = path.clone();
     let tail_thread = std::thread::Builder::new()
         .name("combat-log-tailer".into())
-        .spawn(move || tailer::tail_file(tail_path, sender, start_at_end))?;
+        .spawn(move || tailer::tail_file(tail_path, sender, control_receiver, start_at_end))?;
     let state = Arc::new(RwLock::new(State::default()));
     let stdout = io::stdout();
     let mut output = BufWriter::new(stdout.lock());
@@ -116,6 +118,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 if let Some(websocket) = &websocket {
                     websocket.broadcast(Arc::from(r#"{"control":"LOG_CAUGHT_UP"}"#))?;
                 }
+            }
+            TailMessage::LogCleared(response) => {
+                if let Some(websocket) = &websocket {
+                    websocket.clear_replay()?;
+                    websocket.broadcast(Arc::from(r#"{"control":"LOG_CLEARED"}"#))?;
+                }
+                let _ = response.send(Ok(()));
             }
             TailMessage::Error(error) => return Err(error.into()),
         }

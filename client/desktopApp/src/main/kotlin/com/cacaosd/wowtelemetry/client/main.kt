@@ -16,7 +16,7 @@ fun main(args: Array<String>) {
     val websocketUrl = parseWebSocketUrl(args) ?: return
     val koinApplication = startKoin {
         allowOverride(false)
-        modules(appModule(websocketUrl))
+        modules(appModule())
     }
     val database = koinApplication.koin.get<AppDatabase>()
     val profileDatabase = koinApplication.koin.get<CharacterProfileDatabase>()
@@ -57,7 +57,7 @@ private fun parseWebSocketUrl(args: Array<String>): String? {
             "--help", "-h" -> {
                 println(
                     "Usage: WowTelemetryClient [--ws-url ws://HOST:8765]\n" +
-                        "Set WOW_TELEMETRY_WS_URL to configure the URL through the environment.",
+                            "Set WOW_TELEMETRY_WS_URL to prefill the connection panel.",
                 )
                 return null
             }

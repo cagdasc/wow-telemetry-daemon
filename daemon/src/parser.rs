@@ -14,6 +14,8 @@ use serde_json::{Map, Number, Value};
 
 const ADDITIONAL_EVENTS: &[&str] = &["PLAYER_REGEN_DISABLED", "PLAYER_REGEN_ENABLED"];
 
+// Extracted summary fields are not serialized; only tests read them.
+#[cfg_attr(not(test), allow(dead_code))]
 #[derive(Debug, Serialize)]
 pub struct CombatEvent<'a> {
     pub timestamp: Cow<'a, str>,

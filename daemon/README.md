@@ -18,7 +18,12 @@ with the same object shape as the stdout JSON Lines output. After reading all
 currently available complete lines, the daemon sends
 `{"control":"LOG_CAUGHT_UP"}` once for that idle period. This is a temporary
 watermark, not a terminal end-of-log signal; the daemon continues tailing and
-sends another marker after later lines. To choose another address:
+sends another marker after later lines. Every frame also has a monotonic
+`"seq"`. On connect the daemon sends `{"control":"HELLO","epoch":...,"last_seq":...}`;
+a client may then send `{"command":"RESUME","epoch":...,"from_seq":N}` to replay
+frames from a 10 MB in-memory buffer. If frames were evicted or the daemon
+restarted, it sends `{"control":"REPLAY_GAP",...}`. `{"command":"CLEAR_LOG"}`
+truncates the log file and empties the buffer. To choose another address:
 
 ```sh
 cargo run -- [PATH] --ws-addr 127.0.0.1:9000
