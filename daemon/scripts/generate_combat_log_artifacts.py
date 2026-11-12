@@ -340,11 +340,6 @@ def render_rust(spec):
         "",
     ]
     lines.extend(rust_array("SPEC_EVENTS", names, public=True))
-    lines.extend(rust_array("SPEC_SPELL_PREFIX_EVENTS", spell_prefix_events, public=True))
-    lines.extend(rust_array("NO_SOURCE_TARGET_EVENTS", no_source_target_events, public=True))
-    lines.extend(
-        rust_array("NON_STANDARD_HEADER_EVENTS", non_standard_header_events, public=True)
-    )
     lines.append(render_event_fields(spec))
     return "\n".join(lines)
 
@@ -729,7 +724,7 @@ def render_rust_typed_events(spec):
         '    #[serde(rename = "UNRECOGNIZED_EVENT")] UnrecognizedEvent(UnrecognizedEventEventData),',
         '    #[serde(rename = "MALFORMED_EVENT")] MalformedEvent(MalformedEventEventData),',
     ])
-    lines.extend(["}", "", "impl TypedCombatLogEvent {", "    pub fn event_name(&self) -> &'static str {", "        match self {"])
+    lines.extend(["}", "", "impl TypedCombatLogEvent {", "    #[cfg(test)]", "    pub fn event_name(&self) -> &'static str {", "        match self {"])
     for name in names:
         lines.append(
             f'            Self::{pascal_case(name)}(_) => "{name}",'

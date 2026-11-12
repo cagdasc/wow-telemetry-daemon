@@ -6,6 +6,7 @@ use std::thread;
 use std::time::Duration;
 
 const EOF_SLEEP: Duration = Duration::from_millis(2);
+const MISSING_FILE_RETRY: Duration = Duration::from_millis(500);
 
 pub enum TailMessage {
     Line(Vec<u8>),
@@ -35,10 +36,9 @@ fn tail_loop(
     commands: &Receiver<TailCommand>,
     start_at_end: bool,
 ) -> io::Result<()> {
-    let mut reader = open_reader(path, start_at_end)?;
+    let mut reader = wait_for_reader(path, start_at_end)?;
     let mut pending = Vec::new();
     let mut caught_up = false;
-    let mut discard_until_newline = false;
 
     loop {
         loop {
@@ -46,7 +46,6 @@ fn tail_loop(
                 Ok(TailCommand::ClearLog(response)) => {
                     match truncate_log(path, &mut reader, &mut pending) {
                         Ok(()) => {
-                            discard_until_newline = false;
                             caught_up = false;
                             sender
                                 .send(TailMessage::LogCleared(response))
@@ -70,16 +69,11 @@ fn tail_loop(
         if bytes_read > 0 {
             caught_up = false;
             if pending.last() == Some(&b'\n') {
-                if discard_until_newline {
-                    pending.clear();
-                    discard_until_newline = false;
-                } else {
-                    let line = without_leading_nuls(std::mem::take(&mut pending));
-                    if line.iter().any(|byte| !byte.is_ascii_whitespace()) {
-                        sender.send(TailMessage::Line(line)).map_err(|_| {
-                            io::Error::new(io::ErrorKind::BrokenPipe, "event receiver closed")
-                        })?;
-                    }
+                let line = without_leading_nuls(std::mem::take(&mut pending));
+                if line.iter().any(|byte| !byte.is_ascii_whitespace()) {
+                    sender.send(TailMessage::Line(line)).map_err(|_| {
+                        io::Error::new(io::ErrorKind::BrokenPipe, "event receiver closed")
+                    })?;
                 }
             }
             continue;
@@ -90,10 +84,17 @@ fn tail_loop(
             if file_was_replaced(&open_metadata, &path_metadata)
                 || reader.stream_position()? > open_metadata.len()
             {
-                reader = BufReader::new(File::open(path)?);
-                pending.clear();
-                caught_up = false;
-                continue;
+                // The replacement may vanish again before it can be opened; retry on the next pass.
+                match File::open(path) {
+                    Ok(file) => {
+                        reader = BufReader::new(file);
+                        pending.clear();
+                        caught_up = false;
+                        continue;
+                    }
+                    Err(error) if error.kind() == io::ErrorKind::NotFound => {}
+                    Err(error) => return Err(error),
+                }
             }
         }
 
@@ -127,6 +128,23 @@ fn without_leading_nuls(mut line: Vec<u8>) -> Vec<u8> {
     line
 }
 
+/// Waits for the log to exist, so the daemon can start before WoW creates it.
+fn wait_for_reader(path: &Path, start_at_end: bool) -> io::Result<BufReader<File>> {
+    let mut announced = false;
+    loop {
+        match open_reader(path, start_at_end) {
+            Err(error) if error.kind() == io::ErrorKind::NotFound => {
+                if !announced {
+                    eprintln!("waiting for combat log: {}", path.display());
+                    announced = true;
+                }
+                thread::sleep(MISSING_FILE_RETRY);
+            }
+            result => return result,
+        }
+    }
+}
+
 fn open_reader(path: &Path, start_at_end: bool) -> io::Result<BufReader<File>> {
     let file = File::open(path)?;
     let mut reader = BufReader::new(file);
@@ -150,7 +168,14 @@ fn file_was_replaced(open: &fs::Metadata, current: &fs::Metadata) -> bool {
     open.dev() != current.dev() || open.ino() != current.ino()
 }
 
-#[cfg(not(unix))]
+// Windows has no stable file-index API; a replaced file gets a new creation time.
+#[cfg(windows)]
+fn file_was_replaced(open: &fs::Metadata, current: &fs::Metadata) -> bool {
+    use std::os::windows::fs::MetadataExt;
+    open.creation_time() != current.creation_time()
+}
+
+#[cfg(not(any(unix, windows)))]
 fn file_was_replaced(_open: &fs::Metadata, _current: &fs::Metadata) -> bool {
     false
 }
@@ -184,6 +209,28 @@ mod tests {
 
         append_line(&path, b"later event\n");
         assert_eq!(receive_line(&receiver), b"later event\n");
+
+        drop(receiver);
+        append_line(&path, b"stop event\n");
+        tail_thread.join().expect("join tailer thread");
+        fs::remove_file(path).expect("remove fixture");
+    }
+
+    #[test]
+    fn waits_for_a_missing_file_to_appear() {
+        let path = temporary_log_path();
+
+        let (sender, receiver) = mpsc::sync_channel(4);
+        let tail_path = path.clone();
+        let (_, commands) = mpsc::sync_channel(4);
+        let tail_thread = thread::spawn(move || tail_file(tail_path, sender, commands, false));
+
+        assert!(matches!(
+            receiver.recv_timeout(Duration::from_millis(100)),
+            Err(mpsc::RecvTimeoutError::Timeout)
+        ));
+        fs::write(&path, b"first event\n").expect("create fixture");
+        assert_eq!(receive_line(&receiver), b"first event\n");
 
         drop(receiver);
         append_line(&path, b"stop event\n");

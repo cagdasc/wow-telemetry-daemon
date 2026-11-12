@@ -9,8 +9,12 @@ events as JSON Lines to stdout and to connected WebSocket clients.
 cargo run -- [PATH]
 ```
 
-The default path is `WoWCombatLog.txt`. The file must exist when the daemon
-starts. It begins at the current end of the file, so existing lines are skipped.
+The default path is `WoWCombatLog.txt`. If the file does not exist, the daemon
+waits for it to appear. It begins at the current end of the file, so existing
+lines are skipped; use `--from-start` to read the whole file. A file replaced
+while running (new inode on Unix, new creation time on Windows) is reopened
+from its start. Use `--quiet` to skip the stdout JSON Lines; stdout is flushed
+only when the daemon catches up with the log.
 
 By default, the daemon listens for WebSocket clients at
 `ws://127.0.0.1:8765`. Each parsed log line is sent as one JSON text frame,
@@ -48,13 +52,21 @@ cp target/x86_64-pc-windows-gnu/release/wow-telemetry-daemon.exe scripts/wow-tel
 Then edit `LOG_DIR` in `run-windows.bat` to the World of Warcraft `Logs`
 directory. The launcher checks that the executable supports `--from-start`
 before backing up or removing any logs.
-Double-click the batch file before enabling combat logging. The launcher copies
-existing `WoWCombatLog-*.txt` files into a timestamped `Backups` directory under
-`Logs`, removes the originals after all copies succeed, waits for a new
-timestamped log, then starts the daemon on that file. The daemon reads the new
-file from its beginning, including bytes written before it opens the file. You
-can override the folder by setting `WOW_COMBAT_LOG_DIR` before running the
-batch file. The daemon binds to `0.0.0.0:8765`, so allow that port through
+The launcher has two modes. `run-windows.bat` asks which one to use when it
+opens; pass it as the first argument (`run-windows.bat Latest`) or set
+`WOW_RUN_MODE` to skip the prompt:
+
+- `NewLog`: double-click before enabling combat logging. It copies
+  existing `WoWCombatLog-*.txt` files into a timestamped `Backups` directory
+  under `Logs`, removes the originals after all copies succeed, waits for a new
+  timestamped log, then starts the daemon on that file.
+- `Latest`: starts the daemon on the most recently written existing log without
+  backing up or removing anything.
+
+Either way, the daemon reads the file from its beginning, including bytes
+written before it opens the file. You can override the folder by setting
+`WOW_COMBAT_LOG_DIR` before running the batch file. From PowerShell, run
+`run-windows.ps1 -LogDirectory DIR [-Mode NewLog|Latest] [-WebSocketAddress ADDR]`. The daemon binds to `0.0.0.0:8765`, so allow that port through
 Windows Firewall if a client connects from another computer.
 
 ## Generate a mock event stream

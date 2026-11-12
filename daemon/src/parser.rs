@@ -1,10 +1,7 @@
 use std::borrow::Cow;
 use std::str;
 
-use crate::spec_events::{
-    FieldType, NO_SOURCE_TARGET_EVENTS, NON_STANDARD_HEADER_EVENTS, SPEC_EVENTS,
-    SPEC_SPELL_PREFIX_EVENTS, event_fields as spec_event_fields,
-};
+use crate::spec_events::{FieldType, SPEC_EVENTS, event_fields as spec_event_fields};
 use crate::typed_events::{
     MalformedEventEventData, TypedCombatLogEvent, UnrecognizedEventEventData, from_decoded,
 };
@@ -14,26 +11,12 @@ use serde_json::{Map, Number, Value};
 
 const ADDITIONAL_EVENTS: &[&str] = &["PLAYER_REGEN_DISABLED", "PLAYER_REGEN_ENABLED"];
 
-// Extracted summary fields are not serialized; only tests read them.
-#[cfg_attr(not(test), allow(dead_code))]
 #[derive(Debug, Serialize)]
 pub struct CombatEvent<'a> {
     pub timestamp: Cow<'a, str>,
-    #[serde(skip_serializing)]
-    pub event: &'a str,
     pub fields: Vec<Option<Cow<'a, str>>>,
     #[serde(rename = "event")]
     pub typed_event: TypedCombatLogEvent,
-    #[serde(skip_serializing)]
-    pub source_guid: Option<Cow<'a, str>>,
-    #[serde(skip_serializing)]
-    pub source_name: Option<Cow<'a, str>>,
-    #[serde(skip_serializing)]
-    pub spell_id: Option<Cow<'a, str>>,
-    #[serde(skip_serializing)]
-    pub spell_name: Option<Cow<'a, str>>,
-    #[serde(skip_serializing)]
-    pub amount: Option<Cow<'a, str>>,
 }
 
 #[derive(Debug)]
@@ -179,14 +162,6 @@ fn is_recognized_event(event: &str) -> bool {
     SPEC_EVENTS.contains(&event) || ADDITIONAL_EVENTS.contains(&event)
 }
 
-fn has_spell_prefix(event: &str) -> bool {
-    SPEC_SPELL_PREFIX_EVENTS.contains(&event)
-}
-
-fn indexed_field<'a>(fields: &[Option<Cow<'a, str>>], index: usize) -> Option<Cow<'a, str>> {
-    fields.get(index).cloned().flatten()
-}
-
 fn skip_whitespace(bytes: &[u8], position: &mut usize) {
     while bytes.get(*position).is_some_and(u8::is_ascii_whitespace) {
         *position += 1;
@@ -313,10 +288,7 @@ fn parse_spec_value(value: Option<&str>, field_type: FieldType) -> Value {
     }
 }
 
-fn parsed_fields<'a>(
-    event: &str,
-    fields: &[Option<Cow<'a, str>>],
-) -> (Map<String, Value>, Option<Cow<'a, str>>) {
+fn parsed_fields(event: &str, fields: &[Option<Cow<'_, str>>]) -> Map<String, Value> {
     let total_field_count = fields.len() + 1;
     let layout = spec_event_fields(event);
     let advanced_start = layout
@@ -339,7 +311,6 @@ fn parsed_fields<'a>(
         _ => 0,
     };
     let mut decoded = Map::new();
-    let mut amount = None;
     if advanced {
         if let Some(unit) = layout
             .iter()
@@ -386,12 +357,9 @@ fn parsed_fields<'a>(
         } else {
             parse_spec_value(Some(value), spec_field.field_type)
         };
-        if spec_field.name == "base_amount" || spec_field.name == "amount" {
-            amount = fields.get(offset.saturating_sub(1)).cloned().flatten();
-        }
         decoded.insert(field_name, parsed);
     }
-    (decoded, amount)
+    decoded
 }
 
 fn is_identifier_field(name: &str) -> bool {
@@ -438,17 +406,11 @@ fn timestamp_from_malformed(line: &[u8]) -> Cow<'_, str> {
 fn malformed_event(line: &[u8], error: ParseError) -> CombatEvent<'_> {
     CombatEvent {
         timestamp: timestamp_from_malformed(line),
-        event: "MALFORMED_EVENT",
         fields: Vec::new(),
         typed_event: TypedCombatLogEvent::MalformedEvent(MalformedEventEventData {
             reason: error.to_string(),
             raw_bytes: line.to_vec(),
         }),
-        source_guid: None,
-        source_name: None,
-        spell_id: None,
-        spell_name: None,
-        amount: None,
     }
 }
 
@@ -478,23 +440,7 @@ fn parse_line_inner(line: &[u8]) -> Result<Option<CombatEvent<'_>>, ParseError> 
     }
 
     let recognized = is_recognized_event(event);
-    let has_common_header = recognized
-        && !NO_SOURCE_TARGET_EVENTS.contains(&event)
-        && !NON_STANDARD_HEADER_EVENTS.contains(&event)
-        && !ADDITIONAL_EVENTS.contains(&event);
-    let (source_guid, source_name) = if has_common_header {
-        (indexed_field(&fields, 0), indexed_field(&fields, 1))
-    } else {
-        (None, None)
-    };
-
-    let (spell_id, spell_name) = if recognized && has_spell_prefix(event) {
-        (indexed_field(&fields, 8), indexed_field(&fields, 9))
-    } else {
-        (None, None)
-    };
-
-    let (decoded_fields, amount) = parsed_fields(event, &fields);
+    let decoded_fields = parsed_fields(event, &fields);
     let typed_event = if recognized {
         from_decoded(event, decoded_fields)?
     } else {
@@ -505,14 +451,8 @@ fn parse_line_inner(line: &[u8]) -> Result<Option<CombatEvent<'_>>, ParseError> 
 
     Ok(Some(CombatEvent {
         timestamp: Cow::Borrowed(timestamp),
-        event,
         fields,
         typed_event,
-        source_guid,
-        source_name,
-        spell_id,
-        spell_name,
-        amount,
     }))
 }
 
@@ -525,16 +465,24 @@ mod tests {
         serde_json::to_value(&event.typed_event).unwrap()["data"].clone()
     }
 
+    fn event_name(event: &CombatEvent<'_>) -> &'static str {
+        event.typed_event.event_name()
+    }
+
+    fn amount(line: &str) -> Option<f64> {
+        let data = event_data(&parse_line(line.as_bytes()).unwrap().unwrap());
+        data["base_amount"]
+            .as_f64()
+            .or_else(|| data["amount"].as_f64())
+    }
+
     #[test]
     fn parses_spell_damage_with_quoted_commas_and_escaped_quotes() {
         let line = br#"10/28 15:04:05.123  SPELL_DAMAGE,Player-1,"Mage, ""The Great""",0x511,0,Creature-2,"Target",0x10,0,1234,"Fireball",4,250,0"#;
         let event = parse_line(line).unwrap().unwrap();
 
-        assert_eq!(event.event, "SPELL_DAMAGE");
+        assert_eq!(event_name(&event), "SPELL_DAMAGE");
         assert_eq!(event.timestamp, "10/28 15:04:05.123");
-        assert_eq!(event.source_name.as_deref(), Some("Mage, \"The Great\""));
-        assert_eq!(event.spell_id.as_deref(), Some("1234"));
-        assert_eq!(event.amount.as_deref(), Some("250"));
         assert_eq!(event.fields[1].as_deref(), Some("Mage, \"The Great\""));
         let payload = serde_json::to_value(&event).unwrap();
         assert_eq!(payload["event"]["type"], "SPELL_DAMAGE");
@@ -549,12 +497,13 @@ mod tests {
         let event = parse_line(b"10/28 15:04:05.123  PLAYER_REGEN_DISABLED")
             .unwrap()
             .unwrap();
-        assert_eq!(event.event, "PLAYER_REGEN_DISABLED");
+        assert_eq!(event_name(&event), "PLAYER_REGEN_DISABLED");
         assert_eq!(
-            parse_line(b"10/28 15:04:05.123  SPELL_HEAL")
-                .unwrap()
-                .unwrap()
-                .event,
+            event_name(
+                &parse_line(b"10/28 15:04:05.123  SPELL_HEAL")
+                    .unwrap()
+                    .unwrap()
+            ),
             "SPELL_HEAL"
         );
         let unknown = parse_line(b"10/28 15:04:05.123  SPELL_NOT_IN_SPEC,Player-1,Mage,nil")
@@ -628,17 +577,17 @@ mod tests {
             parse_line(b"10/28 15:04:05.123  SWING_DAMAGE,Player-1,Mage,0x511,0,Creature-2,Target,0x10,0,500,0")
                 .unwrap()
                 .unwrap();
-        assert_eq!(swing.event, "SWING_DAMAGE");
-        assert_eq!(swing.amount.as_deref(), Some("500"));
-        assert!(swing.spell_id.is_none());
+        assert_eq!(event_name(&swing), "SWING_DAMAGE");
+        assert_eq!(event_data(&swing)["base_amount"], 500);
+        assert!(event_data(&swing).get("spell").is_none());
 
         let cast =
             parse_line(b"10/28 15:04:05.123  SPELL_CAST_SUCCESS,Player-1,Mage,0x511,0,Creature-2,Target,0x10,0,1234,Fireball,4")
                 .unwrap()
                 .unwrap();
-        assert_eq!(cast.event, "SPELL_CAST_SUCCESS");
-        assert_eq!(cast.spell_id.as_deref(), Some("1234"));
-        assert_eq!(cast.spell_name.as_deref(), Some("Fireball"));
+        assert_eq!(event_name(&cast), "SPELL_CAST_SUCCESS");
+        assert_eq!(event_data(&cast)["spell"]["spell_id"], "1234");
+        assert_eq!(event_data(&cast)["spell"]["spell_name"], "Fireball");
     }
 
     #[test]
@@ -663,8 +612,8 @@ mod tests {
         ]);
         let line = format!("10/29 20:15:01.125  {}", spell_damage.join(","));
         let event = parse_line(line.as_bytes()).unwrap().unwrap();
-        assert_eq!(event.event, "SPELL_DAMAGE");
-        assert_eq!(event.amount.as_deref(), Some("250"));
+        assert_eq!(event_name(&event), "SPELL_DAMAGE");
+        assert_eq!(event_data(&event)["base_amount"], 250);
         assert_eq!(event_data(&event)["advanced_block"]["unit"], "target");
 
         let mut swing_damage = vec![
@@ -682,8 +631,8 @@ mod tests {
         swing_damage.extend(["500", "500", "0", "0x1", "0", "0", "0", "nil", "nil", "nil"]);
         let line = format!("10/29 20:15:01.125  {}", swing_damage.join(","));
         let event = parse_line(line.as_bytes()).unwrap().unwrap();
-        assert_eq!(event.event, "SWING_DAMAGE");
-        assert_eq!(event.amount.as_deref(), Some("500"));
+        assert_eq!(event_name(&event), "SWING_DAMAGE");
+        assert_eq!(event_data(&event)["base_amount"], 500);
         assert_eq!(event_data(&event)["advanced_block"]["unit"], "source");
     }
 
@@ -693,79 +642,37 @@ mod tests {
         heal.extend((0..16).map(|_| "0".to_owned()));
         heal[13] = "250".to_owned();
         let line = format!("10/29 20:15:01.125  {}", heal.join(","));
-        assert_eq!(
-            parse_line(line.as_bytes())
-                .unwrap()
-                .unwrap()
-                .amount
-                .as_deref(),
-            Some("250")
-        );
+        assert_eq!(amount(&line), Some(250.0));
 
         let mut advanced_heal = vec!["SPELL_HEAL".to_owned()];
         advanced_heal.extend((0..35).map(|_| "0".to_owned()));
         advanced_heal[32] = "500".to_owned();
         let line = format!("10/29 20:15:01.125  {}", advanced_heal.join(","));
-        assert_eq!(
-            parse_line(line.as_bytes())
-                .unwrap()
-                .unwrap()
-                .amount
-                .as_deref(),
-            Some("500")
-        );
+        assert_eq!(amount(&line), Some(500.0));
 
         let mut energize = vec!["SPELL_ENERGIZE".to_owned()];
         energize.extend((0..15).map(|_| "0".to_owned()));
         energize[12] = "75".to_owned();
         let line = format!("10/29 20:15:01.125  {}", energize.join(","));
-        assert_eq!(
-            parse_line(line.as_bytes())
-                .unwrap()
-                .unwrap()
-                .amount
-                .as_deref(),
-            Some("75")
-        );
+        assert_eq!(amount(&line), Some(75.0));
 
         let mut absorbed = vec!["SPELL_ABSORBED".to_owned()];
         absorbed.extend((0..18).map(|_| "0".to_owned()));
         absorbed[16] = "900".to_owned();
         let line = format!("10/29 20:15:01.125  {}", absorbed.join(","));
-        assert_eq!(
-            parse_line(line.as_bytes())
-                .unwrap()
-                .unwrap()
-                .amount
-                .as_deref(),
-            Some("900")
-        );
+        assert_eq!(amount(&line), Some(900.0));
 
         let mut environmental = vec!["ENVIRONMENTAL_DAMAGE".to_owned()];
         environmental.extend((0..19).map(|_| "0".to_owned()));
         environmental[10] = "1200".to_owned();
         let line = format!("10/29 20:15:01.125  {}", environmental.join(","));
-        assert_eq!(
-            parse_line(line.as_bytes())
-                .unwrap()
-                .unwrap()
-                .amount
-                .as_deref(),
-            Some("1200")
-        );
+        assert_eq!(amount(&line), Some(1200.0));
 
         let mut advanced_environmental = vec!["ENVIRONMENTAL_DAMAGE".to_owned()];
         advanced_environmental.extend((0..38).map(|_| "0".to_owned()));
         advanced_environmental[29] = "1300".to_owned();
         let line = format!("10/29 20:15:01.125  {}", advanced_environmental.join(","));
-        assert_eq!(
-            parse_line(line.as_bytes())
-                .unwrap()
-                .unwrap()
-                .amount
-                .as_deref(),
-            Some("1300")
-        );
+        assert_eq!(amount(&line), Some(1300.0));
     }
 
     #[test]
@@ -774,7 +681,7 @@ mod tests {
         let event = parse_line(line).unwrap().unwrap();
         let data = event_data(&event);
 
-        assert_eq!(event.event, "SPELL_ENERGIZE");
+        assert_eq!(event_name(&event), "SPELL_ENERGIZE");
         assert_eq!(data["amount"].as_f64(), Some(0.0));
         assert_eq!(data["over_energize"].as_f64(), Some(3.0));
         assert_eq!(data["power_type"].as_i64(), Some(1));
@@ -909,19 +816,20 @@ mod tests {
         )
         .unwrap()
         .unwrap();
-        assert!(event.source_guid.is_none());
-        assert!(event.source_name.is_none());
-        assert_eq!(event.spell_name.as_deref(), Some("Fireball"));
+        let header = &event_data(&event)["header"];
+        assert!(header["source_guid"].is_null());
+        assert!(header["source_name"].is_null());
+        assert_eq!(event_data(&event)["spell"]["spell_name"], "Fireball");
     }
 
     #[test]
     fn recognizes_every_event_listed_in_the_specification() {
-        for event_name in SPEC_EVENTS {
-            let line = format!("10/29 20:15:01.125  {event_name}");
+        for expected in SPEC_EVENTS {
+            let line = format!("10/29 20:15:01.125  {expected}");
             let event = parse_line(line.as_bytes())
                 .unwrap()
-                .unwrap_or_else(|| panic!("did not recognize {event_name}"));
-            assert_eq!(event.event, *event_name);
+                .unwrap_or_else(|| panic!("did not recognize {expected}"));
+            assert_eq!(event_name(&event), *expected);
         }
     }
 
@@ -932,7 +840,6 @@ mod tests {
         )
         .unwrap()
         .unwrap();
-        assert!(version.source_guid.is_none());
         assert_eq!(version.fields[0].as_deref(), Some("22"));
         assert_eq!(version.fields[6].as_deref(), Some("1"));
 
@@ -941,7 +848,6 @@ mod tests {
         )
         .unwrap()
         .unwrap();
-        assert!(absorbed.source_guid.is_none());
         assert_eq!(absorbed.fields.len(), 12);
     }
 }

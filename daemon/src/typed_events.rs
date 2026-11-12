@@ -912,6 +912,7 @@ pub enum TypedCombatLogEvent {
 }
 
 impl TypedCombatLogEvent {
+    #[cfg(test)]
     pub fn event_name(&self) -> &'static str {
         match self {
             Self::SpellDamage(_) => "SPELL_DAMAGE",

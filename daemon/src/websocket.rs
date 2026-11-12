@@ -14,6 +14,7 @@ const CLIENT_QUEUE_SIZE: usize = 8192;
 const CLIENT_DRAIN_BATCH: usize = 4096;
 const REPLAY_BUFFER_BYTES: usize = 10 * 1024 * 1024;
 const CLIENT_READ_TIMEOUT: Duration = Duration::from_millis(50);
+const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(5);
 
 type ClientId = usize;
 type ClientSender = SyncSender<Frame>;
@@ -241,13 +242,18 @@ fn serve_connection(
     clear_log_sender: Option<&SyncSender<TailCommand>>,
 ) -> Result<(), String> {
     stream
-        .set_read_timeout(Some(CLIENT_READ_TIMEOUT))
+        .set_read_timeout(Some(HANDSHAKE_TIMEOUT))
         .map_err(|error| error.to_string())?;
     stream
         .set_nodelay(true)
         .map_err(|error| error.to_string())?;
 
     let mut websocket = tungstenite::accept(stream).map_err(|error| error.to_string())?;
+    // The short timeout drives the poll loop below; the handshake needs a longer one.
+    websocket
+        .get_ref()
+        .set_read_timeout(Some(CLIENT_READ_TIMEOUT))
+        .map_err(|error| error.to_string())?;
     let (sender, receiver) = mpsc::sync_channel(CLIENT_QUEUE_SIZE);
     clients
         .lock()
