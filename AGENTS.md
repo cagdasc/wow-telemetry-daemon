@@ -4,7 +4,7 @@
 
 This workspace contains two independent services that work together:
 
-- `daemon/` is a Rust sidecar. It tails the WoW combat log, recognizes and parses CLEU records, and publishes event JSON over WebSockets.
+- `daemon/` is a Rust sidecar. It tails the WoW combat log, recognizes and parses CLEU records, and publishes events over WebSockets (Protobuf by default, JSON with `--format json`).
 - `client/` is a Kotlin Multiplatform app. It receives the stream and owns client-side state, persistence, analysis, and presentation.
 
 Keep raw file I/O and low-level parsing in the daemon. Keep application state, metadata, deterministic analysis, and presentation in the client. Neither service should depend on the other's implementation; the WebSocket JSON contract is their boundary.
@@ -22,7 +22,7 @@ Design pillars:
 
 - Tail `WoWCombatLog.txt` as an out-of-process sidecar.
 - Scan byte-oriented log records with `memchr` and parse recognized combat-log events.
-- Preserve event fields and publish each recognized event as one JSON text frame to connected WebSocket clients. Also write JSON lines to stdout.
+- Preserve event fields and publish each recognized event as one Protobuf binary frame (or JSON text frame with `--format json`) to connected WebSocket clients. Also write JSON lines to stdout.
 - Keep daemon state and parsing independent from client storage and presentation.
 
 ### Constraints
@@ -55,7 +55,7 @@ Design pillars:
 
 ## Data contract and WebSocket protocol
 
-The daemon sends one JSON text frame for each recognized combat-log event. The current serialized shape is:
+The daemon sends one frame for each recognized combat-log event: Protobuf binary by default (`daemon/proto/wow_telemetry.proto`, `Envelope{seq, event|control}`, `protocol_version` in `Hello`, seq 0 for unsequenced frames), or JSON text with `--format json`. Clients detect the format by frame type and may send commands as JSON text or binary `Command`. The JSON serialized shape is:
 
 ```json
 {

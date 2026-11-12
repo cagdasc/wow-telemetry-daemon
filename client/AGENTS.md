@@ -4,9 +4,9 @@
   configured target is Desktop/JVM.
 - Keep WebSocket transport and other JDK-only APIs in `desktopApp` or `jvmMain`,
   not `commonMain`.
-- The daemon sends one JSON text frame per recognized combat-log event. Keep
-  transport handling lossless; parse event JSON only when a client feature
-  needs its fields.
+- The daemon sends one Protobuf binary frame per recognized combat-log event (Wire-generated from
+  `data/network/src/commonMain/proto`, mapped by the generated `ProtoCombatLogEventMapper`); JSON text frames are still
+  decoded when the daemon runs with `--format json`. Keep transport handling lossless.
 - The default endpoint is `ws://127.0.0.1:8765`. Support configuration through
   `--ws-url` and `WOW_TELEMETRY_WS_URL`.
 - LAN use requires the daemon to bind to a reachable interface, typically
@@ -53,7 +53,7 @@
 
 ## WebSocket event contract
 
-- The daemon sends one JSON text frame per combat-log line, including typed
+- The daemon sends one frame per combat-log line, including typed
   `UNRECOGNIZED_EVENT` and `MALFORMED_EVENT` fallbacks.
 - Current fields are `timestamp`, tagged `event`, and raw `fields`. `event` contains a `type` discriminator and a
   type-specific `data` object.

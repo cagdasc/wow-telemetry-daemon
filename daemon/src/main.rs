@@ -1,16 +1,23 @@
 mod parser;
+mod protocol;
 mod spec_events;
 mod tailer;
 mod typed_events;
 mod websocket;
 
+mod pb {
+    include!(concat!(env!("OUT_DIR"), "/wowtelemetry.v1.rs"));
+}
+mod proto_events;
+
 use std::env;
 use std::io::{self, BufWriter, Write};
 use std::net::SocketAddr;
 use std::path::PathBuf;
-use std::sync::{Arc, mpsc};
+use std::sync::mpsc;
 
 use parser::parse_line;
+use protocol::{Control, WireFormat, event_message};
 use tailer::TailMessage;
 use typed_events::TypedCombatLogEvent;
 
@@ -21,17 +28,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut websocket_enabled = true;
     let mut start_at_end = true;
     let mut stdout_enabled = true;
+    let mut format = WireFormat::Protobuf;
 
     while let Some(arg) = args.next() {
         match arg.to_str() {
             Some("--help" | "-h") => {
                 println!(
-                    "Usage: wow-telemetry-daemon [PATH] [--ws-addr ADDRESS] [--no-websocket] [--quiet] [--from-start]\n\n\
+                    "Usage: wow-telemetry-daemon [PATH] [--ws-addr ADDRESS] [--no-websocket] [--format protobuf|json] [--quiet] [--from-start]\n\n\
                      Tails PATH (default: WoWCombatLog.txt), writes parsed events as JSON lines,\n\
                      and broadcasts them to WebSocket clients (default: 127.0.0.1:8765).\n\
                      Use --ws-addr 0.0.0.0:8765 to accept connections from other machines.\n\
                      Use --quiet to skip the stdout JSON lines (stdout is flushed only when the\n\
                      tailer catches up, so a stalled stdout reader delays but never corrupts output).\n\
+                     Use --format json to send JSON text frames instead of protobuf binary frames.\n\
                      Use --from-start to read existing file contents instead of seeking to EOF."
                 );
                 return Ok(());
@@ -39,6 +48,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Some("--no-websocket") => websocket_enabled = false,
             Some("--quiet") => stdout_enabled = false,
             Some("--from-start") => start_at_end = false,
+            Some("--format") => {
+                format = match args.next().as_deref().and_then(|value| value.to_str()) {
+                    Some("protobuf") => WireFormat::Protobuf,
+                    Some("json") => WireFormat::Json,
+                    _ => return Err("--format must be protobuf or json".into()),
+                };
+            }
             Some("--ws-addr") => {
                 let address = args.next().ok_or("--ws-addr requires an address")?;
                 websocket_address = address
@@ -58,8 +74,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let (control_sender, control_receiver) = mpsc::sync_channel(8);
     let websocket = if websocket_enabled {
-        let server =
-            websocket::WebSocketServer::bind_with_clear_log(websocket_address, control_sender)?;
+        let server = websocket::WebSocketServer::bind_with_clear_log(
+            websocket_address,
+            format,
+            control_sender,
+        )?;
         eprintln!("WebSocket server listening on ws://{}", server.address());
         Some(server)
     } else {
@@ -97,13 +116,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             ),
                             _ => {}
                         }
-                        let event_json = serde_json::to_string(&event)?;
-                        if stdout_enabled {
-                            output.write_all(event_json.as_bytes())?;
+                        let json_needed = stdout_enabled
+                            || websocket
+                                .as_ref()
+                                .is_some_and(|server| server.format() == WireFormat::Json);
+                        let event_json = if json_needed {
+                            Some(serde_json::to_string(&event)?)
+                        } else {
+                            None
+                        };
+                        if stdout_enabled && let Some(json) = &event_json {
+                            output.write_all(json.as_bytes())?;
                             output.write_all(b"\n")?;
                         }
                         if let Some(websocket) = &websocket {
-                            websocket.broadcast(Arc::from(event_json))?;
+                            websocket.broadcast_with(|seq| {
+                                event_message(format, seq, event, event_json.as_deref())
+                            })?;
                         }
                     }
                     Ok(None) => {}
@@ -115,13 +144,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             TailMessage::CaughtUp => {
                 output.flush()?;
                 if let Some(websocket) = &websocket {
-                    websocket.broadcast(Arc::from(r#"{"control":"LOG_CAUGHT_UP"}"#))?;
+                    websocket.broadcast_control(&Control::LogCaughtUp)?;
                 }
             }
             TailMessage::LogCleared(response) => {
                 if let Some(websocket) = &websocket {
                     websocket.clear_replay()?;
-                    websocket.broadcast(Arc::from(r#"{"control":"LOG_CLEARED"}"#))?;
+                    websocket.broadcast_control(&Control::LogCleared)?;
                 }
                 let _ = response.send(Ok(()));
             }

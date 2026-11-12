@@ -1,7 +1,8 @@
 # wow-telemetry-daemon
 
 A lightweight sidecar that tails a WoW combat log and writes typed combat-log
-events as JSON Lines to stdout and to connected WebSocket clients.
+events to connected WebSocket clients (Protobuf by default, JSON optional) and as
+JSON Lines to stdout.
 
 ## Run
 
@@ -17,8 +18,15 @@ from its start. Use `--quiet` to skip the stdout JSON Lines; stdout is flushed
 only when the daemon catches up with the log.
 
 By default, the daemon listens for WebSocket clients at
-`ws://127.0.0.1:8765`. Each parsed log line is sent as one JSON text frame,
-with the same object shape as the stdout JSON Lines output. After reading all
+`ws://127.0.0.1:8765`. Each parsed log line is sent as one Protobuf binary
+frame (`Envelope` in `proto/wow_telemetry.proto`). Use `--format json` to send
+JSON text frames with the same object shape as the stdout JSON Lines output
+and the control shapes below instead. A client can tell the format from the
+frame type. Protobuf `Hello` carries `protocol_version`; `seq` is 0 for
+unsequenced frames. Commands may be sent as JSON text or as a Protobuf
+`Command` in either mode; replay buffers hold one format only. JSON
+serialization per event happens only when stdout output or `--format json` needs
+it, so `--quiet` is recommended with Protobuf. After reading all
 currently available complete lines, the daemon sends
 `{"control":"LOG_CAUGHT_UP"}` once for that idle period. This is a temporary
 watermark, not a terminal end-of-log signal; the daemon continues tailing and
@@ -66,7 +74,7 @@ opens; pass it as the first argument (`run-windows.bat Latest`) or set
 Either way, the daemon reads the file from its beginning, including bytes
 written before it opens the file. You can override the folder by setting
 `WOW_COMBAT_LOG_DIR` before running the batch file. From PowerShell, run
-`run-windows.ps1 -LogDirectory DIR [-Mode NewLog|Latest] [-WebSocketAddress ADDR]`. The daemon binds to `0.0.0.0:8765`, so allow that port through
+`run-windows.ps1 -LogDirectory DIR [-Mode NewLog|Latest] [-WebSocketAddress ADDR] [-Format protobuf|json]`. The launcher always passes `--quiet`; set `WOW_FORMAT=json` for `run-windows.bat` to send JSON frames. The daemon binds to `0.0.0.0:8765`, so allow that port through
 Windows Firewall if a client connects from another computer.
 
 ## Generate a mock event stream

@@ -7,7 +7,11 @@ param(
     [ValidateSet("NewLog", "Latest")]
     [string]$Mode = "NewLog",
 
-    [string]$WebSocketAddress = "0.0.0.0:8765"
+    [string]$WebSocketAddress = "0.0.0.0:8765",
+
+    # protobuf is the default binary stream; json sends JSON text frames.
+    [ValidateSet("protobuf", "json")]
+    [string]$Format = "protobuf"
 )
 
 $ErrorActionPreference = "Stop"
@@ -18,8 +22,8 @@ if (-not (Test-Path -LiteralPath $daemonPath -PathType Leaf)) {
 }
 $daemonHelp = (& $daemonPath --help 2>&1 | Out-String)
 $daemonExitCode = $LASTEXITCODE
-if ($daemonExitCode -ne 0 -or $daemonHelp -notmatch '--from-start') {
-    throw "Daemon executable does not support --from-start. Rebuild it from the current source and replace: $daemonPath"
+if ($daemonExitCode -ne 0 -or $daemonHelp -notmatch '--from-start' -or $daemonHelp -notmatch '--format') {
+    throw "Daemon executable does not support --from-start and --format. Rebuild it from the current source and replace: $daemonPath"
 }
 if (-not (Test-Path -LiteralPath $LogDirectory -PathType Container)) {
     throw "Combat log directory not found: $LogDirectory. Edit LOG_DIR in run-windows.bat or set WOW_COMBAT_LOG_DIR."
@@ -66,6 +70,6 @@ else {
     Write-Host "Found new combat log: $($logFile.FullName)"
 }
 
-Write-Host "Starting WebSocket listener on $WebSocketAddress"
-& $daemonPath $logFile.FullName --from-start --ws-addr $WebSocketAddress
+Write-Host "Starting WebSocket listener on $WebSocketAddress ($Format)"
+& $daemonPath $logFile.FullName --from-start --quiet --format $Format --ws-addr $WebSocketAddress
 exit $LASTEXITCODE

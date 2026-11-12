@@ -7,6 +7,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
+use crate::protocol::{Command, Control, ReplayGapReason, WireFormat, control_message};
 use crate::tailer::TailCommand;
 use tungstenite::Message;
 
@@ -20,11 +21,13 @@ type ClientId = usize;
 type ClientSender = SyncSender<Frame>;
 type Clients = Arc<Mutex<HashMap<ClientId, ClientSender>>>;
 type SharedReplay = Arc<Mutex<ReplayBuffer>>;
+type Socket = tungstenite::WebSocket<TcpStream>;
 
+/// A sequenced message. Cloning is a reference-count bump, not a payload copy.
 #[derive(Clone)]
 struct Frame {
     seq: u64,
-    text: Arc<str>,
+    message: Message,
 }
 
 /// Recent sequenced frames kept so a reconnecting client can resume without loss.
@@ -52,20 +55,21 @@ impl ReplayBuffer {
         }
     }
 
-    fn push(&mut self, payload: &str) -> Frame {
-        let seq = self.next_seq;
-        self.next_seq += 1;
-        let body = payload.strip_prefix('{').unwrap_or(payload);
-        let separator = if body.starts_with('}') { "" } else { "," };
+    fn next_seq(&self) -> u64 {
+        self.next_seq
+    }
+
+    fn push(&mut self, message: Message) -> Frame {
         let frame = Frame {
-            seq,
-            text: Arc::from(format!(r#"{{"seq":{seq}{separator}{body}"#)),
+            seq: self.next_seq,
+            message,
         };
-        self.bytes += frame.text.len();
+        self.next_seq += 1;
+        self.bytes += frame.message.len();
         self.frames.push_back(frame.clone());
         while self.bytes > self.capacity && self.frames.len() > 1 {
             if let Some(evicted) = self.frames.pop_front() {
-                self.bytes -= evicted.text.len();
+                self.bytes -= evicted.message.len();
             }
         }
         frame
@@ -88,25 +92,28 @@ impl ReplayBuffer {
 
 pub struct WebSocketServer {
     address: SocketAddr,
+    format: WireFormat,
     clients: Clients,
     replay: SharedReplay,
 }
 
 impl WebSocketServer {
     #[cfg(test)]
-    pub fn bind(address: SocketAddr) -> io::Result<Self> {
-        Self::bind_inner(address, None)
+    pub fn bind(address: SocketAddr, format: WireFormat) -> io::Result<Self> {
+        Self::bind_inner(address, format, None)
     }
 
     pub fn bind_with_clear_log(
         address: SocketAddr,
+        format: WireFormat,
         clear_log_sender: SyncSender<TailCommand>,
     ) -> io::Result<Self> {
-        Self::bind_inner(address, Some(clear_log_sender))
+        Self::bind_inner(address, format, Some(clear_log_sender))
     }
 
     fn bind_inner(
         address: SocketAddr,
+        format: WireFormat,
         clear_log_sender: Option<SyncSender<TailCommand>>,
     ) -> io::Result<Self> {
         let listener = TcpListener::bind(address)?;
@@ -124,6 +131,7 @@ impl WebSocketServer {
             .spawn(move || {
                 accept_loop(
                     listener,
+                    format,
                     server_clients,
                     server_replay,
                     server_next_id,
@@ -133,6 +141,7 @@ impl WebSocketServer {
 
         Ok(Self {
             address,
+            format,
             clients,
             replay,
         })
@@ -140,6 +149,10 @@ impl WebSocketServer {
 
     pub fn address(&self) -> SocketAddr {
         self.address
+    }
+
+    pub fn format(&self) -> WireFormat {
+        self.format
     }
 
     /// Drops buffered frames so a reconnecting client is not sent events the user cleared.
@@ -151,21 +164,33 @@ impl WebSocketServer {
         Ok(())
     }
 
-    pub fn broadcast(&self, payload: Arc<str>) -> io::Result<()> {
-        let frame = self
-            .replay
-            .lock()
-            .map_err(|_| io::Error::other("WebSocket replay buffer lock poisoned"))?
-            .push(&payload);
-        let clients = self
+    pub fn broadcast_control(&self, control: &Control) -> io::Result<()> {
+        let format = self.format;
+        self.broadcast_with::<std::convert::Infallible>(|seq| {
+            Ok(control_message(format, Some(seq), control))
+        })
+    }
+
+    /// Builds the next sequenced frame, stores it for replay, and queues it for every client.
+    pub fn broadcast_with<E>(&self, build: impl FnOnce(u64) -> Result<Message, E>) -> io::Result<()>
+    where
+        E: std::error::Error + Send + Sync + 'static,
+    {
+        let frame = {
+            let mut replay = self
+                .replay
+                .lock()
+                .map_err(|_| io::Error::other("WebSocket replay buffer lock poisoned"))?;
+            let message = build(replay.next_seq()).map_err(io::Error::other)?;
+            replay.push(message)
+        };
+        let senders: Vec<_> = self
             .clients
             .lock()
-            .map_err(|_| io::Error::other("WebSocket client registry lock poisoned"))?;
-        let senders: Vec<_> = clients
+            .map_err(|_| io::Error::other("WebSocket client registry lock poisoned"))?
             .iter()
             .map(|(id, sender)| (*id, sender.clone()))
             .collect();
-        drop(clients);
 
         let mut disconnected = Vec::new();
         for (id, sender) in senders {
@@ -189,6 +214,7 @@ impl WebSocketServer {
 
 fn accept_loop(
     listener: TcpListener,
+    format: WireFormat,
     clients: Clients,
     replay: SharedReplay,
     next_id: Arc<AtomicUsize>,
@@ -203,7 +229,9 @@ fn accept_loop(
                 let clear_log_sender = clear_log_sender.clone();
                 if let Err(error) = thread::Builder::new()
                     .name(format!("websocket-client-{id}"))
-                    .spawn(move || serve_client(stream, id, clients, replay, clear_log_sender))
+                    .spawn(move || {
+                        serve_client(stream, id, format, clients, replay, clear_log_sender)
+                    })
                 {
                     eprintln!("failed to start WebSocket client thread: {error}");
                 }
@@ -222,11 +250,19 @@ fn accept_loop(
 fn serve_client(
     stream: TcpStream,
     id: ClientId,
+    format: WireFormat,
     clients: Clients,
     replay: SharedReplay,
     clear_log_sender: Option<SyncSender<TailCommand>>,
 ) {
-    if let Err(error) = serve_connection(stream, id, &clients, &replay, clear_log_sender.as_ref()) {
+    if let Err(error) = serve_connection(
+        stream,
+        id,
+        format,
+        &clients,
+        &replay,
+        clear_log_sender.as_ref(),
+    ) {
         eprintln!("WebSocket client {id} disconnected: {error}");
     }
     if let Ok(mut clients) = clients.lock() {
@@ -237,6 +273,7 @@ fn serve_client(
 fn serve_connection(
     stream: TcpStream,
     id: ClientId,
+    format: WireFormat,
     clients: &Clients,
     replay: &SharedReplay,
     clear_log_sender: Option<&SyncSender<TailCommand>>,
@@ -264,44 +301,53 @@ fn serve_connection(
         let replay = replay
             .lock()
             .map_err(|_| "WebSocket replay buffer lock poisoned".to_owned())?;
-        serde_json::json!({
-            "control": "HELLO",
-            "epoch": replay.epoch,
-            "last_seq": replay.last_seq()
-        })
+        Control::Hello {
+            epoch: replay.epoch,
+            last_seq: replay.last_seq(),
+        }
     };
-    send_json(&mut websocket, &hello)?;
+    send_control(&mut websocket, format, &hello)?;
 
     // Frames queued before a resume replay are already covered by the replay.
     let mut skip_through = 0_u64;
     loop {
-        match websocket.read() {
+        let command = match websocket.read() {
             Ok(Message::Close(_)) => return Ok(()),
-            Ok(Message::Ping(_)) => websocket.flush().map_err(|error| error.to_string())?,
-            Ok(Message::Text(text)) => {
-                handle_control_message(
-                    &mut websocket,
-                    &text,
-                    clear_log_sender,
-                    replay,
-                    &mut skip_through,
-                )?;
+            Ok(Message::Ping(_)) => {
+                websocket.flush().map_err(|error| error.to_string())?;
+                None
             }
-            Ok(_) => {}
+            Ok(Message::Text(text)) => Some(Command::from_json(&text)),
+            Ok(Message::Binary(bytes)) => Some(Command::from_protobuf(&bytes)),
+            Ok(_) => None,
             Err(tungstenite::Error::Io(error))
                 if matches!(
                     error.kind(),
                     io::ErrorKind::WouldBlock | io::ErrorKind::TimedOut
-                ) => {}
+                ) =>
+            {
+                None
+            }
             Err(error) => return Err(error.to_string()),
+        };
+        if let Some(command) = command {
+            handle_command(
+                &mut websocket,
+                format,
+                command,
+                clear_log_sender,
+                replay,
+                &mut skip_through,
+            )?;
         }
+
         let mut wrote = false;
         for _ in 0..CLIENT_DRAIN_BATCH {
             match receiver.try_recv() {
                 Ok(frame) if frame.seq <= skip_through => {}
                 Ok(frame) => {
                     websocket
-                        .write(Message::Text(frame.text.to_string().into()))
+                        .write(frame.message)
                         .map_err(|error| error.to_string())?;
                     wrote = true;
                 }
@@ -315,63 +361,55 @@ fn serve_connection(
     }
 }
 
-fn handle_control_message(
-    websocket: &mut tungstenite::WebSocket<TcpStream>,
-    payload: &str,
+fn handle_command(
+    websocket: &mut Socket,
+    format: WireFormat,
+    command: Result<Command, String>,
     clear_log_sender: Option<&SyncSender<TailCommand>>,
     replay: &SharedReplay,
     skip_through: &mut u64,
 ) -> Result<(), String> {
-    let response = match serde_json::from_str::<serde_json::Value>(payload) {
-        Ok(request)
-            if request.get("command").and_then(serde_json::Value::as_str) == Some("RESUME") =>
-        {
-            return handle_resume(websocket, &request, replay, skip_through);
+    let result = match command {
+        Ok(Command::Resume { epoch, from_seq }) => {
+            return handle_resume(websocket, format, epoch, from_seq, replay, skip_through);
         }
-        Ok(request)
-            if request.get("command").and_then(serde_json::Value::as_str) == Some("CLEAR_LOG") =>
-        {
-            let Some(clear_log_sender) = clear_log_sender else {
-                return send_control_result(
-                    websocket,
-                    false,
-                    Some("Log clearing is unavailable.".to_owned()),
-                );
-            };
-            let (response_sender, response_receiver) = mpsc::sync_channel(1);
-            if clear_log_sender
-                .send(TailCommand::ClearLog(response_sender))
-                .is_err()
-            {
-                Some(Err("Log tailer is unavailable.".to_owned()))
-            } else {
-                Some(
-                    response_receiver
-                        .recv_timeout(Duration::from_secs(30))
-                        .map_err(|error| format!("Log clear did not finish: {error}"))
-                        .and_then(|result| result),
-                )
-            }
-        }
-        Ok(_) => Some(Err("Unsupported WebSocket command.".to_owned())),
-        Err(error) => Some(Err(format!("Invalid command JSON: {error}"))),
+        Ok(Command::ClearLog) => clear_log(clear_log_sender),
+        Err(error) => Err(error),
     };
+    let control = match result {
+        Ok(()) => Control::ClearLogResult {
+            success: true,
+            message: None,
+        },
+        Err(error) => Control::ClearLogResult {
+            success: false,
+            message: Some(error),
+        },
+    };
+    send_control(websocket, format, &control)
+}
 
-    match response {
-        Some(Ok(())) => send_control_result(websocket, true, None),
-        Some(Err(error)) => send_control_result(websocket, false, Some(error)),
-        None => Ok(()),
-    }
+fn clear_log(clear_log_sender: Option<&SyncSender<TailCommand>>) -> Result<(), String> {
+    let Some(clear_log_sender) = clear_log_sender else {
+        return Err("Log clearing is unavailable.".to_owned());
+    };
+    let (response_sender, response_receiver) = mpsc::sync_channel(1);
+    clear_log_sender
+        .send(TailCommand::ClearLog(response_sender))
+        .map_err(|_| "Log tailer is unavailable.".to_owned())?;
+    response_receiver
+        .recv_timeout(Duration::from_secs(30))
+        .map_err(|error| format!("Log clear did not finish: {error}"))?
 }
 
 fn handle_resume(
-    websocket: &mut tungstenite::WebSocket<TcpStream>,
-    request: &serde_json::Value,
+    websocket: &mut Socket,
+    format: WireFormat,
+    epoch: Option<u64>,
+    from_seq: Option<u64>,
     replay: &SharedReplay,
     skip_through: &mut u64,
 ) -> Result<(), String> {
-    let epoch = request.get("epoch").and_then(serde_json::Value::as_u64);
-    let from_seq = request.get("from_seq").and_then(serde_json::Value::as_u64);
     let (frames, gap) = {
         let replay = replay
             .lock()
@@ -386,75 +424,47 @@ fn handle_resume(
                     .collect();
                 let oldest = replay.oldest_seq();
                 let first_missed = (from_seq + 1).max(replay.cleared_through + 1);
-                let gap = (first_missed < oldest).then(|| {
-                    serde_json::json!({
-                        "control": "REPLAY_GAP",
-                        "reason": "BUFFER_EVICTED",
-                        "missed_from": first_missed,
-                        "available_from": oldest
-                    })
+                let gap = (first_missed < oldest).then_some(ReplayGapReason::BufferEvicted {
+                    missed_from: first_missed,
+                    available_from: oldest,
                 });
                 *skip_through = replay.last_seq();
                 (frames, gap)
             }
-            (Some(_), Some(_)) => (
-                Vec::new(),
-                Some(serde_json::json!({
-                    "control": "REPLAY_GAP",
-                    "reason": "EPOCH_CHANGED"
-                })),
-            ),
-            _ => (
-                Vec::new(),
-                Some(serde_json::json!({
-                    "control": "REPLAY_GAP",
-                    "reason": "INVALID_RESUME"
-                })),
-            ),
+            (Some(_), Some(_)) => (Vec::new(), Some(ReplayGapReason::EpochChanged)),
+            _ => (Vec::new(), Some(ReplayGapReason::InvalidResume)),
         }
     };
-    if let Some(gap) = gap {
-        send_json(websocket, &gap)?;
+    if let Some(reason) = gap {
+        send_control(websocket, format, &Control::ReplayGap(reason))?;
     }
     for frame in frames {
         websocket
-            .write(Message::Text(frame.text.to_string().into()))
+            .write(frame.message)
             .map_err(|error| error.to_string())?;
     }
     websocket.flush().map_err(|error| error.to_string())
 }
 
-fn send_json(
-    websocket: &mut tungstenite::WebSocket<TcpStream>,
-    value: &serde_json::Value,
+fn send_control(
+    websocket: &mut Socket,
+    format: WireFormat,
+    control: &Control,
 ) -> Result<(), String> {
     websocket
-        .send(Message::Text(value.to_string().into()))
-        .map_err(|error| error.to_string())
-}
-
-fn send_control_result(
-    websocket: &mut tungstenite::WebSocket<TcpStream>,
-    success: bool,
-    message: Option<String>,
-) -> Result<(), String> {
-    let mut response = serde_json::json!({
-        "control": "CLEAR_LOG_RESULT",
-        "success": success
-    });
-    if let Some(message) = message {
-        response["message"] = serde_json::Value::String(message);
-    }
-    websocket
-        .send(Message::Text(response.to_string().into()))
+        .send(control_message(format, None, control))
         .map_err(|error| error.to_string())
 }
 
 #[cfg(test)]
 mod tests {
     use super::{ClientSender, Frame, ReplayBuffer, WebSocketServer};
+    use crate::pb;
+    use crate::protocol::{Control, WireFormat, json_with_seq};
     use crate::tailer::TailCommand;
+    use prost::Message as _;
     use std::collections::HashMap;
+    use std::convert::Infallible;
     use std::net::TcpStream;
     use std::sync::Arc;
     use std::sync::mpsc;
@@ -462,22 +472,42 @@ mod tests {
     use std::time::Duration;
     use tungstenite::{Message, WebSocket, stream::MaybeTlsStream};
 
-    fn read_json(client: &mut WebSocket<MaybeTlsStream<TcpStream>>) -> serde_json::Value {
+    type Client = WebSocket<MaybeTlsStream<TcpStream>>;
+
+    fn json_server() -> WebSocketServer {
+        WebSocketServer::bind("127.0.0.1:0".parse().unwrap(), WireFormat::Json).unwrap()
+    }
+
+    fn connect(server: &WebSocketServer) -> Client {
+        tungstenite::connect(format!("ws://{}", server.address()))
+            .unwrap()
+            .0
+    }
+
+    fn read_json(client: &mut Client) -> serde_json::Value {
         serde_json::from_str(&client.read().unwrap().into_text().unwrap()).unwrap()
+    }
+
+    fn read_envelope(client: &mut Client) -> pb::Envelope {
+        pb::Envelope::decode(client.read().unwrap().into_data().as_ref()).unwrap()
+    }
+
+    fn broadcast_json(server: &WebSocketServer, payload: &str) {
+        server
+            .broadcast_with::<Infallible>(|seq| {
+                Ok(Message::Text(json_with_seq(seq, payload).into()))
+            })
+            .unwrap();
     }
 
     #[test]
     fn broadcasts_event_json_to_connected_clients() {
-        let server = WebSocketServer::bind("127.0.0.1:0".parse().unwrap()).unwrap();
-        let (mut client, _) = tungstenite::connect(format!("ws://{}", server.address())).unwrap();
+        let server = json_server();
+        let mut client = connect(&server);
         assert_eq!(read_json(&mut client)["control"], "HELLO");
 
-        server
-            .broadcast(Arc::from(r#"{"event":"SPELL_DAMAGE"}"#))
-            .unwrap();
-        server
-            .broadcast(Arc::from(r#"{"control":"LOG_CAUGHT_UP"}"#))
-            .unwrap();
+        broadcast_json(&server, r#"{"event":"SPELL_DAMAGE"}"#);
+        server.broadcast_control(&Control::LogCaughtUp).unwrap();
 
         assert_eq!(
             client.read().unwrap().into_text().unwrap(),
@@ -490,9 +520,46 @@ mod tests {
     }
 
     #[test]
+    fn protobuf_server_sends_binary_hello_and_sequenced_control() {
+        let server =
+            WebSocketServer::bind("127.0.0.1:0".parse().unwrap(), WireFormat::Protobuf).unwrap();
+        let mut client = connect(&server);
+        let hello = read_envelope(&mut client);
+        assert_eq!(hello.seq, 0);
+        let Some(pb::envelope::Body::Control(pb::Control {
+            kind: Some(pb::control::Kind::Hello(hello)),
+        })) = hello.body
+        else {
+            panic!("expected HELLO");
+        };
+        assert_eq!(hello.protocol_version, 1);
+
+        server.broadcast_control(&Control::LogCaughtUp).unwrap();
+        let caught_up = read_envelope(&mut client);
+        assert_eq!(caught_up.seq, 1);
+        assert!(matches!(
+            caught_up.body,
+            Some(pb::envelope::Body::Control(pb::Control {
+                kind: Some(pb::control::Kind::LogCaughtUp(_))
+            }))
+        ));
+
+        let resume = pb::Command {
+            kind: Some(pb::command::Kind::Resume(pb::Resume {
+                epoch: hello.epoch,
+                from_seq: 0,
+            })),
+        };
+        client
+            .send(Message::Binary(resume.encode_to_vec().into()))
+            .unwrap();
+        assert_eq!(read_envelope(&mut client).seq, 1);
+    }
+
+    #[test]
     fn responds_to_client_ping_frames() {
-        let server = WebSocketServer::bind("127.0.0.1:0".parse().unwrap()).unwrap();
-        let (mut client, _) = tungstenite::connect(format!("ws://{}", server.address())).unwrap();
+        let server = json_server();
+        let mut client = connect(&server);
         let payload = vec![1, 2, 3];
 
         client.send(Message::Ping(payload.clone().into())).unwrap();
@@ -512,10 +579,13 @@ mod tests {
     #[test]
     fn accepts_clear_log_command_and_returns_result() {
         let (clear_sender, clear_receiver) = mpsc::sync_channel(1);
-        let server =
-            WebSocketServer::bind_with_clear_log("127.0.0.1:0".parse().unwrap(), clear_sender)
-                .unwrap();
-        let (mut client, _) = tungstenite::connect(format!("ws://{}", server.address())).unwrap();
+        let server = WebSocketServer::bind_with_clear_log(
+            "127.0.0.1:0".parse().unwrap(),
+            WireFormat::Json,
+            clear_sender,
+        )
+        .unwrap();
+        let mut client = connect(&server);
 
         client
             .send(Message::Text(r#"{"command":"CLEAR_LOG"}"#.into()))
@@ -536,12 +606,12 @@ mod tests {
 
     #[test]
     fn waits_for_a_slow_clients_queue_instead_of_dropping_it() {
-        let server = Arc::new(WebSocketServer::bind("127.0.0.1:0".parse().unwrap()).unwrap());
+        let server = Arc::new(json_server());
         let (sender, receiver) = mpsc::sync_channel(1);
         sender
             .send(Frame {
                 seq: 1,
-                text: Arc::from("first"),
+                message: Message::Text("first".into()),
             })
             .unwrap();
         let clients: HashMap<usize, ClientSender> = HashMap::from([(0, sender)]);
@@ -549,16 +619,13 @@ mod tests {
 
         let broadcast_server = Arc::clone(&server);
         let broadcast = thread::spawn(move || {
-            broadcast_server.broadcast(Arc::from(r#"{"n":2}"#)).unwrap();
+            broadcast_json(&broadcast_server, r#"{"n":2}"#);
         });
 
         assert!(receiver.recv_timeout(Duration::from_secs(1)).is_ok());
+        let second = receiver.recv_timeout(Duration::from_secs(1)).unwrap();
         assert_eq!(
-            receiver
-                .recv_timeout(Duration::from_secs(1))
-                .unwrap()
-                .text
-                .as_ref(),
+            second.message.into_text().unwrap().as_str(),
             r#"{"seq":1,"n":2}"#
         );
         broadcast.join().unwrap();
@@ -567,27 +634,27 @@ mod tests {
 
     #[test]
     fn replay_buffer_evicts_oldest_frames_over_capacity() {
-        let mut replay = ReplayBuffer::new(60);
+        let mut replay = ReplayBuffer::new(20);
         for _ in 0..5 {
-            replay.push(r#"{"a":1}"#);
+            replay.push(Message::Text(r#"{"a":1}"#.into()));
         }
         assert_eq!(replay.last_seq(), 5);
         assert!(replay.oldest_seq() > 1);
-        assert!(replay.bytes <= 60);
+        assert!(replay.bytes <= 20);
     }
 
     #[test]
     fn resume_replays_missed_frames_in_order() {
-        let server = WebSocketServer::bind("127.0.0.1:0".parse().unwrap()).unwrap();
-        let (mut first, _) = tungstenite::connect(format!("ws://{}", server.address())).unwrap();
+        let server = json_server();
+        let mut first = connect(&server);
         let hello = read_json(&mut first);
-        server.broadcast(Arc::from(r#"{"n":1}"#)).unwrap();
+        broadcast_json(&server, r#"{"n":1}"#);
         assert_eq!(read_json(&mut first)["seq"], 1);
         drop(first);
-        server.broadcast(Arc::from(r#"{"n":2}"#)).unwrap();
-        server.broadcast(Arc::from(r#"{"n":3}"#)).unwrap();
+        broadcast_json(&server, r#"{"n":2}"#);
+        broadcast_json(&server, r#"{"n":3}"#);
 
-        let (mut second, _) = tungstenite::connect(format!("ws://{}", server.address())).unwrap();
+        let mut second = connect(&server);
         assert_eq!(read_json(&mut second)["control"], "HELLO");
         second
             .send(Message::Text(
@@ -598,14 +665,14 @@ mod tests {
             .unwrap();
         assert_eq!(read_json(&mut second)["seq"], 2);
         assert_eq!(read_json(&mut second)["seq"], 3);
-        server.broadcast(Arc::from(r#"{"n":4}"#)).unwrap();
+        broadcast_json(&server, r#"{"n":4}"#);
         assert_eq!(read_json(&mut second)["seq"], 4);
     }
 
     #[test]
     fn resume_with_unknown_epoch_reports_gap() {
-        let server = WebSocketServer::bind("127.0.0.1:0".parse().unwrap()).unwrap();
-        let (mut client, _) = tungstenite::connect(format!("ws://{}", server.address())).unwrap();
+        let server = json_server();
+        let mut client = connect(&server);
         assert_eq!(read_json(&mut client)["control"], "HELLO");
         client
             .send(Message::Text(
@@ -619,15 +686,15 @@ mod tests {
 
     #[test]
     fn clearing_replay_drops_old_frames_without_reporting_a_gap() {
-        let server = WebSocketServer::bind("127.0.0.1:0".parse().unwrap()).unwrap();
-        let (mut first, _) = tungstenite::connect(format!("ws://{}", server.address())).unwrap();
+        let server = json_server();
+        let mut first = connect(&server);
         let hello = read_json(&mut first);
         drop(first);
-        server.broadcast(Arc::from(r#"{"n":1}"#)).unwrap();
+        broadcast_json(&server, r#"{"n":1}"#);
         server.clear_replay().unwrap();
-        server.broadcast(Arc::from(r#"{"n":2}"#)).unwrap();
+        broadcast_json(&server, r#"{"n":2}"#);
 
-        let (mut second, _) = tungstenite::connect(format!("ws://{}", server.address())).unwrap();
+        let mut second = connect(&server);
         assert_eq!(read_json(&mut second)["control"], "HELLO");
         second
             .send(Message::Text(

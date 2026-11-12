@@ -97,7 +97,7 @@ fun TopBar(
                     shape = RoundedCornerShape(20.dp),
                     color = ChronicleSurfaceVariant,
                     border = BorderStroke(1.dp, ChronicleBorder),
-                    modifier = Modifier.clickable(onClick = onOpenCharacterSettings),
+                    modifier = Modifier.clip(RoundedCornerShape(20.dp)).clickable(onClick = onOpenCharacterSettings),
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
@@ -140,7 +140,7 @@ fun TopBar(
                         1.dp,
                         if (isConnectionPanelExpanded) ChronicleGold.copy(alpha = 0.5f) else ChronicleBorder
                     ),
-                    modifier = Modifier.clickable(onClick = onToggleConnectionPanel),
+                    modifier = Modifier.clip(RoundedCornerShape(20.dp)).clickable(onClick = onToggleConnectionPanel),
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),

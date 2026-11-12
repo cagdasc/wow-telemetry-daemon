@@ -2,8 +2,11 @@ package com.cacaosd.wowtelemetry.data.repository
 
 import com.cacaosd.wowtelemetry.data.mapper.CombatEventMapper
 import com.cacaosd.wowtelemetry.data.mapper.CombatStreamMessageDecoder
+import com.cacaosd.wowtelemetry.data.mapper.toCombatLogEvent
 import com.cacaosd.wowtelemetry.data.model.CombatEventDecodeException
 import com.cacaosd.wowtelemetry.data.model.parseCombatEventRoot
+import com.cacaosd.wowtelemetry.data.proto.Envelope
+import com.cacaosd.wowtelemetry.domain.CombatEvent
 import com.cacaosd.wowtelemetry.domain.CombatEventRepository
 import com.cacaosd.wowtelemetry.domain.CombatStreamMessage
 import com.cacaosd.wowtelemetry.domain.DaemonConnectionState
@@ -14,6 +17,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.json.*
+import okio.IOException
 import kotlin.time.Duration.Companion.seconds
 
 class CombatEventRepositoryImpl(
@@ -60,13 +64,24 @@ class CombatEventRepositoryImpl(
         httpClient.webSocket(urlString = url) {
             send(Frame.Text("""{"command":"CLEAR_LOG"}"""))
             for (frame in incoming) {
-                if (frame !is Frame.Text) continue
-                val root = Json.parseToJsonElement(frame.readText()).jsonObject
-                if (root["control"]?.jsonPrimitive?.content != CLEAR_LOG_RESULT) continue
-                if (root["success"]?.jsonPrimitive?.booleanOrNull == true) return@webSocket
-                throw IllegalStateException(
-                    root["message"]?.jsonPrimitive?.content ?: "Daemon could not clear its log."
-                )
+                val result = when (frame) {
+                    is Frame.Binary -> Envelope.ADAPTER.decode(frame.readBytes())
+                        .control?.clear_log_result
+                        ?.let { ClearResult(it.success, it.message) }
+
+                    is Frame.Text -> {
+                        val root = Json.parseToJsonElement(frame.readText()).jsonObject
+                        if (root["control"]?.jsonPrimitive?.content != CLEAR_LOG_RESULT) null
+                        else ClearResult(
+                            root["success"]?.jsonPrimitive?.booleanOrNull == true,
+                            root["message"]?.jsonPrimitive?.content,
+                        )
+                    }
+
+                    else -> null
+                } ?: continue
+                if (result.success) return@webSocket
+                throw IllegalStateException(result.message ?: "Daemon could not clear its log.")
             }
             error("Daemon closed the connection before confirming the log clear.")
         }
@@ -87,6 +102,24 @@ class CombatEventRepositoryImpl(
                     mutableConnectionState.value =
                         DaemonConnectionState(DaemonConnectionState.Status.CONNECTED, url)
                     for (frame in incoming) {
+                        if (frame is Frame.Binary) {
+                            try {
+                                val envelope = Envelope.ADAPTER.decode(frame.readBytes())
+                                val hello = envelope.control?.hello
+                                if (hello != null) {
+                                    resume(hello.epoch)
+                                    continue
+                                }
+                                decodeBinary(envelope, url)?.let { emit(it) }
+                            } catch (error: IOException) {
+                                logError("Rejected invalid protobuf message from $url: ${error.message}")
+                            } catch (error: CombatEventDecodeException) {
+                                logError("Rejected invalid protobuf message from $url: ${error.message}")
+                            } catch (error: IllegalArgumentException) {
+                                logError("Rejected invalid protobuf message from $url: ${error.message}")
+                            }
+                            continue
+                        }
                         if (frame !is Frame.Text) continue
                         try {
                             val payload = frame.readText()
@@ -94,7 +127,7 @@ class CombatEventRepositoryImpl(
                             val root = parseCombatEventRoot(payload)
                             when (root["control"]?.jsonPrimitive?.contentOrNull) {
                                 HELLO -> {
-                                    resume(root)
+                                    resume(root["epoch"]?.jsonPrimitive?.longOrNull)
                                     continue
                                 }
 
@@ -135,8 +168,29 @@ class CombatEventRepositoryImpl(
         }
     }
 
-    private suspend fun DefaultClientWebSocketSession.resume(hello: JsonObject) {
-        val epoch = hello["epoch"]?.jsonPrimitive?.longOrNull ?: return
+    private fun decodeBinary(envelope: Envelope, url: String): CombatStreamMessage? {
+        val control = envelope.control
+        if (control?.replay_gap != null) {
+            logError("Daemon replay gap from $url: ${control.replay_gap}")
+            return null
+        }
+        if (envelope.seq != 0L) {
+            if (envelope.seq <= lastSeq) return null
+            lastSeq = envelope.seq
+        }
+        return when {
+            envelope.event != null -> CombatStreamMessage.Event(
+                CombatEvent(envelope.event.timestamp, envelope.event.toCombatLogEvent())
+            )
+
+            control?.log_caught_up != null -> CombatStreamMessage.CaughtUp
+            control?.log_cleared != null -> CombatStreamMessage.LogCleared
+            else -> null
+        }
+    }
+
+    private suspend fun DefaultClientWebSocketSession.resume(epoch: Long?) {
+        epoch ?: return
         val previousEpoch = streamEpoch
         streamEpoch = epoch
         if (previousEpoch == null) return
@@ -151,6 +205,8 @@ class CombatEventRepositoryImpl(
     private fun logRetry(url: String) {
         logError("Retrying WebSocket connection to $url in 3 seconds")
     }
+
+    private class ClearResult(val success: Boolean, val message: String?)
 
     private companion object {
         const val CLEAR_LOG_RESULT = "CLEAR_LOG_RESULT"
