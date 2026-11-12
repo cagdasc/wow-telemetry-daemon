@@ -31,9 +31,9 @@ data class NarrationSettings(
     )
 
     companion object {
-        const val DEFAULT_SILENCE_TIMEOUT_SECONDS = 30
+        const val DEFAULT_SILENCE_TIMEOUT_SECONDS = 10
         const val MIN_SILENCE_TIMEOUT_SECONDS = 5
-        const val MAX_SILENCE_TIMEOUT_SECONDS = 600
+        const val MAX_SILENCE_TIMEOUT_SECONDS = 20
     }
 }
 

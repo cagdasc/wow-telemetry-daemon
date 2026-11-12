@@ -30,7 +30,7 @@ class CombatEventRepositoryImpl(
 
     init {
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-            for (payload in payloadLog) println(payload)
+//            for (payload in payloadLog) println(payload)
         }
     }
 

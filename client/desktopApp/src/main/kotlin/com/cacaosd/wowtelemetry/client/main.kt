@@ -1,7 +1,13 @@
+@file:OptIn(ExperimentalComposeUiApi::class)
+
 package com.cacaosd.wowtelemetry.client
 
-import androidx.compose.ui.window.Window
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.application
+import androidx.compose.ui.window.v2.Window
+import androidx.compose.ui.window.v2.rememberWindowState
 import androidx.lifecycle.ViewModelStore
 import com.cacaosd.wowtelemetry.client.di.appModule
 import com.cacaosd.wowtelemetry.data.database.AppDatabase
@@ -38,6 +44,7 @@ fun main(args: Array<String>) {
                 exitApplication()
             },
             title = "WoW Telemetry Client",
+            minSize = DpSize(width = 1200.dp, height = 900.dp),
         ) {
             App(websocketUrl, viewModel)
         }
@@ -54,6 +61,7 @@ private fun parseWebSocketUrl(args: Array<String>): String? {
                 require(index + 1 < args.size) { "--ws-url requires a URL" }
                 url = args[++index]
             }
+
             "--help", "-h" -> {
                 println(
                     "Usage: WowTelemetryClient [--ws-url ws://HOST:8765]\n" +
@@ -61,6 +69,7 @@ private fun parseWebSocketUrl(args: Array<String>): String? {
                 )
                 return null
             }
+
             else -> error("Unknown argument: $argument")
         }
         index++

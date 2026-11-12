@@ -69,9 +69,7 @@ class CombatEventNarrator(
         )
 
         return try {
-            agent.run(batch.toPromptText(null).also {
-//                println(it)
-            }, sessionId)
+            agent.run(batch.toPromptText(null), sessionId)
         } finally {
             executor.use {
                 agent.close()
@@ -115,7 +113,12 @@ private fun CharacterProfile.toChatMessage(): String? {
 }
 
 private fun CombatEventBatch.toPromptText(supportingContext: String? = null): String = buildString {
-    appendLine("Combat log batch to be narrated:")
+    appendLine(
+        "Check Combat log batch and explain it by analysing and to be narrated. " +
+                "It's world of warcraft post combat log, only use the combat log events to explain what happened. " +
+                "If you don't know, say you don't know. Do not make up any information. " +
+                "Be brief also, do not repeat the same information."
+    )
     appendLine("Start: $startTimestamp")
     appendLine("End: $endTimestamp")
     appendLine("Events: ${events.size}")

@@ -20,6 +20,7 @@ data class CombatChatTurn(
     val content: String,
     val batchStartTimestamp: String? = null,
     val batchEndTimestamp: String? = null,
+    val eventCount: Int? = null,
 )
 
 data class TelemetryUiState(
@@ -93,12 +94,14 @@ class TelemetryViewModel(
                                     content = batch.toSummaryText(),
                                     batchStartTimestamp = batch.startTimestamp,
                                     batchEndTimestamp = batch.endTimestamp,
+                                    eventCount = batch.events.size,
                                 ),
                                 CombatChatTurn(
                                     role = "Assistant",
                                     content = answer,
                                     batchStartTimestamp = batch.startTimestamp,
                                     batchEndTimestamp = batch.endTimestamp,
+                                    eventCount = batch.events.size,
                                 ),
                             )
                         )
