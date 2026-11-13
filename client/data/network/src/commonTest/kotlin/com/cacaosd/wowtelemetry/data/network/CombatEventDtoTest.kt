@@ -92,6 +92,15 @@ class CombatEventDtoTest {
             MalformedEventEvent("unterminated quoted field", listOf(49, 48, 44, 34, 120)),
             dto.event,
         )
+
+        val hexDto = CombatEventDto.decode(
+            """{"timestamp":"10/28 15:04:05.123","event":{"type":"MALFORMED_EVENT","data":{"reason":"unterminated quoted field","raw_bytes":"31302c2278"}},"fields":[]}""",
+        )
+
+        assertEquals(
+            MalformedEventEvent("unterminated quoted field", listOf(49, 48, 44, 34, 120)),
+            hexDto.event,
+        )
     }
 
     @Test

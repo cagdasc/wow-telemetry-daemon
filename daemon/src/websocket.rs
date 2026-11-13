@@ -117,7 +117,6 @@ impl WebSocketServer {
         clear_log_sender: Option<SyncSender<TailCommand>>,
     ) -> io::Result<Self> {
         let listener = TcpListener::bind(address)?;
-        listener.set_nonblocking(true)?;
         let address = listener.local_addr()?;
         let clients = Arc::new(Mutex::new(HashMap::new()));
         let replay = Arc::new(Mutex::new(ReplayBuffer::new(REPLAY_BUFFER_BYTES)));
@@ -233,14 +232,11 @@ fn accept_loop(
                         serve_client(stream, id, format, clients, replay, clear_log_sender)
                     })
                 {
-                    eprintln!("failed to start WebSocket client thread: {error}");
+                    log::error!("failed to start WebSocket client thread: {error}");
                 }
             }
-            Err(error) if error.kind() == io::ErrorKind::WouldBlock => {
-                thread::sleep(Duration::from_millis(5));
-            }
             Err(error) => {
-                eprintln!("WebSocket listener failed to accept a client: {error}");
+                log::error!("WebSocket listener failed to accept a client: {error}");
                 thread::sleep(Duration::from_millis(250));
             }
         }
@@ -263,7 +259,7 @@ fn serve_client(
         &replay,
         clear_log_sender.as_ref(),
     ) {
-        eprintln!("WebSocket client {id} disconnected: {error}");
+        log::info!("WebSocket client {id} disconnected: {error}");
     }
     if let Ok(mut clients) = clients.lock() {
         clients.remove(&id);

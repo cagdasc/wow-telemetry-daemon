@@ -275,6 +275,7 @@ def render_event_fields(spec):
             "pub struct EventField {",
             "    pub offset: usize,",
             "    pub name: &'static str,",
+            "    pub target_name: &'static str,",
             "    pub field_type: FieldType,",
             "    pub advanced: bool,",
             "    pub advanced_min_fields: usize,",
@@ -291,12 +292,19 @@ def render_event_fields(spec):
         fields, _, advanced_min_fields = event_fields(spec, event_name)
         advanced_unit = inherits(spec["events"], event_name, "advancedBlockDescribes") or ""
         event_ranges.append((event_name, start, start + len(fields)))
+        non_advanced_names = {name for _, name, _, advanced, _ in fields if not advanced}
         for offset, name, field_type, advanced, variant in fields:
+            target_name = (
+                f"advanced_block_{name}"
+                if advanced and name in non_advanced_names
+                else name
+            )
             lines.extend(
                 [
                     "    EventField {",
                     f"        offset: {offset},",
                     f'        name: "{name}",',
+                    f'        target_name: "{target_name}",',
                     f"        field_type: FieldType::{FIELD_TYPE_VARIANTS[field_type]},",
                     f"        advanced: {str(advanced).lower()},",
                     f"        advanced_min_fields: {advanced_min_fields},",
@@ -307,8 +315,13 @@ def render_event_fields(spec):
             )
         start += len(fields)
     lines.extend(["];", ""])
+    match_arms = " | ".join(f'"{name}"' for name in spec["events"])
     lines.extend(
         [
+            "pub fn is_spec_event(event: &str) -> bool {",
+            f"    matches!(event, {match_arms})",
+            "}",
+            "",
             "pub fn event_fields(event: &str) -> &'static [EventField] {",
             "    match event {",
         ]
@@ -490,8 +503,13 @@ def render_event_schema(spec):
                     "properties": {
                         "reason": {"type": "string"},
                         "raw_bytes": {
-                            "type": "array",
-                            "items": {"type": "integer", "minimum": 0, "maximum": 255},
+                            "oneOf": [
+                                {"type": "string"},
+                                {
+                                    "type": "array",
+                                    "items": {"type": "integer", "minimum": 0, "maximum": 255},
+                                },
+                            ],
                         },
                     },
                     "required": ["reason", "raw_bytes"],
@@ -708,9 +726,59 @@ def render_rust_typed_events(spec):
         "    pub event_name: String,",
         "}",
         "",
+        "pub fn serialize_hex_bytes<S>(bytes: &[u8], serializer: S) -> Result<S::Ok, S::Error>",
+        "where",
+        "    S: serde::Serializer,",
+        "{",
+        "    let mut hex = String::with_capacity(bytes.len() * 2);",
+        "    for &b in bytes {",
+        "        use std::fmt::Write;",
+        "        let _ = write!(hex, \"{:02x}\", b);",
+        "    }",
+        "    serializer.serialize_str(&hex)",
+        "}",
+        "",
+        "pub fn deserialize_hex_or_array_bytes<'de, D>(deserializer: D) -> Result<Vec<u8>, D::Error>",
+        "where",
+        "    D: serde::Deserializer<'de>,",
+        "{",
+        "    struct BytesVisitor;",
+        "    impl<'de> serde::de::Visitor<'de> for BytesVisitor {",
+        "        type Value = Vec<u8>;",
+        "        fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {",
+        "            formatter.write_str(\"a hex string or array of bytes\")",
+        "        }",
+        "        #[allow(clippy::manual_is_multiple_of)]",
+        "        fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>",
+        "        where",
+        "            E: serde::de::Error,",
+        "        {",
+        "            if v.len() % 2 != 0 {",
+        "                return Err(E::custom(\"invalid odd-length hex string\"));",
+        "            }",
+        "            (0..v.len())",
+        "                .step_by(2)",
+        "                .map(|i| u8::from_str_radix(&v[i..i + 2], 16).map_err(E::custom))",
+        "                .collect()",
+        "        }",
+        "        fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>",
+        "        where",
+        "            A: serde::de::SeqAccess<'de>,",
+        "        {",
+        "            let mut bytes = Vec::new();",
+        "            while let Some(byte) = seq.next_element()? {",
+        "                bytes.push(byte);",
+        "            }",
+        "            Ok(bytes)",
+        "        }",
+        "    }",
+        "    deserializer.deserialize_any(BytesVisitor)",
+        "}",
+        "",
         "#[derive(Debug, Deserialize, Serialize)]",
         "pub struct MalformedEventEventData {",
         "    pub reason: String,",
+        "    #[serde(serialize_with = \"serialize_hex_bytes\", deserialize_with = \"deserialize_hex_or_array_bytes\")]",
         "    pub raw_bytes: Vec<u8>,",
         "}",
         "",
@@ -1010,7 +1078,7 @@ def render_kotlin_decoder(spec):
         '    "UNRECOGNIZED_EVENT" -> UnrecognizedEventEvent(data.requiredString("event_name"))',
         '    "MALFORMED_EVENT" -> MalformedEventEvent(',
         '        reason = data.requiredString("reason"),',
-        '        rawBytes = data.requiredIntList("raw_bytes"),',
+        '        rawBytes = data.decodeRawBytes("raw_bytes"),',
         "    )",
     ])
     lines.extend([
@@ -1084,13 +1152,20 @@ def render_kotlin_decoder(spec):
         'private fun JsonObject.optionalJsonElement(name: String): JsonElement? =',
         "    this[name]?.takeUnless { it == JsonNull }",
         "",
-        'private fun JsonObject.requiredIntList(name: String): List<Int> =',
-        "    (this[name] as? JsonArray)?.mapIndexed { index, value ->",
-        '        val number = (value as? JsonPrimitive)?.takeIf { !it.isString }?.intOrNull',
+        'private fun JsonObject.decodeRawBytes(name: String): List<Int> = when (val value = this[name]) {',
+        '    is JsonPrimitive -> if (value.isString) {',
+        '        val hex = value.content',
+        '        if (hex.length % 2 != 0) throw CombatEventDecodeException("\'$name\' has invalid hex length")',
+        '        hex.chunked(2).map { it.toIntOrNull(16) ?: throw CombatEventDecodeException("\'$name\' has invalid hex characters") }',
+        '    } else throw CombatEventDecodeException("\'$name\' must be a hex string or byte array")',
+        '    is JsonArray -> value.mapIndexed { index, item ->',
+        '        val number = (item as? JsonPrimitive)?.takeIf { !it.isString }?.intOrNull',
         '            ?: throw CombatEventDecodeException("\'$name[$index]\' must be an integer")',
         '        if (number !in 0..255) throw CombatEventDecodeException("\'$name[$index]\' must be a byte value")',
-        "        number",
-        '    } ?: throw CombatEventDecodeException("\'$name\' must be an array")',
+        '        number',
+        '    }',
+        '    else -> throw CombatEventDecodeException("\'$name\' must be a hex string or byte array")',
+        '}',
         "",
         'private fun JsonObject.optionalLongList(name: String): List<Long?>? = when (val value = this[name]) {',
         "    null, JsonNull -> null",
@@ -1571,7 +1646,7 @@ def format_rust(source):
 
 def artifacts(spec):
     return {
-        RUST_PATH: render_rust(spec),
+        RUST_PATH: format_rust(render_rust(spec)),
         TYPED_RUST_PATH: format_rust(render_rust_typed_events(spec)),
         JSON_SPEC_PATH: json.dumps(json_safe(spec), indent=2, ensure_ascii=False) + "\n",
         EVENT_SCHEMA_PATH: render_event_schema(spec),

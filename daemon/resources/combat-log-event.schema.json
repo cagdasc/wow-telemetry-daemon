@@ -4082,12 +4082,19 @@
                   "type": "string"
                 },
                 "raw_bytes": {
-                  "type": "array",
-                  "items": {
-                    "type": "integer",
-                    "minimum": 0,
-                    "maximum": 255
-                  }
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 255
+                      }
+                    }
+                  ]
                 }
               },
               "required": [

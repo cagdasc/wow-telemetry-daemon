@@ -85,6 +85,7 @@ pub enum FieldType {
 pub struct EventField {
     pub offset: usize,
     pub name: &'static str,
+    pub target_name: &'static str,
     pub field_type: FieldType,
     pub advanced: bool,
     pub advanced_min_fields: usize,
@@ -96,6 +97,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 42,
@@ -105,6 +107,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 42,
@@ -114,6 +117,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -123,6 +127,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -132,6 +137,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 42,
@@ -141,6 +147,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 42,
@@ -150,6 +157,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -159,6 +167,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -168,6 +177,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -177,6 +187,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 42,
@@ -186,6 +197,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 42,
@@ -195,6 +207,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "info_guid",
+        target_name: "info_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 42,
@@ -204,6 +217,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "owner_guid",
+        target_name: "owner_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 42,
@@ -213,6 +227,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "current_hp",
+        target_name: "current_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 42,
@@ -222,6 +237,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "max_hp",
+        target_name: "max_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 42,
@@ -231,6 +247,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 16,
         name: "attack_power",
+        target_name: "attack_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -240,6 +257,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 17,
         name: "spell_power",
+        target_name: "spell_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -249,6 +267,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 18,
         name: "armor",
+        target_name: "armor",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -258,6 +277,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 19,
         name: "absorb",
+        target_name: "absorb",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -267,6 +287,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 20,
         name: "unknown_1",
+        target_name: "unknown_1",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -276,6 +297,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 21,
         name: "unknown_2",
+        target_name: "unknown_2",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -285,6 +307,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 22,
         name: "power_type",
+        target_name: "power_type",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -294,6 +317,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 23,
         name: "current_power",
+        target_name: "current_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -303,6 +327,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 24,
         name: "max_power",
+        target_name: "max_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -312,6 +337,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 25,
         name: "power_cost",
+        target_name: "power_cost",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -321,6 +347,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 26,
         name: "position_x",
+        target_name: "position_x",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 42,
@@ -330,6 +357,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 27,
         name: "position_y",
+        target_name: "position_y",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 42,
@@ -339,6 +367,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 28,
         name: "ui_map_id",
+        target_name: "ui_map_id",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -348,6 +377,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 29,
         name: "facing",
+        target_name: "facing",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 42,
@@ -357,6 +387,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 30,
         name: "item_level",
+        target_name: "item_level",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -366,6 +397,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 31,
         name: "base_amount",
+        target_name: "base_amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -375,6 +407,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 32,
         name: "raw_amount",
+        target_name: "raw_amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -384,6 +417,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 33,
         name: "overkill",
+        target_name: "overkill",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -393,6 +427,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 34,
         name: "school",
+        target_name: "school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 42,
@@ -402,6 +437,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 35,
         name: "resisted",
+        target_name: "resisted",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -411,6 +447,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 36,
         name: "blocked",
+        target_name: "blocked",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -420,6 +457,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 37,
         name: "absorbed",
+        target_name: "absorbed",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -429,6 +467,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 38,
         name: "critical",
+        target_name: "critical",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 42,
@@ -438,6 +477,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 39,
         name: "glancing",
+        target_name: "glancing",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 42,
@@ -447,6 +487,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 40,
         name: "crushing",
+        target_name: "crushing",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 42,
@@ -456,6 +497,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 41,
         name: "ability_hint",
+        target_name: "ability_hint",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 42,
@@ -465,6 +507,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 42,
@@ -474,6 +517,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 42,
@@ -483,6 +527,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -492,6 +537,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -501,6 +547,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 42,
@@ -510,6 +557,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 42,
@@ -519,6 +567,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -528,6 +577,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -537,6 +587,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -546,6 +597,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 42,
@@ -555,6 +607,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 42,
@@ -564,6 +617,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "info_guid",
+        target_name: "info_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 42,
@@ -573,6 +627,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "owner_guid",
+        target_name: "owner_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 42,
@@ -582,6 +637,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "current_hp",
+        target_name: "current_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 42,
@@ -591,6 +647,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "max_hp",
+        target_name: "max_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 42,
@@ -600,6 +657,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 16,
         name: "attack_power",
+        target_name: "attack_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -609,6 +667,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 17,
         name: "spell_power",
+        target_name: "spell_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -618,6 +677,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 18,
         name: "armor",
+        target_name: "armor",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -627,6 +687,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 19,
         name: "absorb",
+        target_name: "absorb",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -636,6 +697,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 20,
         name: "unknown_1",
+        target_name: "unknown_1",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -645,6 +707,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 21,
         name: "unknown_2",
+        target_name: "unknown_2",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -654,6 +717,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 22,
         name: "power_type",
+        target_name: "power_type",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -663,6 +727,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 23,
         name: "current_power",
+        target_name: "current_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -672,6 +737,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 24,
         name: "max_power",
+        target_name: "max_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -681,6 +747,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 25,
         name: "power_cost",
+        target_name: "power_cost",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -690,6 +757,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 26,
         name: "position_x",
+        target_name: "position_x",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 42,
@@ -699,6 +767,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 27,
         name: "position_y",
+        target_name: "position_y",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 42,
@@ -708,6 +777,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 28,
         name: "ui_map_id",
+        target_name: "ui_map_id",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -717,6 +787,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 29,
         name: "facing",
+        target_name: "facing",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 42,
@@ -726,6 +797,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 30,
         name: "item_level",
+        target_name: "item_level",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -735,6 +807,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 31,
         name: "base_amount",
+        target_name: "base_amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -744,6 +817,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 32,
         name: "raw_amount",
+        target_name: "raw_amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -753,6 +827,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 33,
         name: "overkill",
+        target_name: "overkill",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -762,6 +837,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 34,
         name: "school",
+        target_name: "school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 42,
@@ -771,6 +847,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 35,
         name: "resisted",
+        target_name: "resisted",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -780,6 +857,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 36,
         name: "blocked",
+        target_name: "blocked",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -789,6 +867,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 37,
         name: "absorbed",
+        target_name: "absorbed",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -798,6 +877,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 38,
         name: "critical",
+        target_name: "critical",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 42,
@@ -807,6 +887,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 39,
         name: "glancing",
+        target_name: "glancing",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 42,
@@ -816,6 +897,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 40,
         name: "crushing",
+        target_name: "crushing",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 42,
@@ -825,6 +907,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 41,
         name: "ability_hint",
+        target_name: "ability_hint",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 42,
@@ -834,6 +917,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 42,
@@ -843,6 +927,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 42,
@@ -852,6 +937,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -861,6 +947,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -870,6 +957,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 42,
@@ -879,6 +967,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 42,
@@ -888,6 +977,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -897,6 +987,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -906,6 +997,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -915,6 +1007,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 42,
@@ -924,6 +1017,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 42,
@@ -933,6 +1027,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "info_guid",
+        target_name: "info_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 42,
@@ -942,6 +1037,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "owner_guid",
+        target_name: "owner_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 42,
@@ -951,6 +1047,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "current_hp",
+        target_name: "current_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 42,
@@ -960,6 +1057,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "max_hp",
+        target_name: "max_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 42,
@@ -969,6 +1067,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 16,
         name: "attack_power",
+        target_name: "attack_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -978,6 +1077,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 17,
         name: "spell_power",
+        target_name: "spell_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -987,6 +1087,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 18,
         name: "armor",
+        target_name: "armor",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -996,6 +1097,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 19,
         name: "absorb",
+        target_name: "absorb",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1005,6 +1107,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 20,
         name: "unknown_1",
+        target_name: "unknown_1",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1014,6 +1117,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 21,
         name: "unknown_2",
+        target_name: "unknown_2",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1023,6 +1127,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 22,
         name: "power_type",
+        target_name: "power_type",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1032,6 +1137,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 23,
         name: "current_power",
+        target_name: "current_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1041,6 +1147,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 24,
         name: "max_power",
+        target_name: "max_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1050,6 +1157,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 25,
         name: "power_cost",
+        target_name: "power_cost",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1059,6 +1167,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 26,
         name: "position_x",
+        target_name: "position_x",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 42,
@@ -1068,6 +1177,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 27,
         name: "position_y",
+        target_name: "position_y",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 42,
@@ -1077,6 +1187,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 28,
         name: "ui_map_id",
+        target_name: "ui_map_id",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1086,6 +1197,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 29,
         name: "facing",
+        target_name: "facing",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 42,
@@ -1095,6 +1207,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 30,
         name: "item_level",
+        target_name: "item_level",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1104,6 +1217,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 31,
         name: "base_amount",
+        target_name: "base_amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -1113,6 +1227,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 32,
         name: "raw_amount",
+        target_name: "raw_amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -1122,6 +1237,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 33,
         name: "overkill",
+        target_name: "overkill",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -1131,6 +1247,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 34,
         name: "school",
+        target_name: "school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 42,
@@ -1140,6 +1257,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 35,
         name: "resisted",
+        target_name: "resisted",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -1149,6 +1267,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 36,
         name: "blocked",
+        target_name: "blocked",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -1158,6 +1277,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 37,
         name: "absorbed",
+        target_name: "absorbed",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -1167,6 +1287,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 38,
         name: "critical",
+        target_name: "critical",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 42,
@@ -1176,6 +1297,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 39,
         name: "glancing",
+        target_name: "glancing",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 42,
@@ -1185,6 +1307,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 40,
         name: "crushing",
+        target_name: "crushing",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 42,
@@ -1194,6 +1317,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 41,
         name: "ability_hint",
+        target_name: "ability_hint",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 42,
@@ -1203,6 +1327,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 42,
@@ -1212,6 +1337,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 42,
@@ -1221,6 +1347,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -1230,6 +1357,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -1239,6 +1367,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 42,
@@ -1248,6 +1377,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 42,
@@ -1257,6 +1387,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -1266,6 +1397,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -1275,6 +1407,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -1284,6 +1417,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 42,
@@ -1293,6 +1427,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 42,
@@ -1302,6 +1437,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "info_guid",
+        target_name: "info_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 42,
@@ -1311,6 +1447,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "owner_guid",
+        target_name: "owner_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 42,
@@ -1320,6 +1457,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "current_hp",
+        target_name: "current_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 42,
@@ -1329,6 +1467,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "max_hp",
+        target_name: "max_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 42,
@@ -1338,6 +1477,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 16,
         name: "attack_power",
+        target_name: "attack_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1347,6 +1487,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 17,
         name: "spell_power",
+        target_name: "spell_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1356,6 +1497,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 18,
         name: "armor",
+        target_name: "armor",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1365,6 +1507,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 19,
         name: "absorb",
+        target_name: "absorb",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1374,6 +1517,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 20,
         name: "unknown_1",
+        target_name: "unknown_1",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1383,6 +1527,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 21,
         name: "unknown_2",
+        target_name: "unknown_2",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1392,6 +1537,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 22,
         name: "power_type",
+        target_name: "power_type",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1401,6 +1547,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 23,
         name: "current_power",
+        target_name: "current_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1410,6 +1557,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 24,
         name: "max_power",
+        target_name: "max_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1419,6 +1567,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 25,
         name: "power_cost",
+        target_name: "power_cost",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1428,6 +1577,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 26,
         name: "position_x",
+        target_name: "position_x",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 42,
@@ -1437,6 +1587,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 27,
         name: "position_y",
+        target_name: "position_y",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 42,
@@ -1446,6 +1597,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 28,
         name: "ui_map_id",
+        target_name: "ui_map_id",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1455,6 +1607,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 29,
         name: "facing",
+        target_name: "facing",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 42,
@@ -1464,6 +1617,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 30,
         name: "item_level",
+        target_name: "item_level",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1473,6 +1627,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 31,
         name: "base_amount",
+        target_name: "base_amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -1482,6 +1637,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 32,
         name: "raw_amount",
+        target_name: "raw_amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -1491,6 +1647,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 33,
         name: "overkill",
+        target_name: "overkill",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -1500,6 +1657,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 34,
         name: "school",
+        target_name: "school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 42,
@@ -1509,6 +1667,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 35,
         name: "resisted",
+        target_name: "resisted",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -1518,6 +1677,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 36,
         name: "blocked",
+        target_name: "blocked",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -1527,6 +1687,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 37,
         name: "absorbed",
+        target_name: "absorbed",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -1536,6 +1697,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 38,
         name: "critical",
+        target_name: "critical",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 42,
@@ -1545,6 +1707,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 39,
         name: "glancing",
+        target_name: "glancing",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 42,
@@ -1554,6 +1717,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 40,
         name: "crushing",
+        target_name: "crushing",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 42,
@@ -1563,6 +1727,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 41,
         name: "ability_hint",
+        target_name: "ability_hint",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 42,
@@ -1572,6 +1737,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 42,
@@ -1581,6 +1747,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 42,
@@ -1590,6 +1757,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -1599,6 +1767,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -1608,6 +1777,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 42,
@@ -1617,6 +1787,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 42,
@@ -1626,6 +1797,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -1635,6 +1807,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -1644,6 +1817,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -1653,6 +1827,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 42,
@@ -1662,6 +1837,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 42,
@@ -1671,6 +1847,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "info_guid",
+        target_name: "info_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 42,
@@ -1680,6 +1857,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "owner_guid",
+        target_name: "owner_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 42,
@@ -1689,6 +1867,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "current_hp",
+        target_name: "current_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 42,
@@ -1698,6 +1877,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "max_hp",
+        target_name: "max_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 42,
@@ -1707,6 +1887,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 16,
         name: "attack_power",
+        target_name: "attack_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1716,6 +1897,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 17,
         name: "spell_power",
+        target_name: "spell_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1725,6 +1907,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 18,
         name: "armor",
+        target_name: "armor",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1734,6 +1917,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 19,
         name: "absorb",
+        target_name: "absorb",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1743,6 +1927,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 20,
         name: "unknown_1",
+        target_name: "unknown_1",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1752,6 +1937,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 21,
         name: "unknown_2",
+        target_name: "unknown_2",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1761,6 +1947,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 22,
         name: "power_type",
+        target_name: "power_type",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1770,6 +1957,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 23,
         name: "current_power",
+        target_name: "current_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1779,6 +1967,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 24,
         name: "max_power",
+        target_name: "max_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1788,6 +1977,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 25,
         name: "power_cost",
+        target_name: "power_cost",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1797,6 +1987,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 26,
         name: "position_x",
+        target_name: "position_x",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 42,
@@ -1806,6 +1997,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 27,
         name: "position_y",
+        target_name: "position_y",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 42,
@@ -1815,6 +2007,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 28,
         name: "ui_map_id",
+        target_name: "ui_map_id",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1824,6 +2017,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 29,
         name: "facing",
+        target_name: "facing",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 42,
@@ -1833,6 +2027,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 30,
         name: "item_level",
+        target_name: "item_level",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -1842,6 +2037,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 31,
         name: "base_amount",
+        target_name: "base_amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -1851,6 +2047,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 32,
         name: "raw_amount",
+        target_name: "raw_amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -1860,6 +2057,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 33,
         name: "overkill",
+        target_name: "overkill",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -1869,6 +2067,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 34,
         name: "school",
+        target_name: "school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 42,
@@ -1878,6 +2077,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 35,
         name: "resisted",
+        target_name: "resisted",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -1887,6 +2087,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 36,
         name: "blocked",
+        target_name: "blocked",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -1896,6 +2097,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 37,
         name: "absorbed",
+        target_name: "absorbed",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -1905,6 +2107,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 38,
         name: "critical",
+        target_name: "critical",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 42,
@@ -1914,6 +2117,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 39,
         name: "glancing",
+        target_name: "glancing",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 42,
@@ -1923,6 +2127,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 40,
         name: "crushing",
+        target_name: "crushing",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 42,
@@ -1932,6 +2137,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 41,
         name: "ability_hint",
+        target_name: "ability_hint",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 42,
@@ -1941,6 +2147,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 42,
@@ -1950,6 +2157,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 42,
@@ -1959,6 +2167,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -1968,6 +2177,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -1977,6 +2187,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 42,
@@ -1986,6 +2197,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 42,
@@ -1995,6 +2207,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -2004,6 +2217,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -2013,6 +2227,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -2022,6 +2237,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 42,
@@ -2031,6 +2247,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 42,
@@ -2040,6 +2257,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "info_guid",
+        target_name: "info_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 42,
@@ -2049,6 +2267,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "owner_guid",
+        target_name: "owner_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 42,
@@ -2058,6 +2277,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "current_hp",
+        target_name: "current_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 42,
@@ -2067,6 +2287,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "max_hp",
+        target_name: "max_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 42,
@@ -2076,6 +2297,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 16,
         name: "attack_power",
+        target_name: "attack_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2085,6 +2307,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 17,
         name: "spell_power",
+        target_name: "spell_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2094,6 +2317,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 18,
         name: "armor",
+        target_name: "armor",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2103,6 +2327,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 19,
         name: "absorb",
+        target_name: "absorb",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2112,6 +2337,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 20,
         name: "unknown_1",
+        target_name: "unknown_1",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2121,6 +2347,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 21,
         name: "unknown_2",
+        target_name: "unknown_2",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2130,6 +2357,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 22,
         name: "power_type",
+        target_name: "power_type",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2139,6 +2367,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 23,
         name: "current_power",
+        target_name: "current_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2148,6 +2377,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 24,
         name: "max_power",
+        target_name: "max_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2157,6 +2387,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 25,
         name: "power_cost",
+        target_name: "power_cost",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2166,6 +2397,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 26,
         name: "position_x",
+        target_name: "position_x",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 42,
@@ -2175,6 +2407,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 27,
         name: "position_y",
+        target_name: "position_y",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 42,
@@ -2184,6 +2417,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 28,
         name: "ui_map_id",
+        target_name: "ui_map_id",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2193,6 +2427,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 29,
         name: "facing",
+        target_name: "facing",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 42,
@@ -2202,6 +2437,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 30,
         name: "item_level",
+        target_name: "item_level",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2211,6 +2447,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 31,
         name: "base_amount",
+        target_name: "base_amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -2220,6 +2457,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 32,
         name: "raw_amount",
+        target_name: "raw_amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -2229,6 +2467,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 33,
         name: "overkill",
+        target_name: "overkill",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -2238,6 +2477,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 34,
         name: "school",
+        target_name: "school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 42,
@@ -2247,6 +2487,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 35,
         name: "resisted",
+        target_name: "resisted",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -2256,6 +2497,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 36,
         name: "blocked",
+        target_name: "blocked",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -2265,6 +2507,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 37,
         name: "absorbed",
+        target_name: "absorbed",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -2274,6 +2517,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 38,
         name: "critical",
+        target_name: "critical",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 42,
@@ -2283,6 +2527,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 39,
         name: "glancing",
+        target_name: "glancing",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 42,
@@ -2292,6 +2537,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 40,
         name: "crushing",
+        target_name: "crushing",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 42,
@@ -2301,6 +2547,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 41,
         name: "support_player_guid",
+        target_name: "support_player_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 42,
@@ -2310,6 +2557,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 42,
@@ -2319,6 +2567,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 42,
@@ -2328,6 +2577,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -2337,6 +2587,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -2346,6 +2597,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 42,
@@ -2355,6 +2607,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 42,
@@ -2364,6 +2617,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -2373,6 +2627,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -2382,6 +2637,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -2391,6 +2647,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 42,
@@ -2400,6 +2657,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 42,
@@ -2409,6 +2667,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "info_guid",
+        target_name: "info_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 42,
@@ -2418,6 +2677,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "owner_guid",
+        target_name: "owner_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 42,
@@ -2427,6 +2687,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "current_hp",
+        target_name: "current_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 42,
@@ -2436,6 +2697,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "max_hp",
+        target_name: "max_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 42,
@@ -2445,6 +2707,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 16,
         name: "attack_power",
+        target_name: "attack_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2454,6 +2717,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 17,
         name: "spell_power",
+        target_name: "spell_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2463,6 +2727,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 18,
         name: "armor",
+        target_name: "armor",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2472,6 +2737,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 19,
         name: "absorb",
+        target_name: "absorb",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2481,6 +2747,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 20,
         name: "unknown_1",
+        target_name: "unknown_1",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2490,6 +2757,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 21,
         name: "unknown_2",
+        target_name: "unknown_2",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2499,6 +2767,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 22,
         name: "power_type",
+        target_name: "power_type",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2508,6 +2777,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 23,
         name: "current_power",
+        target_name: "current_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2517,6 +2787,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 24,
         name: "max_power",
+        target_name: "max_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2526,6 +2797,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 25,
         name: "power_cost",
+        target_name: "power_cost",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2535,6 +2807,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 26,
         name: "position_x",
+        target_name: "position_x",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 42,
@@ -2544,6 +2817,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 27,
         name: "position_y",
+        target_name: "position_y",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 42,
@@ -2553,6 +2827,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 28,
         name: "ui_map_id",
+        target_name: "ui_map_id",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2562,6 +2837,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 29,
         name: "facing",
+        target_name: "facing",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 42,
@@ -2571,6 +2847,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 30,
         name: "item_level",
+        target_name: "item_level",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2580,6 +2857,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 31,
         name: "base_amount",
+        target_name: "base_amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -2589,6 +2867,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 32,
         name: "raw_amount",
+        target_name: "raw_amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -2598,6 +2877,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 33,
         name: "overkill",
+        target_name: "overkill",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -2607,6 +2887,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 34,
         name: "school",
+        target_name: "school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 42,
@@ -2616,6 +2897,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 35,
         name: "resisted",
+        target_name: "resisted",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -2625,6 +2907,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 36,
         name: "blocked",
+        target_name: "blocked",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -2634,6 +2917,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 37,
         name: "absorbed",
+        target_name: "absorbed",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -2643,6 +2927,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 38,
         name: "critical",
+        target_name: "critical",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 42,
@@ -2652,6 +2937,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 39,
         name: "glancing",
+        target_name: "glancing",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 42,
@@ -2661,6 +2947,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 40,
         name: "crushing",
+        target_name: "crushing",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 42,
@@ -2670,6 +2957,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 41,
         name: "support_player_guid",
+        target_name: "support_player_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 42,
@@ -2679,6 +2967,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 42,
@@ -2688,6 +2977,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 42,
@@ -2697,6 +2987,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -2706,6 +2997,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -2715,6 +3007,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 42,
@@ -2724,6 +3017,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 42,
@@ -2733,6 +3027,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -2742,6 +3037,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -2751,6 +3047,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -2760,6 +3057,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 42,
@@ -2769,6 +3067,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 42,
@@ -2778,6 +3077,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "info_guid",
+        target_name: "info_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 42,
@@ -2787,6 +3087,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "owner_guid",
+        target_name: "owner_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 42,
@@ -2796,6 +3097,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "current_hp",
+        target_name: "current_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 42,
@@ -2805,6 +3107,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "max_hp",
+        target_name: "max_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 42,
@@ -2814,6 +3117,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 16,
         name: "attack_power",
+        target_name: "attack_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2823,6 +3127,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 17,
         name: "spell_power",
+        target_name: "spell_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2832,6 +3137,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 18,
         name: "armor",
+        target_name: "armor",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2841,6 +3147,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 19,
         name: "absorb",
+        target_name: "absorb",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2850,6 +3157,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 20,
         name: "unknown_1",
+        target_name: "unknown_1",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2859,6 +3167,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 21,
         name: "unknown_2",
+        target_name: "unknown_2",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2868,6 +3177,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 22,
         name: "power_type",
+        target_name: "power_type",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2877,6 +3187,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 23,
         name: "current_power",
+        target_name: "current_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2886,6 +3197,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 24,
         name: "max_power",
+        target_name: "max_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2895,6 +3207,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 25,
         name: "power_cost",
+        target_name: "power_cost",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2904,6 +3217,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 26,
         name: "position_x",
+        target_name: "position_x",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 42,
@@ -2913,6 +3227,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 27,
         name: "position_y",
+        target_name: "position_y",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 42,
@@ -2922,6 +3237,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 28,
         name: "ui_map_id",
+        target_name: "ui_map_id",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2931,6 +3247,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 29,
         name: "facing",
+        target_name: "facing",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 42,
@@ -2940,6 +3257,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 30,
         name: "item_level",
+        target_name: "item_level",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -2949,6 +3267,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 31,
         name: "base_amount",
+        target_name: "base_amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -2958,6 +3277,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 32,
         name: "raw_amount",
+        target_name: "raw_amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -2967,6 +3287,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 33,
         name: "overkill",
+        target_name: "overkill",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -2976,6 +3297,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 34,
         name: "school",
+        target_name: "school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 42,
@@ -2985,6 +3307,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 35,
         name: "resisted",
+        target_name: "resisted",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -2994,6 +3317,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 36,
         name: "blocked",
+        target_name: "blocked",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -3003,6 +3327,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 37,
         name: "absorbed",
+        target_name: "absorbed",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -3012,6 +3337,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 38,
         name: "critical",
+        target_name: "critical",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 42,
@@ -3021,6 +3347,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 39,
         name: "glancing",
+        target_name: "glancing",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 42,
@@ -3030,6 +3357,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 40,
         name: "crushing",
+        target_name: "crushing",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 42,
@@ -3039,6 +3367,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 41,
         name: "support_player_guid",
+        target_name: "support_player_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 42,
@@ -3048,6 +3377,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 42,
@@ -3057,6 +3387,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 42,
@@ -3066,6 +3397,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -3075,6 +3407,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -3084,6 +3417,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 42,
@@ -3093,6 +3427,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 42,
@@ -3102,6 +3437,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -3111,6 +3447,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 42,
@@ -3120,6 +3457,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -3129,6 +3467,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 42,
@@ -3138,6 +3477,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 42,
@@ -3147,6 +3487,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "info_guid",
+        target_name: "info_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 42,
@@ -3156,6 +3497,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "owner_guid",
+        target_name: "owner_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 42,
@@ -3165,6 +3507,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "current_hp",
+        target_name: "current_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 42,
@@ -3174,6 +3517,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "max_hp",
+        target_name: "max_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 42,
@@ -3183,6 +3527,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 16,
         name: "attack_power",
+        target_name: "attack_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -3192,6 +3537,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 17,
         name: "spell_power",
+        target_name: "spell_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -3201,6 +3547,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 18,
         name: "armor",
+        target_name: "armor",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -3210,6 +3557,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 19,
         name: "absorb",
+        target_name: "absorb",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -3219,6 +3567,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 20,
         name: "unknown_1",
+        target_name: "unknown_1",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -3228,6 +3577,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 21,
         name: "unknown_2",
+        target_name: "unknown_2",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -3237,6 +3587,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 22,
         name: "power_type",
+        target_name: "power_type",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -3246,6 +3597,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 23,
         name: "current_power",
+        target_name: "current_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -3255,6 +3607,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 24,
         name: "max_power",
+        target_name: "max_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -3264,6 +3617,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 25,
         name: "power_cost",
+        target_name: "power_cost",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -3273,6 +3627,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 26,
         name: "position_x",
+        target_name: "position_x",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 42,
@@ -3282,6 +3637,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 27,
         name: "position_y",
+        target_name: "position_y",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 42,
@@ -3291,6 +3647,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 28,
         name: "ui_map_id",
+        target_name: "ui_map_id",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -3300,6 +3657,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 29,
         name: "facing",
+        target_name: "facing",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 42,
@@ -3309,6 +3667,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 30,
         name: "item_level",
+        target_name: "item_level",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 42,
@@ -3318,6 +3677,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 31,
         name: "base_amount",
+        target_name: "base_amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -3327,6 +3687,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 32,
         name: "raw_amount",
+        target_name: "raw_amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -3336,6 +3697,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 33,
         name: "overkill",
+        target_name: "overkill",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -3345,6 +3707,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 34,
         name: "school",
+        target_name: "school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 42,
@@ -3354,6 +3717,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 35,
         name: "resisted",
+        target_name: "resisted",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -3363,6 +3727,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 36,
         name: "blocked",
+        target_name: "blocked",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -3372,6 +3737,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 37,
         name: "absorbed",
+        target_name: "absorbed",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 42,
@@ -3381,6 +3747,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 38,
         name: "critical",
+        target_name: "critical",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 42,
@@ -3390,6 +3757,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 39,
         name: "glancing",
+        target_name: "glancing",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 42,
@@ -3399,6 +3767,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 40,
         name: "crushing",
+        target_name: "crushing",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 42,
@@ -3408,6 +3777,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 41,
         name: "support_player_guid",
+        target_name: "support_player_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 42,
@@ -3417,6 +3787,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 38,
@@ -3426,6 +3797,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 38,
@@ -3435,6 +3807,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 38,
@@ -3444,6 +3817,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 38,
@@ -3453,6 +3827,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 38,
@@ -3462,6 +3837,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 38,
@@ -3471,6 +3847,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 38,
@@ -3480,6 +3857,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 38,
@@ -3489,6 +3867,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "info_guid",
+        target_name: "info_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 38,
@@ -3498,6 +3877,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "owner_guid",
+        target_name: "owner_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 38,
@@ -3507,6 +3887,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "current_hp",
+        target_name: "current_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 38,
@@ -3516,6 +3897,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "max_hp",
+        target_name: "max_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 38,
@@ -3525,6 +3907,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "attack_power",
+        target_name: "attack_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 38,
@@ -3534,6 +3917,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "spell_power",
+        target_name: "spell_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 38,
@@ -3543,6 +3927,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "armor",
+        target_name: "armor",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 38,
@@ -3552,6 +3937,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 16,
         name: "absorb",
+        target_name: "absorb",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 38,
@@ -3561,6 +3947,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 17,
         name: "unknown_1",
+        target_name: "unknown_1",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 38,
@@ -3570,6 +3957,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 18,
         name: "unknown_2",
+        target_name: "unknown_2",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 38,
@@ -3579,6 +3967,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 19,
         name: "power_type",
+        target_name: "power_type",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 38,
@@ -3588,6 +3977,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 20,
         name: "current_power",
+        target_name: "current_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 38,
@@ -3597,6 +3987,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 21,
         name: "max_power",
+        target_name: "max_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 38,
@@ -3606,6 +3997,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 22,
         name: "power_cost",
+        target_name: "power_cost",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 38,
@@ -3615,6 +4007,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 23,
         name: "position_x",
+        target_name: "position_x",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 38,
@@ -3624,6 +4017,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 24,
         name: "position_y",
+        target_name: "position_y",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 38,
@@ -3633,6 +4027,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 25,
         name: "ui_map_id",
+        target_name: "ui_map_id",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 38,
@@ -3642,6 +4037,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 26,
         name: "facing",
+        target_name: "facing",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 38,
@@ -3651,6 +4047,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 27,
         name: "item_level",
+        target_name: "item_level",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 38,
@@ -3660,6 +4057,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 28,
         name: "base_amount",
+        target_name: "base_amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 38,
@@ -3669,6 +4067,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 29,
         name: "raw_amount",
+        target_name: "raw_amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 38,
@@ -3678,6 +4077,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 30,
         name: "overkill",
+        target_name: "overkill",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 38,
@@ -3687,6 +4087,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 31,
         name: "school",
+        target_name: "school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 38,
@@ -3696,6 +4097,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 32,
         name: "resisted",
+        target_name: "resisted",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 38,
@@ -3705,6 +4107,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 33,
         name: "blocked",
+        target_name: "blocked",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 38,
@@ -3714,6 +4117,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 34,
         name: "absorbed",
+        target_name: "absorbed",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 38,
@@ -3723,6 +4127,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 35,
         name: "critical",
+        target_name: "critical",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 38,
@@ -3732,6 +4137,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 36,
         name: "glancing",
+        target_name: "glancing",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 38,
@@ -3741,6 +4147,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 37,
         name: "crushing",
+        target_name: "crushing",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 38,
@@ -3750,6 +4157,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 38,
         name: "is_off_hand",
+        target_name: "is_off_hand",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 38,
@@ -3759,6 +4167,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 38,
@@ -3768,6 +4177,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 38,
@@ -3777,6 +4187,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 38,
@@ -3786,6 +4197,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 38,
@@ -3795,6 +4207,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 38,
@@ -3804,6 +4217,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 38,
@@ -3813,6 +4227,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 38,
@@ -3822,6 +4237,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 38,
@@ -3831,6 +4247,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "info_guid",
+        target_name: "info_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 38,
@@ -3840,6 +4257,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "owner_guid",
+        target_name: "owner_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 38,
@@ -3849,6 +4267,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "current_hp",
+        target_name: "current_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 38,
@@ -3858,6 +4277,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "max_hp",
+        target_name: "max_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 38,
@@ -3867,6 +4287,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "attack_power",
+        target_name: "attack_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 38,
@@ -3876,6 +4297,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "spell_power",
+        target_name: "spell_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 38,
@@ -3885,6 +4307,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "armor",
+        target_name: "armor",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 38,
@@ -3894,6 +4317,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 16,
         name: "absorb",
+        target_name: "absorb",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 38,
@@ -3903,6 +4327,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 17,
         name: "unknown_1",
+        target_name: "unknown_1",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 38,
@@ -3912,6 +4337,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 18,
         name: "unknown_2",
+        target_name: "unknown_2",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 38,
@@ -3921,6 +4347,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 19,
         name: "power_type",
+        target_name: "power_type",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 38,
@@ -3930,6 +4357,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 20,
         name: "current_power",
+        target_name: "current_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 38,
@@ -3939,6 +4367,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 21,
         name: "max_power",
+        target_name: "max_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 38,
@@ -3948,6 +4377,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 22,
         name: "power_cost",
+        target_name: "power_cost",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 38,
@@ -3957,6 +4387,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 23,
         name: "position_x",
+        target_name: "position_x",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 38,
@@ -3966,6 +4397,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 24,
         name: "position_y",
+        target_name: "position_y",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 38,
@@ -3975,6 +4407,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 25,
         name: "ui_map_id",
+        target_name: "ui_map_id",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 38,
@@ -3984,6 +4417,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 26,
         name: "facing",
+        target_name: "facing",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 38,
@@ -3993,6 +4427,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 27,
         name: "item_level",
+        target_name: "item_level",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 38,
@@ -4002,6 +4437,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 28,
         name: "base_amount",
+        target_name: "base_amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 38,
@@ -4011,6 +4447,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 29,
         name: "raw_amount",
+        target_name: "raw_amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 38,
@@ -4020,6 +4457,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 30,
         name: "overkill",
+        target_name: "overkill",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 38,
@@ -4029,6 +4467,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 31,
         name: "school",
+        target_name: "school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 38,
@@ -4038,6 +4477,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 32,
         name: "resisted",
+        target_name: "resisted",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 38,
@@ -4047,6 +4487,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 33,
         name: "blocked",
+        target_name: "blocked",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 38,
@@ -4056,6 +4497,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 34,
         name: "absorbed",
+        target_name: "absorbed",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 38,
@@ -4065,6 +4507,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 35,
         name: "critical",
+        target_name: "critical",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 38,
@@ -4074,6 +4517,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 36,
         name: "glancing",
+        target_name: "glancing",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 38,
@@ -4083,6 +4527,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 37,
         name: "crushing",
+        target_name: "crushing",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 38,
@@ -4092,6 +4537,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 38,
         name: "is_off_hand",
+        target_name: "is_off_hand",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 38,
@@ -4101,6 +4547,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 39,
@@ -4110,6 +4557,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 39,
@@ -4119,6 +4567,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 39,
@@ -4128,6 +4577,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 39,
@@ -4137,6 +4587,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 39,
@@ -4146,6 +4597,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 39,
@@ -4155,6 +4607,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 39,
@@ -4164,6 +4617,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 39,
@@ -4173,6 +4627,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "info_guid",
+        target_name: "info_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 39,
@@ -4182,6 +4637,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "owner_guid",
+        target_name: "owner_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 39,
@@ -4191,6 +4647,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "current_hp",
+        target_name: "current_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 39,
@@ -4200,6 +4657,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "max_hp",
+        target_name: "max_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 39,
@@ -4209,6 +4667,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "attack_power",
+        target_name: "attack_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 39,
@@ -4218,6 +4677,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "spell_power",
+        target_name: "spell_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 39,
@@ -4227,6 +4687,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "armor",
+        target_name: "armor",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 39,
@@ -4236,6 +4697,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 16,
         name: "absorb",
+        target_name: "absorb",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 39,
@@ -4245,6 +4707,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 17,
         name: "unknown_1",
+        target_name: "unknown_1",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 39,
@@ -4254,6 +4717,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 18,
         name: "unknown_2",
+        target_name: "unknown_2",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 39,
@@ -4263,6 +4727,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 19,
         name: "power_type",
+        target_name: "power_type",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 39,
@@ -4272,6 +4737,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 20,
         name: "current_power",
+        target_name: "current_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 39,
@@ -4281,6 +4747,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 21,
         name: "max_power",
+        target_name: "max_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 39,
@@ -4290,6 +4757,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 22,
         name: "power_cost",
+        target_name: "power_cost",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 39,
@@ -4299,6 +4767,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 23,
         name: "position_x",
+        target_name: "position_x",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 39,
@@ -4308,6 +4777,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 24,
         name: "position_y",
+        target_name: "position_y",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 39,
@@ -4317,6 +4787,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 25,
         name: "ui_map_id",
+        target_name: "ui_map_id",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 39,
@@ -4326,6 +4797,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 26,
         name: "facing",
+        target_name: "facing",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 39,
@@ -4335,6 +4807,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 27,
         name: "item_level",
+        target_name: "item_level",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 39,
@@ -4344,6 +4817,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 28,
         name: "environmental_type",
+        target_name: "environmental_type",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 39,
@@ -4353,6 +4827,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 29,
         name: "base_amount",
+        target_name: "base_amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 39,
@@ -4362,6 +4837,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 30,
         name: "raw_amount",
+        target_name: "raw_amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 39,
@@ -4371,6 +4847,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 31,
         name: "overkill",
+        target_name: "overkill",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 39,
@@ -4380,6 +4857,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 32,
         name: "school",
+        target_name: "school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 39,
@@ -4389,6 +4867,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 33,
         name: "resisted",
+        target_name: "resisted",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 39,
@@ -4398,6 +4877,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 34,
         name: "blocked",
+        target_name: "blocked",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 39,
@@ -4407,6 +4887,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 35,
         name: "absorbed",
+        target_name: "absorbed",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 39,
@@ -4416,6 +4897,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 36,
         name: "critical",
+        target_name: "critical",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 39,
@@ -4425,6 +4907,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 37,
         name: "glancing",
+        target_name: "glancing",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 39,
@@ -4434,6 +4917,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 38,
         name: "crushing",
+        target_name: "crushing",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 39,
@@ -4443,6 +4927,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 36,
@@ -4452,6 +4937,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 36,
@@ -4461,6 +4947,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 36,
@@ -4470,6 +4957,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 36,
@@ -4479,6 +4967,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 36,
@@ -4488,6 +4977,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 36,
@@ -4497,6 +4987,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 36,
@@ -4506,6 +4997,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 36,
@@ -4515,6 +5007,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 36,
@@ -4524,6 +5017,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 36,
@@ -4533,6 +5027,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 36,
@@ -4542,6 +5037,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "info_guid",
+        target_name: "info_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 36,
@@ -4551,6 +5047,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "owner_guid",
+        target_name: "owner_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 36,
@@ -4560,6 +5057,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "current_hp",
+        target_name: "current_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 36,
@@ -4569,6 +5067,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "max_hp",
+        target_name: "max_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 36,
@@ -4578,6 +5077,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 16,
         name: "attack_power",
+        target_name: "attack_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 36,
@@ -4587,6 +5087,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 17,
         name: "spell_power",
+        target_name: "spell_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 36,
@@ -4596,6 +5097,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 18,
         name: "armor",
+        target_name: "armor",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 36,
@@ -4605,6 +5107,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 19,
         name: "absorb",
+        target_name: "absorb",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 36,
@@ -4614,6 +5117,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 20,
         name: "unknown_1",
+        target_name: "unknown_1",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 36,
@@ -4623,6 +5127,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 21,
         name: "unknown_2",
+        target_name: "unknown_2",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 36,
@@ -4632,6 +5137,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 22,
         name: "power_type",
+        target_name: "power_type",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 36,
@@ -4641,6 +5147,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 23,
         name: "current_power",
+        target_name: "current_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 36,
@@ -4650,6 +5157,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 24,
         name: "max_power",
+        target_name: "max_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 36,
@@ -4659,6 +5167,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 25,
         name: "power_cost",
+        target_name: "power_cost",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 36,
@@ -4668,6 +5177,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 26,
         name: "position_x",
+        target_name: "position_x",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 36,
@@ -4677,6 +5187,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 27,
         name: "position_y",
+        target_name: "position_y",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 36,
@@ -4686,6 +5197,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 28,
         name: "ui_map_id",
+        target_name: "ui_map_id",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 36,
@@ -4695,6 +5207,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 29,
         name: "facing",
+        target_name: "facing",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 36,
@@ -4704,6 +5217,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 30,
         name: "item_level",
+        target_name: "item_level",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 36,
@@ -4713,6 +5227,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 31,
         name: "healed_to_hp",
+        target_name: "healed_to_hp",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 36,
@@ -4722,6 +5237,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 32,
         name: "amount",
+        target_name: "amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 36,
@@ -4731,6 +5247,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 33,
         name: "overheal",
+        target_name: "overheal",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 36,
@@ -4740,6 +5257,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 34,
         name: "absorbed_to_shield",
+        target_name: "absorbed_to_shield",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 36,
@@ -4749,6 +5267,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 35,
         name: "critical",
+        target_name: "critical",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 36,
@@ -4758,6 +5277,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 36,
@@ -4767,6 +5287,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 36,
@@ -4776,6 +5297,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 36,
@@ -4785,6 +5307,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 36,
@@ -4794,6 +5317,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 36,
@@ -4803,6 +5327,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 36,
@@ -4812,6 +5337,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 36,
@@ -4821,6 +5347,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 36,
@@ -4830,6 +5357,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 36,
@@ -4839,6 +5367,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 36,
@@ -4848,6 +5377,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 36,
@@ -4857,6 +5387,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "info_guid",
+        target_name: "info_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 36,
@@ -4866,6 +5397,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "owner_guid",
+        target_name: "owner_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 36,
@@ -4875,6 +5407,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "current_hp",
+        target_name: "current_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 36,
@@ -4884,6 +5417,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "max_hp",
+        target_name: "max_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 36,
@@ -4893,6 +5427,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 16,
         name: "attack_power",
+        target_name: "attack_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 36,
@@ -4902,6 +5437,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 17,
         name: "spell_power",
+        target_name: "spell_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 36,
@@ -4911,6 +5447,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 18,
         name: "armor",
+        target_name: "armor",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 36,
@@ -4920,6 +5457,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 19,
         name: "absorb",
+        target_name: "absorb",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 36,
@@ -4929,6 +5467,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 20,
         name: "unknown_1",
+        target_name: "unknown_1",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 36,
@@ -4938,6 +5477,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 21,
         name: "unknown_2",
+        target_name: "unknown_2",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 36,
@@ -4947,6 +5487,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 22,
         name: "power_type",
+        target_name: "power_type",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 36,
@@ -4956,6 +5497,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 23,
         name: "current_power",
+        target_name: "current_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 36,
@@ -4965,6 +5507,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 24,
         name: "max_power",
+        target_name: "max_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 36,
@@ -4974,6 +5517,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 25,
         name: "power_cost",
+        target_name: "power_cost",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 36,
@@ -4983,6 +5527,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 26,
         name: "position_x",
+        target_name: "position_x",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 36,
@@ -4992,6 +5537,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 27,
         name: "position_y",
+        target_name: "position_y",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 36,
@@ -5001,6 +5547,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 28,
         name: "ui_map_id",
+        target_name: "ui_map_id",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 36,
@@ -5010,6 +5557,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 29,
         name: "facing",
+        target_name: "facing",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 36,
@@ -5019,6 +5567,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 30,
         name: "item_level",
+        target_name: "item_level",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 36,
@@ -5028,6 +5577,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 31,
         name: "healed_to_hp",
+        target_name: "healed_to_hp",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 36,
@@ -5037,6 +5587,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 32,
         name: "amount",
+        target_name: "amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 36,
@@ -5046,6 +5597,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 33,
         name: "overheal",
+        target_name: "overheal",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 36,
@@ -5055,6 +5607,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 34,
         name: "absorbed_to_shield",
+        target_name: "absorbed_to_shield",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 36,
@@ -5064,6 +5617,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 35,
         name: "critical",
+        target_name: "critical",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 36,
@@ -5073,6 +5627,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 37,
@@ -5082,6 +5637,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 37,
@@ -5091,6 +5647,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 37,
@@ -5100,6 +5657,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 37,
@@ -5109,6 +5667,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 37,
@@ -5118,6 +5677,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 37,
@@ -5127,6 +5687,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 37,
@@ -5136,6 +5697,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 37,
@@ -5145,6 +5707,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 37,
@@ -5154,6 +5717,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 37,
@@ -5163,6 +5727,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 37,
@@ -5172,6 +5737,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "info_guid",
+        target_name: "info_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 37,
@@ -5181,6 +5747,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "owner_guid",
+        target_name: "owner_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 37,
@@ -5190,6 +5757,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "current_hp",
+        target_name: "current_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 37,
@@ -5199,6 +5767,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "max_hp",
+        target_name: "max_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 37,
@@ -5208,6 +5777,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 16,
         name: "attack_power",
+        target_name: "attack_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 37,
@@ -5217,6 +5787,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 17,
         name: "spell_power",
+        target_name: "spell_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 37,
@@ -5226,6 +5797,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 18,
         name: "armor",
+        target_name: "armor",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 37,
@@ -5235,6 +5807,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 19,
         name: "absorb",
+        target_name: "absorb",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 37,
@@ -5244,6 +5817,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 20,
         name: "unknown_1",
+        target_name: "unknown_1",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 37,
@@ -5253,6 +5827,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 21,
         name: "unknown_2",
+        target_name: "unknown_2",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 37,
@@ -5262,6 +5837,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 22,
         name: "power_type",
+        target_name: "power_type",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 37,
@@ -5271,6 +5847,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 23,
         name: "current_power",
+        target_name: "current_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 37,
@@ -5280,6 +5857,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 24,
         name: "max_power",
+        target_name: "max_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 37,
@@ -5289,6 +5867,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 25,
         name: "power_cost",
+        target_name: "power_cost",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 37,
@@ -5298,6 +5877,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 26,
         name: "position_x",
+        target_name: "position_x",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 37,
@@ -5307,6 +5887,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 27,
         name: "position_y",
+        target_name: "position_y",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 37,
@@ -5316,6 +5897,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 28,
         name: "ui_map_id",
+        target_name: "ui_map_id",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 37,
@@ -5325,6 +5907,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 29,
         name: "facing",
+        target_name: "facing",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 37,
@@ -5334,6 +5917,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 30,
         name: "item_level",
+        target_name: "item_level",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 37,
@@ -5343,6 +5927,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 31,
         name: "healed_to_hp",
+        target_name: "healed_to_hp",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 37,
@@ -5352,6 +5937,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 32,
         name: "amount",
+        target_name: "amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 37,
@@ -5361,6 +5947,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 33,
         name: "overheal",
+        target_name: "overheal",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 37,
@@ -5370,6 +5957,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 34,
         name: "absorbed_to_shield",
+        target_name: "absorbed_to_shield",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 37,
@@ -5379,6 +5967,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 35,
         name: "critical",
+        target_name: "critical",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 37,
@@ -5388,6 +5977,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 36,
         name: "support_player_guid",
+        target_name: "support_player_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 37,
@@ -5397,6 +5987,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 37,
@@ -5406,6 +5997,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 37,
@@ -5415,6 +6007,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 37,
@@ -5424,6 +6017,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 37,
@@ -5433,6 +6027,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 37,
@@ -5442,6 +6037,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 37,
@@ -5451,6 +6047,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 37,
@@ -5460,6 +6057,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 37,
@@ -5469,6 +6067,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 37,
@@ -5478,6 +6077,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 37,
@@ -5487,6 +6087,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 37,
@@ -5496,6 +6097,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "info_guid",
+        target_name: "info_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 37,
@@ -5505,6 +6107,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "owner_guid",
+        target_name: "owner_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 37,
@@ -5514,6 +6117,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "current_hp",
+        target_name: "current_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 37,
@@ -5523,6 +6127,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "max_hp",
+        target_name: "max_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 37,
@@ -5532,6 +6137,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 16,
         name: "attack_power",
+        target_name: "attack_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 37,
@@ -5541,6 +6147,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 17,
         name: "spell_power",
+        target_name: "spell_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 37,
@@ -5550,6 +6157,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 18,
         name: "armor",
+        target_name: "armor",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 37,
@@ -5559,6 +6167,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 19,
         name: "absorb",
+        target_name: "absorb",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 37,
@@ -5568,6 +6177,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 20,
         name: "unknown_1",
+        target_name: "unknown_1",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 37,
@@ -5577,6 +6187,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 21,
         name: "unknown_2",
+        target_name: "unknown_2",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 37,
@@ -5586,6 +6197,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 22,
         name: "power_type",
+        target_name: "power_type",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 37,
@@ -5595,6 +6207,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 23,
         name: "current_power",
+        target_name: "current_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 37,
@@ -5604,6 +6217,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 24,
         name: "max_power",
+        target_name: "max_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 37,
@@ -5613,6 +6227,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 25,
         name: "power_cost",
+        target_name: "power_cost",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 37,
@@ -5622,6 +6237,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 26,
         name: "position_x",
+        target_name: "position_x",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 37,
@@ -5631,6 +6247,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 27,
         name: "position_y",
+        target_name: "position_y",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 37,
@@ -5640,6 +6257,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 28,
         name: "ui_map_id",
+        target_name: "ui_map_id",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 37,
@@ -5649,6 +6267,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 29,
         name: "facing",
+        target_name: "facing",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 37,
@@ -5658,6 +6277,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 30,
         name: "item_level",
+        target_name: "item_level",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 37,
@@ -5667,6 +6287,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 31,
         name: "healed_to_hp",
+        target_name: "healed_to_hp",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 37,
@@ -5676,6 +6297,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 32,
         name: "amount",
+        target_name: "amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 37,
@@ -5685,6 +6307,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 33,
         name: "overheal",
+        target_name: "overheal",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 37,
@@ -5694,6 +6317,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 34,
         name: "absorbed_to_shield",
+        target_name: "absorbed_to_shield",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 37,
@@ -5703,6 +6327,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 35,
         name: "critical",
+        target_name: "critical",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 37,
@@ -5712,6 +6337,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 36,
         name: "support_player_guid",
+        target_name: "support_player_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 37,
@@ -5721,6 +6347,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "attacker_guid",
+        target_name: "attacker_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -5730,6 +6357,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "attacker_name",
+        target_name: "attacker_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -5739,6 +6367,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "attacker_flags",
+        target_name: "attacker_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -5748,6 +6377,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "attacker_raid_flags",
+        target_name: "attacker_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -5757,6 +6387,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "defender_guid",
+        target_name: "defender_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -5766,6 +6397,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "defender_name",
+        target_name: "defender_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -5775,6 +6407,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "defender_flags",
+        target_name: "defender_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -5784,6 +6417,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "defender_raid_flags",
+        target_name: "defender_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -5793,6 +6427,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "damage_spell_id",
+        target_name: "damage_spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -5802,6 +6437,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "damage_spell_name",
+        target_name: "damage_spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -5811,6 +6447,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "damage_spell_school",
+        target_name: "damage_spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -5820,6 +6457,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "absorber_guid",
+        target_name: "absorber_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -5829,6 +6467,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "absorber_name",
+        target_name: "absorber_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -5838,6 +6477,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "absorber_flags",
+        target_name: "absorber_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -5847,6 +6487,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "absorber_raid_flags",
+        target_name: "absorber_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -5856,6 +6497,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 16,
         name: "shield_spell_id",
+        target_name: "shield_spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -5865,6 +6507,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 17,
         name: "shield_spell_name",
+        target_name: "shield_spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -5874,6 +6517,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 18,
         name: "shield_spell_school",
+        target_name: "shield_spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -5883,6 +6527,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 19,
         name: "amount",
+        target_name: "amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -5892,6 +6537,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 20,
         name: "total_amount",
+        target_name: "total_amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -5901,6 +6547,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 21,
         name: "critical",
+        target_name: "critical",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 0,
@@ -5910,6 +6557,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "attacker_guid",
+        target_name: "attacker_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -5919,6 +6567,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "attacker_name",
+        target_name: "attacker_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -5928,6 +6577,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "attacker_flags",
+        target_name: "attacker_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -5937,6 +6587,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "attacker_raid_flags",
+        target_name: "attacker_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -5946,6 +6597,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "defender_guid",
+        target_name: "defender_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -5955,6 +6607,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "defender_name",
+        target_name: "defender_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -5964,6 +6617,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "defender_flags",
+        target_name: "defender_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -5973,6 +6627,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "defender_raid_flags",
+        target_name: "defender_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -5982,6 +6637,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "absorber_guid",
+        target_name: "absorber_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -5991,6 +6647,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "absorber_name",
+        target_name: "absorber_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -6000,6 +6657,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "absorber_flags",
+        target_name: "absorber_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6009,6 +6667,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "absorber_raid_flags",
+        target_name: "absorber_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6018,6 +6677,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "shield_spell_id",
+        target_name: "shield_spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -6027,6 +6687,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "shield_spell_name",
+        target_name: "shield_spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -6036,6 +6697,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "shield_spell_school",
+        target_name: "shield_spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -6045,6 +6707,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 16,
         name: "amount",
+        target_name: "amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -6054,6 +6717,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 17,
         name: "total_amount",
+        target_name: "total_amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -6063,6 +6727,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 18,
         name: "critical",
+        target_name: "critical",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 0,
@@ -6072,6 +6737,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "attacker_guid",
+        target_name: "attacker_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -6081,6 +6747,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "attacker_name",
+        target_name: "attacker_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -6090,6 +6757,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "attacker_flags",
+        target_name: "attacker_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6099,6 +6767,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "attacker_raid_flags",
+        target_name: "attacker_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6108,6 +6777,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "defender_guid",
+        target_name: "defender_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -6117,6 +6787,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "defender_name",
+        target_name: "defender_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -6126,6 +6797,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "defender_flags",
+        target_name: "defender_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6135,6 +6807,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "defender_raid_flags",
+        target_name: "defender_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6144,6 +6817,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "damage_spell_id",
+        target_name: "damage_spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -6153,6 +6827,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "damage_spell_name",
+        target_name: "damage_spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -6162,6 +6837,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "damage_spell_school",
+        target_name: "damage_spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -6171,6 +6847,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "absorber_guid",
+        target_name: "absorber_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -6180,6 +6857,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "absorber_name",
+        target_name: "absorber_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -6189,6 +6867,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "absorber_flags",
+        target_name: "absorber_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6198,6 +6877,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "absorber_raid_flags",
+        target_name: "absorber_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6207,6 +6887,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 16,
         name: "shield_spell_id",
+        target_name: "shield_spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -6216,6 +6897,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 17,
         name: "shield_spell_name",
+        target_name: "shield_spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -6225,6 +6907,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 18,
         name: "shield_spell_school",
+        target_name: "shield_spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -6234,6 +6917,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 19,
         name: "amount",
+        target_name: "amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -6243,6 +6927,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 20,
         name: "total_amount",
+        target_name: "total_amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -6252,6 +6937,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 21,
         name: "critical",
+        target_name: "critical",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 0,
@@ -6261,6 +6947,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 22,
         name: "support_player_guid",
+        target_name: "support_player_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -6270,6 +6957,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "attacker_guid",
+        target_name: "attacker_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -6279,6 +6967,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "attacker_name",
+        target_name: "attacker_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -6288,6 +6977,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "attacker_flags",
+        target_name: "attacker_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6297,6 +6987,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "attacker_raid_flags",
+        target_name: "attacker_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6306,6 +6997,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "defender_guid",
+        target_name: "defender_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -6315,6 +7007,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "defender_name",
+        target_name: "defender_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -6324,6 +7017,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "defender_flags",
+        target_name: "defender_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6333,6 +7027,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "defender_raid_flags",
+        target_name: "defender_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6342,6 +7037,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "absorber_guid",
+        target_name: "absorber_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -6351,6 +7047,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "absorber_name",
+        target_name: "absorber_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -6360,6 +7057,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "absorber_flags",
+        target_name: "absorber_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6369,6 +7067,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "absorber_raid_flags",
+        target_name: "absorber_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6378,6 +7077,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "shield_spell_id",
+        target_name: "shield_spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -6387,6 +7087,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "shield_spell_name",
+        target_name: "shield_spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -6396,6 +7097,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "shield_spell_school",
+        target_name: "shield_spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -6405,6 +7107,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 16,
         name: "amount",
+        target_name: "amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -6414,6 +7117,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 17,
         name: "total_amount",
+        target_name: "total_amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -6423,6 +7127,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 18,
         name: "critical",
+        target_name: "critical",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 0,
@@ -6432,6 +7137,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 19,
         name: "support_player_guid",
+        target_name: "support_player_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -6441,6 +7147,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "attacker_guid",
+        target_name: "attacker_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -6450,6 +7157,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "attacker_name",
+        target_name: "attacker_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -6459,6 +7167,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "attacker_flags",
+        target_name: "attacker_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6468,6 +7177,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "attacker_raid_flags",
+        target_name: "attacker_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6477,6 +7187,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "defender_guid",
+        target_name: "defender_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -6486,6 +7197,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "defender_name",
+        target_name: "defender_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -6495,6 +7207,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "defender_flags",
+        target_name: "defender_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6504,6 +7217,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "defender_raid_flags",
+        target_name: "defender_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6513,6 +7227,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "damage_spell_id",
+        target_name: "damage_spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -6522,6 +7237,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "damage_spell_name",
+        target_name: "damage_spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -6531,6 +7247,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "damage_spell_school",
+        target_name: "damage_spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -6540,6 +7257,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "absorber_guid",
+        target_name: "absorber_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -6549,6 +7267,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "absorber_name",
+        target_name: "absorber_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -6558,6 +7277,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "absorber_flags",
+        target_name: "absorber_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6567,6 +7287,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "absorber_raid_flags",
+        target_name: "absorber_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6576,6 +7297,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 16,
         name: "shield_spell_id",
+        target_name: "shield_spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -6585,6 +7307,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 17,
         name: "shield_spell_name",
+        target_name: "shield_spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -6594,6 +7317,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 18,
         name: "shield_spell_school",
+        target_name: "shield_spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -6603,6 +7327,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 19,
         name: "amount",
+        target_name: "amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -6612,6 +7337,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 20,
         name: "total_amount",
+        target_name: "total_amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -6621,6 +7347,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 21,
         name: "critical",
+        target_name: "critical",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 0,
@@ -6630,6 +7357,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "attacker_guid",
+        target_name: "attacker_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -6639,6 +7367,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "attacker_name",
+        target_name: "attacker_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -6648,6 +7377,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "attacker_flags",
+        target_name: "attacker_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6657,6 +7387,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "attacker_raid_flags",
+        target_name: "attacker_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6666,6 +7397,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "defender_guid",
+        target_name: "defender_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -6675,6 +7407,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "defender_name",
+        target_name: "defender_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -6684,6 +7417,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "defender_flags",
+        target_name: "defender_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6693,6 +7427,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "defender_raid_flags",
+        target_name: "defender_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6702,6 +7437,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "absorber_guid",
+        target_name: "absorber_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -6711,6 +7447,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "absorber_name",
+        target_name: "absorber_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -6720,6 +7457,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "absorber_flags",
+        target_name: "absorber_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6729,6 +7467,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "absorber_raid_flags",
+        target_name: "absorber_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6738,6 +7477,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "shield_spell_id",
+        target_name: "shield_spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -6747,6 +7487,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "shield_spell_name",
+        target_name: "shield_spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -6756,6 +7497,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "shield_spell_school",
+        target_name: "shield_spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -6765,6 +7507,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 16,
         name: "amount",
+        target_name: "amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -6774,6 +7517,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 17,
         name: "total_amount",
+        target_name: "total_amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -6783,6 +7527,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 18,
         name: "critical",
+        target_name: "critical",
         field_type: FieldType::BoolOrNil,
         advanced: false,
         advanced_min_fields: 0,
@@ -6792,6 +7537,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -6801,6 +7547,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -6810,6 +7557,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6819,6 +7567,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6828,6 +7577,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -6837,6 +7587,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -6846,6 +7597,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6855,6 +7607,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6864,6 +7617,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -6873,6 +7627,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -6882,6 +7637,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -6891,6 +7647,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "aura_type",
+        target_name: "aura_type",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -6900,6 +7657,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "amount",
+        target_name: "amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -6909,6 +7667,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -6918,6 +7677,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -6927,6 +7687,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6936,6 +7697,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6945,6 +7707,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -6954,6 +7717,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -6963,6 +7727,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6972,6 +7737,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -6981,6 +7747,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -6990,6 +7757,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -6999,6 +7767,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -7008,6 +7777,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "aura_type",
+        target_name: "aura_type",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -7017,6 +7787,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "amount",
+        target_name: "amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -7026,6 +7797,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -7035,6 +7807,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -7044,6 +7817,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7053,6 +7827,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7062,6 +7837,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -7071,6 +7847,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -7080,6 +7857,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7089,6 +7867,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7098,6 +7877,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -7107,6 +7887,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -7116,6 +7897,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -7125,6 +7907,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "aura_type",
+        target_name: "aura_type",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -7134,6 +7917,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "amount",
+        target_name: "amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -7143,6 +7927,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -7152,6 +7937,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -7161,6 +7947,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7170,6 +7957,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7179,6 +7967,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -7188,6 +7977,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -7197,6 +7987,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7206,6 +7997,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7215,6 +8007,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -7224,6 +8017,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -7233,6 +8027,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -7242,6 +8037,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "aura_type",
+        target_name: "aura_type",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -7251,6 +8047,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "amount",
+        target_name: "amount",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -7260,6 +8057,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -7269,6 +8067,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -7278,6 +8077,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7287,6 +8087,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7296,6 +8097,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -7305,6 +8107,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -7314,6 +8117,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7323,6 +8127,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7332,6 +8137,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -7341,6 +8147,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -7350,6 +8157,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -7359,6 +8167,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "breaking_spell_id",
+        target_name: "breaking_spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -7368,6 +8177,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "breaking_spell_name",
+        target_name: "breaking_spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -7377,6 +8187,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "breaking_spell_school",
+        target_name: "breaking_spell_school",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -7386,6 +8197,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "aura_type",
+        target_name: "aura_type",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -7395,6 +8207,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -7404,6 +8217,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -7413,6 +8227,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7422,6 +8237,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7431,6 +8247,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -7440,6 +8257,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -7449,6 +8267,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7458,6 +8277,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7467,6 +8287,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -7476,6 +8297,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -7485,6 +8307,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -7494,6 +8317,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "aura_type",
+        target_name: "aura_type",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -7503,6 +8327,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "stacks",
+        target_name: "stacks",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -7512,6 +8337,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -7521,6 +8347,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -7530,6 +8357,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7539,6 +8367,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7548,6 +8377,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -7557,6 +8387,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -7566,6 +8397,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7575,6 +8407,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7584,6 +8417,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -7593,6 +8427,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -7602,6 +8437,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -7611,6 +8447,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "aura_type",
+        target_name: "aura_type",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -7620,6 +8457,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "stacks",
+        target_name: "stacks",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -7629,6 +8467,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -7638,6 +8477,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -7647,6 +8487,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7656,6 +8497,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7665,6 +8507,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -7674,6 +8517,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -7683,6 +8527,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7692,6 +8537,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7701,6 +8547,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -7710,6 +8557,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -7719,6 +8567,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -7728,6 +8577,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "interrupted_spell_id",
+        target_name: "interrupted_spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -7737,6 +8587,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "interrupted_spell_name",
+        target_name: "interrupted_spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -7746,6 +8597,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "interrupted_spell_school",
+        target_name: "interrupted_spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -7755,6 +8607,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -7764,6 +8617,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -7773,6 +8627,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7782,6 +8637,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7791,6 +8647,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -7800,6 +8657,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -7809,6 +8667,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7818,6 +8677,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7827,6 +8687,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -7836,6 +8697,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -7845,6 +8707,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -7854,6 +8717,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "dispelled_spell_id",
+        target_name: "dispelled_spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -7863,6 +8727,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "dispelled_spell_name",
+        target_name: "dispelled_spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -7872,6 +8737,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "dispelled_spell_school",
+        target_name: "dispelled_spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -7881,6 +8747,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "aura_type",
+        target_name: "aura_type",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -7890,6 +8757,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -7899,6 +8767,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -7908,6 +8777,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7917,6 +8787,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7926,6 +8797,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -7935,6 +8807,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -7944,6 +8817,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7953,6 +8827,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -7962,6 +8837,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -7971,6 +8847,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -7980,6 +8857,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -7989,6 +8867,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "dispelled_spell_id",
+        target_name: "dispelled_spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -7998,6 +8877,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "dispelled_spell_name",
+        target_name: "dispelled_spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -8007,6 +8887,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "dispelled_spell_school",
+        target_name: "dispelled_spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -8016,6 +8897,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "aura_type",
+        target_name: "aura_type",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -8025,6 +8907,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -8034,6 +8917,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -8043,6 +8927,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -8052,6 +8937,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -8061,6 +8947,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -8070,6 +8957,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -8079,6 +8967,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -8088,6 +8977,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -8097,6 +8987,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -8106,6 +8997,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -8115,6 +9007,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -8124,6 +9017,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "dispelled_spell_id",
+        target_name: "dispelled_spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -8133,6 +9027,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "dispelled_spell_name",
+        target_name: "dispelled_spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -8142,6 +9037,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "dispelled_spell_school",
+        target_name: "dispelled_spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -8151,6 +9047,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "aura_type",
+        target_name: "aura_type",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -8160,6 +9057,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 35,
@@ -8169,6 +9067,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 35,
@@ -8178,6 +9077,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 35,
@@ -8187,6 +9087,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 35,
@@ -8196,6 +9097,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 35,
@@ -8205,6 +9107,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 35,
@@ -8214,6 +9117,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 35,
@@ -8223,6 +9127,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 35,
@@ -8232,6 +9137,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 35,
@@ -8241,6 +9147,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 35,
@@ -8250,6 +9157,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 35,
@@ -8259,6 +9167,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "info_guid",
+        target_name: "info_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 35,
@@ -8268,6 +9177,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "owner_guid",
+        target_name: "owner_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 35,
@@ -8277,6 +9187,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "current_hp",
+        target_name: "current_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 35,
@@ -8286,6 +9197,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "max_hp",
+        target_name: "max_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 35,
@@ -8295,6 +9207,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 16,
         name: "attack_power",
+        target_name: "attack_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8304,6 +9217,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 17,
         name: "spell_power",
+        target_name: "spell_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8313,6 +9227,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 18,
         name: "armor",
+        target_name: "armor",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8322,6 +9237,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 19,
         name: "absorb",
+        target_name: "absorb",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8331,6 +9247,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 20,
         name: "unknown_1",
+        target_name: "unknown_1",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8340,6 +9257,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 21,
         name: "unknown_2",
+        target_name: "unknown_2",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8349,6 +9267,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 22,
         name: "power_type",
+        target_name: "advanced_block_power_type",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8358,6 +9277,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 23,
         name: "current_power",
+        target_name: "current_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8367,6 +9287,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 24,
         name: "max_power",
+        target_name: "advanced_block_max_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8376,6 +9297,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 25,
         name: "power_cost",
+        target_name: "power_cost",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8385,6 +9307,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 26,
         name: "position_x",
+        target_name: "position_x",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 35,
@@ -8394,6 +9317,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 27,
         name: "position_y",
+        target_name: "position_y",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 35,
@@ -8403,6 +9327,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 28,
         name: "ui_map_id",
+        target_name: "ui_map_id",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8412,6 +9337,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 29,
         name: "facing",
+        target_name: "facing",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 35,
@@ -8421,6 +9347,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 30,
         name: "item_level",
+        target_name: "item_level",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8430,6 +9357,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 31,
         name: "amount",
+        target_name: "amount",
         field_type: FieldType::Float,
         advanced: false,
         advanced_min_fields: 35,
@@ -8439,6 +9367,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 32,
         name: "over_energize",
+        target_name: "over_energize",
         field_type: FieldType::Float,
         advanced: false,
         advanced_min_fields: 35,
@@ -8448,6 +9377,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 33,
         name: "power_type",
+        target_name: "power_type",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 35,
@@ -8457,6 +9387,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 34,
         name: "max_power",
+        target_name: "max_power",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 35,
@@ -8466,6 +9397,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 35,
@@ -8475,6 +9407,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 35,
@@ -8484,6 +9417,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 35,
@@ -8493,6 +9427,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 35,
@@ -8502,6 +9437,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 35,
@@ -8511,6 +9447,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 35,
@@ -8520,6 +9457,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 35,
@@ -8529,6 +9467,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 35,
@@ -8538,6 +9477,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 35,
@@ -8547,6 +9487,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 35,
@@ -8556,6 +9497,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 35,
@@ -8565,6 +9507,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "info_guid",
+        target_name: "info_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 35,
@@ -8574,6 +9517,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "owner_guid",
+        target_name: "owner_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 35,
@@ -8583,6 +9527,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "current_hp",
+        target_name: "current_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 35,
@@ -8592,6 +9537,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "max_hp",
+        target_name: "max_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 35,
@@ -8601,6 +9547,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 16,
         name: "attack_power",
+        target_name: "attack_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8610,6 +9557,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 17,
         name: "spell_power",
+        target_name: "spell_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8619,6 +9567,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 18,
         name: "armor",
+        target_name: "armor",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8628,6 +9577,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 19,
         name: "absorb",
+        target_name: "absorb",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8637,6 +9587,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 20,
         name: "unknown_1",
+        target_name: "unknown_1",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8646,6 +9597,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 21,
         name: "unknown_2",
+        target_name: "unknown_2",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8655,6 +9607,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 22,
         name: "power_type",
+        target_name: "advanced_block_power_type",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8664,6 +9617,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 23,
         name: "current_power",
+        target_name: "current_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8673,6 +9627,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 24,
         name: "max_power",
+        target_name: "advanced_block_max_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8682,6 +9637,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 25,
         name: "power_cost",
+        target_name: "power_cost",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8691,6 +9647,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 26,
         name: "position_x",
+        target_name: "position_x",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 35,
@@ -8700,6 +9657,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 27,
         name: "position_y",
+        target_name: "position_y",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 35,
@@ -8709,6 +9667,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 28,
         name: "ui_map_id",
+        target_name: "ui_map_id",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8718,6 +9677,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 29,
         name: "facing",
+        target_name: "facing",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 35,
@@ -8727,6 +9687,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 30,
         name: "item_level",
+        target_name: "item_level",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8736,6 +9697,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 31,
         name: "amount",
+        target_name: "amount",
         field_type: FieldType::Float,
         advanced: false,
         advanced_min_fields: 35,
@@ -8745,6 +9707,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 32,
         name: "over_energize",
+        target_name: "over_energize",
         field_type: FieldType::Float,
         advanced: false,
         advanced_min_fields: 35,
@@ -8754,6 +9717,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 33,
         name: "power_type",
+        target_name: "power_type",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 35,
@@ -8763,6 +9727,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 34,
         name: "max_power",
+        target_name: "max_power",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 35,
@@ -8772,6 +9737,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 35,
@@ -8781,6 +9747,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 35,
@@ -8790,6 +9757,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 35,
@@ -8799,6 +9767,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 35,
@@ -8808,6 +9777,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 35,
@@ -8817,6 +9787,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 35,
@@ -8826,6 +9797,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 35,
@@ -8835,6 +9807,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 35,
@@ -8844,6 +9817,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 35,
@@ -8853,6 +9827,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 35,
@@ -8862,6 +9837,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 35,
@@ -8871,6 +9847,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "info_guid",
+        target_name: "info_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 35,
@@ -8880,6 +9857,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "owner_guid",
+        target_name: "owner_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 35,
@@ -8889,6 +9867,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "current_hp",
+        target_name: "current_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 35,
@@ -8898,6 +9877,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "max_hp",
+        target_name: "max_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 35,
@@ -8907,6 +9887,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 16,
         name: "attack_power",
+        target_name: "attack_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8916,6 +9897,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 17,
         name: "spell_power",
+        target_name: "spell_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8925,6 +9907,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 18,
         name: "armor",
+        target_name: "armor",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8934,6 +9917,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 19,
         name: "absorb",
+        target_name: "absorb",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8943,6 +9927,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 20,
         name: "unknown_1",
+        target_name: "unknown_1",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8952,6 +9937,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 21,
         name: "unknown_2",
+        target_name: "unknown_2",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8961,6 +9947,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 22,
         name: "power_type",
+        target_name: "advanced_block_power_type",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8970,6 +9957,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 23,
         name: "current_power",
+        target_name: "current_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8979,6 +9967,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 24,
         name: "max_power",
+        target_name: "advanced_block_max_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8988,6 +9977,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 25,
         name: "power_cost",
+        target_name: "power_cost",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -8997,6 +9987,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 26,
         name: "position_x",
+        target_name: "position_x",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 35,
@@ -9006,6 +9997,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 27,
         name: "position_y",
+        target_name: "position_y",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 35,
@@ -9015,6 +10007,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 28,
         name: "ui_map_id",
+        target_name: "ui_map_id",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -9024,6 +10017,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 29,
         name: "facing",
+        target_name: "facing",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 35,
@@ -9033,6 +10027,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 30,
         name: "item_level",
+        target_name: "item_level",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -9042,6 +10037,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 31,
         name: "amount",
+        target_name: "amount",
         field_type: FieldType::Float,
         advanced: false,
         advanced_min_fields: 35,
@@ -9051,6 +10047,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 32,
         name: "over_energize",
+        target_name: "over_energize",
         field_type: FieldType::Float,
         advanced: false,
         advanced_min_fields: 35,
@@ -9060,6 +10057,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 33,
         name: "power_type",
+        target_name: "power_type",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 35,
@@ -9069,6 +10067,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 34,
         name: "max_power",
+        target_name: "max_power",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 35,
@@ -9078,6 +10077,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 35,
@@ -9087,6 +10087,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 35,
@@ -9096,6 +10097,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 35,
@@ -9105,6 +10107,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 35,
@@ -9114,6 +10117,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 35,
@@ -9123,6 +10127,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 35,
@@ -9132,6 +10137,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 35,
@@ -9141,6 +10147,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 35,
@@ -9150,6 +10157,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 35,
@@ -9159,6 +10167,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 35,
@@ -9168,6 +10177,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 35,
@@ -9177,6 +10187,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "info_guid",
+        target_name: "info_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 35,
@@ -9186,6 +10197,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "owner_guid",
+        target_name: "owner_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 35,
@@ -9195,6 +10207,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "current_hp",
+        target_name: "current_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 35,
@@ -9204,6 +10217,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "max_hp",
+        target_name: "max_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 35,
@@ -9213,6 +10227,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 16,
         name: "attack_power",
+        target_name: "attack_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -9222,6 +10237,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 17,
         name: "spell_power",
+        target_name: "spell_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -9231,6 +10247,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 18,
         name: "armor",
+        target_name: "armor",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -9240,6 +10257,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 19,
         name: "absorb",
+        target_name: "absorb",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -9249,6 +10267,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 20,
         name: "unknown_1",
+        target_name: "unknown_1",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -9258,6 +10277,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 21,
         name: "unknown_2",
+        target_name: "unknown_2",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -9267,6 +10287,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 22,
         name: "power_type",
+        target_name: "advanced_block_power_type",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -9276,6 +10297,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 23,
         name: "current_power",
+        target_name: "current_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -9285,6 +10307,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 24,
         name: "max_power",
+        target_name: "advanced_block_max_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -9294,6 +10317,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 25,
         name: "power_cost",
+        target_name: "power_cost",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -9303,6 +10327,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 26,
         name: "position_x",
+        target_name: "position_x",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 35,
@@ -9312,6 +10337,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 27,
         name: "position_y",
+        target_name: "position_y",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 35,
@@ -9321,6 +10347,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 28,
         name: "ui_map_id",
+        target_name: "ui_map_id",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -9330,6 +10357,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 29,
         name: "facing",
+        target_name: "facing",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 35,
@@ -9339,6 +10367,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 30,
         name: "item_level",
+        target_name: "item_level",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 35,
@@ -9348,6 +10377,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 31,
         name: "amount",
+        target_name: "amount",
         field_type: FieldType::Float,
         advanced: false,
         advanced_min_fields: 35,
@@ -9357,6 +10387,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 32,
         name: "over_energize",
+        target_name: "over_energize",
         field_type: FieldType::Float,
         advanced: false,
         advanced_min_fields: 35,
@@ -9366,6 +10397,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 33,
         name: "power_type",
+        target_name: "power_type",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 35,
@@ -9375,6 +10407,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 34,
         name: "max_power",
+        target_name: "max_power",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 35,
@@ -9384,6 +10417,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -9393,6 +10427,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -9402,6 +10437,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -9411,6 +10447,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -9420,6 +10457,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -9429,6 +10467,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -9438,6 +10477,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -9447,6 +10487,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -9456,6 +10497,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -9465,6 +10507,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -9474,6 +10517,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -9483,6 +10527,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 31,
@@ -9492,6 +10537,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 31,
@@ -9501,6 +10547,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 31,
@@ -9510,6 +10557,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 31,
@@ -9519,6 +10567,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 31,
@@ -9528,6 +10577,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 31,
@@ -9537,6 +10587,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 31,
@@ -9546,6 +10597,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 31,
@@ -9555,6 +10607,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 31,
@@ -9564,6 +10617,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 31,
@@ -9573,6 +10627,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 31,
@@ -9582,6 +10637,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "info_guid",
+        target_name: "info_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 31,
@@ -9591,6 +10647,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "owner_guid",
+        target_name: "owner_guid",
         field_type: FieldType::String,
         advanced: true,
         advanced_min_fields: 31,
@@ -9600,6 +10657,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "current_hp",
+        target_name: "current_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 31,
@@ -9609,6 +10667,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "max_hp",
+        target_name: "max_hp",
         field_type: FieldType::Long,
         advanced: true,
         advanced_min_fields: 31,
@@ -9618,6 +10677,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 16,
         name: "attack_power",
+        target_name: "attack_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 31,
@@ -9627,6 +10687,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 17,
         name: "spell_power",
+        target_name: "spell_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 31,
@@ -9636,6 +10697,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 18,
         name: "armor",
+        target_name: "armor",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 31,
@@ -9645,6 +10707,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 19,
         name: "absorb",
+        target_name: "absorb",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 31,
@@ -9654,6 +10717,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 20,
         name: "unknown_1",
+        target_name: "unknown_1",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 31,
@@ -9663,6 +10727,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 21,
         name: "unknown_2",
+        target_name: "unknown_2",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 31,
@@ -9672,6 +10737,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 22,
         name: "power_type",
+        target_name: "power_type",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 31,
@@ -9681,6 +10747,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 23,
         name: "current_power",
+        target_name: "current_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 31,
@@ -9690,6 +10757,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 24,
         name: "max_power",
+        target_name: "max_power",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 31,
@@ -9699,6 +10767,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 25,
         name: "power_cost",
+        target_name: "power_cost",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 31,
@@ -9708,6 +10777,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 26,
         name: "position_x",
+        target_name: "position_x",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 31,
@@ -9717,6 +10787,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 27,
         name: "position_y",
+        target_name: "position_y",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 31,
@@ -9726,6 +10797,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 28,
         name: "ui_map_id",
+        target_name: "ui_map_id",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 31,
@@ -9735,6 +10807,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 29,
         name: "facing",
+        target_name: "facing",
         field_type: FieldType::Float,
         advanced: true,
         advanced_min_fields: 31,
@@ -9744,6 +10817,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 30,
         name: "item_level",
+        target_name: "item_level",
         field_type: FieldType::Integer,
         advanced: true,
         advanced_min_fields: 31,
@@ -9753,6 +10827,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -9762,6 +10837,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -9771,6 +10847,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -9780,6 +10857,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -9789,6 +10867,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -9798,6 +10877,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -9807,6 +10887,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -9816,6 +10897,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -9825,6 +10907,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -9834,6 +10917,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -9843,6 +10927,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -9852,6 +10937,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -9861,6 +10947,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -9870,6 +10957,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -9879,6 +10967,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -9888,6 +10977,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -9897,6 +10987,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -9906,6 +10997,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -9915,6 +11007,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -9924,6 +11017,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -9933,6 +11027,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -9942,6 +11037,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -9951,6 +11047,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "empower_stage",
+        target_name: "empower_stage",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -9960,6 +11057,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -9969,6 +11067,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -9978,6 +11077,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -9987,6 +11087,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -9996,6 +11097,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -10005,6 +11107,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -10014,6 +11117,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10023,6 +11127,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10032,6 +11137,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -10041,6 +11147,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -10050,6 +11157,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -10059,6 +11167,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "empower_stage",
+        target_name: "empower_stage",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -10068,6 +11177,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -10077,6 +11187,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -10086,6 +11197,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10095,6 +11207,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10104,6 +11217,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -10113,6 +11227,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -10122,6 +11237,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10131,6 +11247,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10140,6 +11257,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -10149,6 +11267,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -10158,6 +11277,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -10167,6 +11287,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "fail_reason",
+        target_name: "fail_reason",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -10176,6 +11297,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -10185,6 +11307,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -10194,6 +11317,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10203,6 +11327,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10212,6 +11337,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -10221,6 +11347,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -10230,6 +11357,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10239,6 +11367,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10248,6 +11377,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "miss_type",
+        target_name: "miss_type",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -10257,6 +11387,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -10266,6 +11397,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -10275,6 +11407,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10284,6 +11417,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10293,6 +11427,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -10302,6 +11437,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -10311,6 +11447,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10320,6 +11457,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10329,6 +11467,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -10338,6 +11477,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -10347,6 +11487,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -10356,6 +11497,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "miss_type",
+        target_name: "miss_type",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -10365,6 +11507,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -10374,6 +11517,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -10383,6 +11527,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10392,6 +11537,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10401,6 +11547,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -10410,6 +11557,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -10419,6 +11567,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10428,6 +11577,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10437,6 +11587,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -10446,6 +11597,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -10455,6 +11607,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -10464,6 +11617,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "miss_type",
+        target_name: "miss_type",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -10473,6 +11627,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -10482,6 +11637,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -10491,6 +11647,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10500,6 +11657,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10509,6 +11667,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -10518,6 +11677,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -10527,6 +11687,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10536,6 +11697,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10545,6 +11707,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -10554,6 +11717,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -10563,6 +11727,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -10572,6 +11737,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "miss_type",
+        target_name: "miss_type",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -10581,6 +11747,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -10590,6 +11757,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -10599,6 +11767,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10608,6 +11777,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10617,6 +11787,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -10626,6 +11797,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -10635,6 +11807,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10644,6 +11817,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10653,6 +11827,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -10662,6 +11837,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -10671,6 +11847,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -10680,6 +11857,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "miss_type",
+        target_name: "miss_type",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -10689,6 +11867,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -10698,6 +11877,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -10707,6 +11887,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10716,6 +11897,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10725,6 +11907,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -10734,6 +11917,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -10743,6 +11927,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10752,6 +11937,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10761,6 +11947,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -10770,6 +11957,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -10779,6 +11967,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -10788,6 +11977,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -10797,6 +11987,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -10806,6 +11997,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10815,6 +12007,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10824,6 +12017,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -10833,6 +12027,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -10842,6 +12037,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10851,6 +12047,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10860,6 +12057,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -10869,6 +12067,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -10878,6 +12077,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -10887,6 +12087,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -10896,6 +12097,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -10905,6 +12107,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10914,6 +12117,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10923,6 +12127,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -10932,6 +12137,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -10941,6 +12147,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10950,6 +12157,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -10959,6 +12167,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "spell_id",
+        target_name: "spell_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -10968,6 +12177,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "spell_name",
+        target_name: "spell_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -10977,6 +12187,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "spell_school",
+        target_name: "spell_school",
         field_type: FieldType::HexBitfield,
         advanced: false,
         advanced_min_fields: 0,
@@ -10986,6 +12197,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -10995,6 +12207,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -11004,6 +12217,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -11013,6 +12227,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -11022,6 +12237,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -11031,6 +12247,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -11040,6 +12257,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -11049,6 +12267,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -11058,6 +12277,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -11067,6 +12287,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -11076,6 +12297,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -11085,6 +12307,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -11094,6 +12317,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -11103,6 +12327,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -11112,6 +12337,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -11121,6 +12347,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -11130,6 +12357,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "source_guid",
+        target_name: "source_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -11139,6 +12367,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "source_name",
+        target_name: "source_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -11148,6 +12377,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "source_flags",
+        target_name: "source_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -11157,6 +12387,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "source_raid_flags",
+        target_name: "source_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -11166,6 +12397,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "dest_guid",
+        target_name: "dest_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -11175,6 +12407,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "dest_name",
+        target_name: "dest_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -11184,6 +12417,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "dest_flags",
+        target_name: "dest_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -11193,6 +12427,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dest_raid_flags",
+        target_name: "dest_raid_flags",
         field_type: FieldType::HexUint32,
         advanced: false,
         advanced_min_fields: 0,
@@ -11202,6 +12437,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "encounter_id",
+        target_name: "encounter_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11211,6 +12447,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "encounter_name",
+        target_name: "encounter_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -11220,6 +12457,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "difficulty_id",
+        target_name: "difficulty_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11229,6 +12467,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "group_size",
+        target_name: "group_size",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11238,6 +12477,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "instance_id",
+        target_name: "instance_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11247,6 +12487,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "encounter_id",
+        target_name: "encounter_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11256,6 +12497,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "encounter_name",
+        target_name: "encounter_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -11265,6 +12507,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "difficulty_id",
+        target_name: "difficulty_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11274,6 +12517,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "group_size",
+        target_name: "group_size",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11283,6 +12527,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "success",
+        target_name: "success",
         field_type: FieldType::BooleanInt,
         advanced: false,
         advanced_min_fields: 0,
@@ -11292,6 +12537,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "duration_ms",
+        target_name: "duration_ms",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11301,6 +12547,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "dungeon_name",
+        target_name: "dungeon_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -11310,6 +12557,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "map_id",
+        target_name: "map_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11319,6 +12567,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "challenge_mode_id",
+        target_name: "challenge_mode_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11328,6 +12577,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "keystone_level",
+        target_name: "keystone_level",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11337,6 +12587,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "affixes",
+        target_name: "affixes",
         field_type: FieldType::IntegerArray,
         advanced: false,
         advanced_min_fields: 0,
@@ -11346,6 +12597,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "map_id",
+        target_name: "map_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11355,6 +12607,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "success",
+        target_name: "success",
         field_type: FieldType::BooleanInt,
         advanced: false,
         advanced_min_fields: 0,
@@ -11364,6 +12617,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "keystone_level",
+        target_name: "keystone_level",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11373,6 +12627,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "total_time_ms",
+        target_name: "total_time_ms",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11382,6 +12637,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "run_score",
+        target_name: "run_score",
         field_type: FieldType::Float,
         advanced: false,
         advanced_min_fields: 0,
@@ -11391,6 +12647,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "player_rating",
+        target_name: "player_rating",
         field_type: FieldType::Float,
         advanced: false,
         advanced_min_fields: 0,
@@ -11400,6 +12657,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "zone_id",
+        target_name: "zone_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11409,6 +12667,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "zone_name",
+        target_name: "zone_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -11418,6 +12677,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "instance_type",
+        target_name: "instance_type",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11427,6 +12687,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "ui_map_id",
+        target_name: "ui_map_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11436,6 +12697,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "map_name",
+        target_name: "map_name",
         field_type: FieldType::QuotedString,
         advanced: false,
         advanced_min_fields: 0,
@@ -11445,6 +12707,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "max_x",
+        target_name: "max_x",
         field_type: FieldType::Float,
         advanced: false,
         advanced_min_fields: 0,
@@ -11454,6 +12717,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "min_x",
+        target_name: "min_x",
         field_type: FieldType::Float,
         advanced: false,
         advanced_min_fields: 0,
@@ -11463,6 +12727,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "max_y",
+        target_name: "max_y",
         field_type: FieldType::Float,
         advanced: false,
         advanced_min_fields: 0,
@@ -11472,6 +12737,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "min_y",
+        target_name: "min_y",
         field_type: FieldType::Float,
         advanced: false,
         advanced_min_fields: 0,
@@ -11481,6 +12747,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "instance_id",
+        target_name: "instance_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11490,6 +12757,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "marker_index",
+        target_name: "marker_index",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11499,6 +12767,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "x",
+        target_name: "x",
         field_type: FieldType::Float,
         advanced: false,
         advanced_min_fields: 0,
@@ -11508,6 +12777,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "y",
+        target_name: "y",
         field_type: FieldType::Float,
         advanced: false,
         advanced_min_fields: 0,
@@ -11517,6 +12787,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "instance_id",
+        target_name: "instance_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11526,6 +12797,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "marker_index",
+        target_name: "marker_index",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11535,6 +12807,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "player_guid",
+        target_name: "player_guid",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -11544,6 +12817,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 2,
         name: "faction",
+        target_name: "faction",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11553,6 +12827,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "strength",
+        target_name: "strength",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11562,6 +12837,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 4,
         name: "agility",
+        target_name: "agility",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11571,6 +12847,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "stamina",
+        target_name: "stamina",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11580,6 +12857,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 6,
         name: "intellect",
+        target_name: "intellect",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11589,6 +12867,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "unknown_12_0",
+        target_name: "unknown_12_0",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11598,6 +12877,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 8,
         name: "dodge_rating",
+        target_name: "dodge_rating",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11607,6 +12887,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 9,
         name: "parry_rating",
+        target_name: "parry_rating",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11616,6 +12897,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 10,
         name: "block_rating",
+        target_name: "block_rating",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11625,6 +12907,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 11,
         name: "crit_rating_melee",
+        target_name: "crit_rating_melee",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11634,6 +12917,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 12,
         name: "crit_rating_ranged",
+        target_name: "crit_rating_ranged",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11643,6 +12927,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 13,
         name: "crit_rating_spell",
+        target_name: "crit_rating_spell",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11652,6 +12937,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 14,
         name: "speed_rating",
+        target_name: "speed_rating",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11661,6 +12947,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 15,
         name: "leech_rating",
+        target_name: "leech_rating",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11670,6 +12957,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 16,
         name: "haste_rating_melee",
+        target_name: "haste_rating_melee",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11679,6 +12967,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 17,
         name: "haste_rating_ranged",
+        target_name: "haste_rating_ranged",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11688,6 +12977,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 18,
         name: "haste_rating_spell",
+        target_name: "haste_rating_spell",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11697,6 +12987,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 19,
         name: "avoidance_rating",
+        target_name: "avoidance_rating",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11706,6 +12997,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 20,
         name: "mastery_rating",
+        target_name: "mastery_rating",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11715,6 +13007,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 21,
         name: "versatility_damage_done",
+        target_name: "versatility_damage_done",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11724,6 +13017,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 22,
         name: "versatility_healing_done",
+        target_name: "versatility_healing_done",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11733,6 +13027,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 23,
         name: "versatility_damage_taken",
+        target_name: "versatility_damage_taken",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11742,6 +13037,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 24,
         name: "armor",
+        target_name: "armor",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11751,6 +13047,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 25,
         name: "spec_id",
+        target_name: "spec_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11760,6 +13057,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 26,
         name: "talents",
+        target_name: "talents",
         field_type: FieldType::BracketValue,
         advanced: false,
         advanced_min_fields: 0,
@@ -11769,6 +13067,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 27,
         name: "pvp_talents",
+        target_name: "pvp_talents",
         field_type: FieldType::BracketValue,
         advanced: false,
         advanced_min_fields: 0,
@@ -11778,6 +13077,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 28,
         name: "gear",
+        target_name: "gear",
         field_type: FieldType::BracketValue,
         advanced: false,
         advanced_min_fields: 0,
@@ -11787,6 +13087,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 29,
         name: "active_auras",
+        target_name: "active_auras",
         field_type: FieldType::BracketValue,
         advanced: false,
         advanced_min_fields: 0,
@@ -11796,6 +13097,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 1,
         name: "format_version",
+        target_name: "format_version",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11805,6 +13107,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 3,
         name: "advanced_log_enabled",
+        target_name: "advanced_log_enabled",
         field_type: FieldType::BooleanInt,
         advanced: false,
         advanced_min_fields: 0,
@@ -11814,6 +13117,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 5,
         name: "build_version",
+        target_name: "build_version",
         field_type: FieldType::String,
         advanced: false,
         advanced_min_fields: 0,
@@ -11823,6 +13127,7 @@ pub const EVENT_FIELDS: &[EventField] = &[
     EventField {
         offset: 7,
         name: "project_id",
+        target_name: "project_id",
         field_type: FieldType::Integer,
         advanced: false,
         advanced_min_fields: 0,
@@ -11830,6 +13135,74 @@ pub const EVENT_FIELDS: &[EventField] = &[
         variant: 0,
     },
 ];
+
+pub fn is_spec_event(event: &str) -> bool {
+    matches!(
+        event,
+        "SPELL_DAMAGE"
+            | "SPELL_PERIODIC_DAMAGE"
+            | "RANGE_DAMAGE"
+            | "DAMAGE_SHIELD"
+            | "DAMAGE_SPLIT"
+            | "SPELL_DAMAGE_SUPPORT"
+            | "SPELL_PERIODIC_DAMAGE_SUPPORT"
+            | "RANGE_DAMAGE_SUPPORT"
+            | "SWING_DAMAGE_LANDED_SUPPORT"
+            | "SWING_DAMAGE"
+            | "SWING_DAMAGE_LANDED"
+            | "ENVIRONMENTAL_DAMAGE"
+            | "SPELL_HEAL"
+            | "SPELL_PERIODIC_HEAL"
+            | "SPELL_HEAL_SUPPORT"
+            | "SPELL_PERIODIC_HEAL_SUPPORT"
+            | "SPELL_ABSORBED"
+            | "SPELL_ABSORBED_SUPPORT"
+            | "SPELL_HEAL_ABSORBED"
+            | "SPELL_AURA_APPLIED"
+            | "SPELL_AURA_REMOVED"
+            | "SPELL_AURA_REFRESH"
+            | "SPELL_AURA_BROKEN"
+            | "SPELL_AURA_BROKEN_SPELL"
+            | "SPELL_AURA_APPLIED_DOSE"
+            | "SPELL_AURA_REMOVED_DOSE"
+            | "SPELL_INTERRUPT"
+            | "SPELL_DISPEL"
+            | "SPELL_DISPEL_FAILED"
+            | "SPELL_STOLEN"
+            | "SPELL_ENERGIZE"
+            | "SPELL_DRAIN"
+            | "SPELL_LEECH"
+            | "SPELL_PERIODIC_ENERGIZE"
+            | "SPELL_CAST_START"
+            | "SPELL_CAST_SUCCESS"
+            | "SPELL_EMPOWER_START"
+            | "SPELL_EMPOWER_END"
+            | "SPELL_EMPOWER_INTERRUPT"
+            | "SPELL_CAST_FAILED"
+            | "SWING_MISSED"
+            | "SPELL_MISSED"
+            | "RANGE_MISSED"
+            | "SPELL_PERIODIC_MISSED"
+            | "DAMAGE_SHIELD_MISSED"
+            | "SPELL_SUMMON"
+            | "SPELL_RESURRECT"
+            | "SPELL_INSTAKILL"
+            | "UNIT_DIED"
+            | "UNIT_DESTROYED"
+            | "UNIT_DISSIPATES"
+            | "UNIT_HEALTH"
+            | "ENCOUNTER_START"
+            | "ENCOUNTER_END"
+            | "CHALLENGE_MODE_START"
+            | "CHALLENGE_MODE_END"
+            | "ZONE_CHANGE"
+            | "MAP_CHANGE"
+            | "WORLD_MARKER_PLACED"
+            | "WORLD_MARKER_REMOVED"
+            | "COMBATANT_INFO"
+            | "COMBAT_LOG_VERSION"
+    )
+}
 
 pub fn event_fields(event: &str) -> &'static [EventField] {
     match event {

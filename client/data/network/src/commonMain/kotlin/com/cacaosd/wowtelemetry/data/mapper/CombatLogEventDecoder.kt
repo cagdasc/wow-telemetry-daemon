@@ -648,7 +648,7 @@ internal fun decodeCombatLogEvent(type: String, data: JsonObject): CombatLogEven
     "UNRECOGNIZED_EVENT" -> UnrecognizedEventEvent(data.requiredString("event_name"))
     "MALFORMED_EVENT" -> MalformedEventEvent(
         reason = data.requiredString("reason"),
-        rawBytes = data.requiredIntList("raw_bytes"),
+        rawBytes = data.decodeRawBytes("raw_bytes"),
     )
 
     else -> throw CombatEventDecodeException("Unknown event type: $type")
@@ -749,6 +749,23 @@ private fun JsonObject.optionalBoolean(name: String): Boolean? = when (val value
 
 private fun JsonObject.optionalJsonElement(name: String): JsonElement? =
     this[name]?.takeUnless { it == JsonNull }
+
+private fun JsonObject.decodeRawBytes(name: String): List<Int> = when (val value = this[name]) {
+    is JsonPrimitive -> if (value.isString) {
+        val hex = value.content
+        if (hex.length % 2 != 0) throw CombatEventDecodeException("'$name' has invalid hex length")
+        hex.chunked(2).map { it.toIntOrNull(16) ?: throw CombatEventDecodeException("'$name' has invalid hex characters") }
+    } else throw CombatEventDecodeException("'$name' must be a hex string or byte array")
+
+    is JsonArray -> value.mapIndexed { index, item ->
+        val number = (item as? JsonPrimitive)?.takeIf { !it.isString }?.intOrNull
+            ?: throw CombatEventDecodeException("'$name[$index]' must be an integer")
+        if (number !in 0..255) throw CombatEventDecodeException("'$name[$index]' must be a byte value")
+        number
+    }
+
+    else -> throw CombatEventDecodeException("'$name' must be a hex string or byte array")
+}
 
 private fun JsonObject.requiredIntList(name: String): List<Int> =
     (this[name] as? JsonArray)?.mapIndexed { index, value ->

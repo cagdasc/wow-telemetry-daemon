@@ -1,7 +1,7 @@
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, BufRead, BufReader, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
-use std::sync::mpsc::{Receiver, SyncSender, TryRecvError};
+use std::sync::mpsc::{Receiver, SyncSender};
 use std::thread;
 use std::time::Duration;
 
@@ -41,27 +41,19 @@ fn tail_loop(
     let mut caught_up = false;
 
     loop {
-        loop {
-            match commands.try_recv() {
-                Ok(TailCommand::ClearLog(response)) => {
-                    match truncate_log(path, &mut reader, &mut pending) {
-                        Ok(()) => {
-                            caught_up = false;
-                            sender
-                                .send(TailMessage::LogCleared(response))
-                                .map_err(|_| {
-                                    io::Error::new(
-                                        io::ErrorKind::BrokenPipe,
-                                        "event receiver closed",
-                                    )
-                                })?;
-                        }
-                        Err(error) => {
-                            let _ = response.send(Err(error.to_string()));
-                        }
-                    }
+        while let Ok(TailCommand::ClearLog(response)) = commands.try_recv() {
+            match truncate_log(path, &mut reader, &mut pending) {
+                Ok(()) => {
+                    caught_up = false;
+                    sender
+                        .send(TailMessage::LogCleared(response))
+                        .map_err(|_| {
+                            io::Error::new(io::ErrorKind::BrokenPipe, "event receiver closed")
+                        })?;
                 }
-                Err(TryRecvError::Empty | TryRecvError::Disconnected) => break,
+                Err(error) => {
+                    let _ = response.send(Err(error.to_string()));
+                }
             }
         }
 
@@ -135,7 +127,7 @@ fn wait_for_reader(path: &Path, start_at_end: bool) -> io::Result<BufReader<File
         match open_reader(path, start_at_end) {
             Err(error) if error.kind() == io::ErrorKind::NotFound => {
                 if !announced {
-                    eprintln!("waiting for combat log: {}", path.display());
+                    log::info!("waiting for combat log: {}", path.display());
                     announced = true;
                 }
                 thread::sleep(MISSING_FILE_RETRY);

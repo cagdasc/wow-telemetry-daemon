@@ -45,7 +45,7 @@ impl Control {
     pub fn to_json(&self) -> String {
         match self {
             Self::Hello { epoch, last_seq } => {
-                json!({"control": "HELLO", "epoch": epoch, "last_seq": last_seq})
+                json!({"control": "HELLO", "epoch": epoch, "last_seq": last_seq, "protocol_version": PROTOCOL_VERSION})
             }
             Self::LogCaughtUp => json!({"control": "LOG_CAUGHT_UP"}),
             Self::LogCleared => json!({"control": "LOG_CLEARED"}),
@@ -320,9 +320,7 @@ mod tests {
     fn protobuf_event_preserves_typed_data_and_raw_fields() {
         let event = parse_line(
             b"10/28 15:04:05.123  SPELL_DAMAGE,Player-1,Mage,0x511,0,Creature-2,nil,0x10,0,1234,Fireball,4,250,0",
-        )
-        .unwrap()
-        .unwrap();
+        );
         let bytes = encode_event(7, log_event(event));
         let envelope = pb::Envelope::decode(bytes.as_slice()).unwrap();
         assert_eq!(envelope.seq, 7);

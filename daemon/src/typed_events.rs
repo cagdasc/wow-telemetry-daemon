@@ -768,9 +768,62 @@ pub struct UnrecognizedEventEventData {
     pub event_name: String,
 }
 
+pub fn serialize_hex_bytes<S>(bytes: &[u8], serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    let mut hex = String::with_capacity(bytes.len() * 2);
+    for &b in bytes {
+        use std::fmt::Write;
+        let _ = write!(hex, "{:02x}", b);
+    }
+    serializer.serialize_str(&hex)
+}
+
+pub fn deserialize_hex_or_array_bytes<'de, D>(deserializer: D) -> Result<Vec<u8>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    struct BytesVisitor;
+    impl<'de> serde::de::Visitor<'de> for BytesVisitor {
+        type Value = Vec<u8>;
+        fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            formatter.write_str("a hex string or array of bytes")
+        }
+        #[allow(clippy::manual_is_multiple_of)]
+        fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+        where
+            E: serde::de::Error,
+        {
+            if v.len() % 2 != 0 {
+                return Err(E::custom("invalid odd-length hex string"));
+            }
+            (0..v.len())
+                .step_by(2)
+                .map(|i| u8::from_str_radix(&v[i..i + 2], 16).map_err(E::custom))
+                .collect()
+        }
+        fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+        where
+            A: serde::de::SeqAccess<'de>,
+        {
+            let mut bytes = Vec::new();
+            while let Some(byte) = seq.next_element()? {
+                bytes.push(byte);
+            }
+            Ok(bytes)
+        }
+    }
+    deserializer.deserialize_any(BytesVisitor)
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct MalformedEventEventData {
     pub reason: String,
+    #[serde(
+        serialize_with = "serialize_hex_bytes",
+        deserialize_with = "deserialize_hex_or_array_bytes"
+    )]
     pub raw_bytes: Vec<u8>,
 }
 

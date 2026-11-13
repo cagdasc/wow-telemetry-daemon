@@ -107,6 +107,7 @@ class CombatEventRepositoryImpl(
                                 val envelope = Envelope.ADAPTER.decode(frame.readBytes())
                                 val hello = envelope.control?.hello
                                 if (hello != null) {
+                                    checkProtocolVersion(hello.protocol_version.toLong(), url)
                                     resume(hello.epoch)
                                     continue
                                 }
@@ -127,6 +128,10 @@ class CombatEventRepositoryImpl(
                             val root = parseCombatEventRoot(payload)
                             when (root["control"]?.jsonPrimitive?.contentOrNull) {
                                 HELLO -> {
+                                    checkProtocolVersion(
+                                        root["protocol_version"]?.jsonPrimitive?.longOrNull,
+                                        url,
+                                    )
                                     resume(root["epoch"]?.jsonPrimitive?.longOrNull)
                                     continue
                                 }
@@ -189,6 +194,12 @@ class CombatEventRepositoryImpl(
         }
     }
 
+    private fun checkProtocolVersion(version: Long?, url: String) {
+        if (version != null && version != PROTOCOL_VERSION) {
+            logError("Daemon protocol version mismatch from $url: expected $PROTOCOL_VERSION, got $version")
+        }
+    }
+
     private suspend fun DefaultClientWebSocketSession.resume(epoch: Long?) {
         epoch ?: return
         val previousEpoch = streamEpoch
@@ -212,6 +223,7 @@ class CombatEventRepositoryImpl(
         const val CLEAR_LOG_RESULT = "CLEAR_LOG_RESULT"
         const val HELLO = "HELLO"
         const val REPLAY_GAP = "REPLAY_GAP"
+        const val PROTOCOL_VERSION = 1L
         const val NO_SEQ = -1L
         val RECONNECT_DELAY = 3.seconds
     }

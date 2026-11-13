@@ -662,12 +662,14 @@ checksum = "1ebf944e87a7c253233ad6766e082e3cd714b5d03812acc24c318f549614536e"
 name = "wow-telemetry-daemon"
 version = "0.1.0"
 dependencies = [
+ "log",
  "memchr",
  "prost",
  "prost-build",
  "protoc-bin-vendored",
  "serde",
  "serde_json",
+ "thiserror",
  "tungstenite",
 ]
 
