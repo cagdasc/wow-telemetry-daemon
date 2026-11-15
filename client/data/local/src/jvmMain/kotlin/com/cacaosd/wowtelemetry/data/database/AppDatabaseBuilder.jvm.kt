@@ -4,13 +4,13 @@ import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import kotlinx.coroutines.Dispatchers
 
-fun createAppDatabase(databasePath: String): AppDatabase =
+actual fun createAppDatabase(databasePath: String): AppDatabase =
     Room.databaseBuilder<AppDatabase>(name = databasePath)
         .setDriver(BundledSQLiteDriver())
         .setQueryCoroutineContext(Dispatchers.IO)
         .build()
 
-fun createCharacterProfileDatabase(databasePath: String): CharacterProfileDatabase =
+actual fun createCharacterProfileDatabase(databasePath: String): CharacterProfileDatabase =
     Room.databaseBuilder<CharacterProfileDatabase>(name = databasePath)
         .setDriver(BundledSQLiteDriver())
         .setQueryCoroutineContext(Dispatchers.IO)

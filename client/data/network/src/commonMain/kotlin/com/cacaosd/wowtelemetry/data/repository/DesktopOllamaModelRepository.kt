@@ -1,6 +1,6 @@
-package com.cacaosd.wowtelemetry.client.di
+package com.cacaosd.wowtelemetry.data.repository
 
-import com.cacaosd.wowtelemetry.agent.OllamaModelRepository
+import com.cacaosd.wowtelemetry.domain.ollama.OllamaModelRepository
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*

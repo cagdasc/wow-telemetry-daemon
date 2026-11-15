@@ -11,11 +11,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.cacaosd.wowtelemetry.agent.BatchFlushStrategy
-import com.cacaosd.wowtelemetry.agent.NarrationSettings
 import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleBorderSubtle
 import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleGold
 import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleTextMuted
+import com.cacaosd.wowtelemetry.domain.preferences.BatchFlushStrategy
+import com.cacaosd.wowtelemetry.domain.preferences.NarrationSettings
 
 @Composable
 fun NarrationSettingsDialog(

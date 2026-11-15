@@ -8,6 +8,8 @@ import ai.koog.agents.core.agent.functionalStrategy
 import ai.koog.prompt.dsl.prompt
 import ai.koog.prompt.executor.llms.MultiLLMPromptExecutor
 import ai.koog.prompt.executor.ollama.client.OllamaClient
+import ai.koog.prompt.llm.LLMProvider
+import ai.koog.prompt.llm.LLModel
 import ai.koog.prompt.message.Message
 import ai.koog.prompt.message.MessagePart
 import ai.koog.prompt.message.RequestMetaInfo
@@ -15,12 +17,13 @@ import ai.koog.prompt.params.LLMParams
 import ai.koog.utils.time.KoogClock
 import com.cacaosd.wowtelemetry.combatlog.CombatEventBatch
 import com.cacaosd.wowtelemetry.domain.*
+import com.cacaosd.wowtelemetry.domain.preferences.NarrationSettings
+import com.cacaosd.wowtelemetry.domain.preferences.NarrationSettingsRepository
 import kotlin.math.max
 
 class CombatEventNarrator(
     private val clock: KoogClock,
     private val settingsRepository: NarrationSettingsRepository,
-    private val supportingDocumentProvider: SupportingDocumentProvider,
 ) {
     private val chatHistoryProvider = InMemoryChatHistoryProvider()
 
@@ -31,7 +34,6 @@ class CombatEventNarrator(
     ): String {
         addProfileAsFirstUserMessage(sessionId, profile)
         val settings = settingsRepository.load()
-//        val supportingContext = supportingDocumentProvider.relevantContext(batch.toPromptText())
         val executor = MultiLLMPromptExecutor(OllamaClient())
         val agent = AIAgent(
             agentConfig = AIAgentConfig(
@@ -93,6 +95,11 @@ class CombatEventNarrator(
             )
         }
     }
+
+    private fun NarrationSettings.toLLModel(): LLModel = LLModel(
+        provider = LLMProvider.Ollama,
+        id = model,
+    )
 }
 
 private fun CharacterProfile.toChatMessage(): String? {

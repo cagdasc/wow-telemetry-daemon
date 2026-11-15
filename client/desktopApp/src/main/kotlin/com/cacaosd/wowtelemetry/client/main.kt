@@ -7,7 +7,6 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.v2.Window
-import androidx.compose.ui.window.v2.rememberWindowState
 import androidx.lifecycle.ViewModelStore
 import com.cacaosd.wowtelemetry.client.di.appModule
 import com.cacaosd.wowtelemetry.data.database.AppDatabase

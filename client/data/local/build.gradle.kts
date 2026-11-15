@@ -10,10 +10,15 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(project(":domain"))
-            implementation(libs.kotlinx.coroutines.core)
+
+            implementation(libs.datastore.core)
+            implementation(libs.datastore.preferences.core)
             api(libs.androidx.room.runtime)
             implementation(libs.androidx.sqlite.bundled)
+
             implementation(libs.koin.core)
+
+            implementation(libs.kotlinx.coroutines.core)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

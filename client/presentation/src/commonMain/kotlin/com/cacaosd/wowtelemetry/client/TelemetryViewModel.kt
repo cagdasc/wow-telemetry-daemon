@@ -2,9 +2,13 @@ package com.cacaosd.wowtelemetry.client
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.cacaosd.wowtelemetry.agent.*
+import com.cacaosd.wowtelemetry.agent.CombatEventNarrator
 import com.cacaosd.wowtelemetry.combatlog.CombatEventBatch
 import com.cacaosd.wowtelemetry.domain.*
+import com.cacaosd.wowtelemetry.domain.ollama.OllamaModelRepository
+import com.cacaosd.wowtelemetry.domain.preferences.BatchFlushStrategy
+import com.cacaosd.wowtelemetry.domain.preferences.NarrationSettings
+import com.cacaosd.wowtelemetry.domain.preferences.NarrationSettingsRepository
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow

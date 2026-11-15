@@ -13,8 +13,6 @@ dependencies {
     implementation(project(":data"))
     implementation(project(":presentation"))
 
-    implementation(libs.ktor.client.cio)
-    implementation(libs.ktor.client.websockets)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.koin.core)
     implementation(libs.koog.agents)

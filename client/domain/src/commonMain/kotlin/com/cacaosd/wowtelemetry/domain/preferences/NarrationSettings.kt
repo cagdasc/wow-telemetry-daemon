@@ -1,15 +1,4 @@
-package com.cacaosd.wowtelemetry.agent
-
-import ai.koog.prompt.llm.LLMProvider
-import ai.koog.prompt.llm.LLModel
-
-enum class BatchFlushStrategy {
-    /** Flush on LOG_CAUGHT_UP, or after no events arrive for the silence timeout. */
-    SILENCE_WATCHDOG,
-
-    /** Flush on LOG_CAUGHT_UP, or when the daemon connection is lost. */
-    FLUSH_ON_DISCONNECT,
-}
+package com.cacaosd.wowtelemetry.domain.preferences
 
 data class NarrationSettings(
     val temperature: Double = 0.5,
@@ -25,11 +14,6 @@ data class NarrationSettings(
         require(model.isNotBlank()) { "Model name cannot be blank." }
     }
 
-    fun toLLModel(): LLModel = LLModel(
-        provider = LLMProvider.Ollama,
-        id = model,
-    )
-
     companion object {
         const val DEFAULT_SILENCE_TIMEOUT_SECONDS = 10
         const val MIN_SILENCE_TIMEOUT_SECONDS = 5
@@ -37,16 +21,10 @@ data class NarrationSettings(
     }
 }
 
-interface NarrationSettingsRepository {
-    suspend fun load(): NarrationSettings
+enum class BatchFlushStrategy {
+    /** Flush on LOG_CAUGHT_UP, or after no events arrive for the silence timeout. */
+    SILENCE_WATCHDOG,
 
-    suspend fun save(settings: NarrationSettings)
-}
-
-fun interface SupportingDocumentProvider {
-    suspend fun relevantContext(query: String): String?
-}
-
-interface OllamaModelRepository {
-    suspend fun discoverModels(): List<String>
+    /** Flush on LOG_CAUGHT_UP, or when the daemon connection is lost. */
+    FLUSH_ON_DISCONNECT,
 }
