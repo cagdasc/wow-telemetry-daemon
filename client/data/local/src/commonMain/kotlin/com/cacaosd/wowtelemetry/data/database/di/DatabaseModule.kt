@@ -1,6 +1,12 @@
 package com.cacaosd.wowtelemetry.data.database.di
 
-import com.cacaosd.wowtelemetry.data.database.*
+import com.cacaosd.wowtelemetry.data.database.AppDatabase
+import com.cacaosd.wowtelemetry.data.database.CharacterProfileDatabase
+import com.cacaosd.wowtelemetry.data.database.RoomCharacterProfileRepository
+import com.cacaosd.wowtelemetry.data.database.RoomNpcMetadataRepository
+import com.cacaosd.wowtelemetry.data.database.RoomSpellMetadataRepository
+import com.cacaosd.wowtelemetry.data.database.createAppDatabase
+import com.cacaosd.wowtelemetry.data.database.createCharacterProfileDatabase
 import com.cacaosd.wowtelemetry.domain.CharacterProfileRepository
 import com.cacaosd.wowtelemetry.domain.NpcMetadataRepository
 import com.cacaosd.wowtelemetry.domain.SpellMetadataRepository
@@ -17,8 +23,8 @@ internal val databaseModule = module {
         RoomNpcMetadataRepository(get<AppDatabase>().creatureDao())
     }
 
-    single<AppDatabase> { createAppDatabase("/home/cagdas/wow_db/wow-telemetry.db") }
+    single<AppDatabase> { createAppDatabase(get()) }
     single<CharacterProfileDatabase> {
-        createCharacterProfileDatabase("/home/cagdas/wow_db/wow-telemetry-profile.db")
+        createCharacterProfileDatabase(get())
     }
 }

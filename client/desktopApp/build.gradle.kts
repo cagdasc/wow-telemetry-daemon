@@ -7,25 +7,28 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":agent"))
-    implementation(project(":combat-log"))
-    implementation(project(":domain"))
-    implementation(project(":data"))
     implementation(project(":presentation"))
+    implementation(project(":data"))
 
-    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.ktor.client.core)
     implementation(libs.koin.core)
-    implementation(libs.koog.agents)
-    implementation(libs.koog.ollama.client)
+    implementation(libs.koin.compose)
+    implementation(libs.koin.core.jvm)
+    implementation(libs.kotlinx.coroutines.swing)
+    implementation(libs.kotlinx.coroutines.test)
+    implementation(libs.kotlinx.coroutines.jvm)
+
     implementation(libs.compose.runtime)
     implementation(libs.compose.foundation)
     implementation(libs.compose.material3)
     implementation(libs.compose.ui)
     implementation(libs.compose.uiToolingPreview)
     implementation(compose.desktop.currentOs)
-    implementation(libs.kotlinx.coroutinesSwing)
 
-    implementation(libs.compose.uiToolingPreview)
+    implementation(libs.platform.coroutines)
+    implementation(libs.platform.coroutines.di)
+    implementation(libs.platform.core)
+    implementation(libs.platform.core.di)
 }
 
 compose.desktop {

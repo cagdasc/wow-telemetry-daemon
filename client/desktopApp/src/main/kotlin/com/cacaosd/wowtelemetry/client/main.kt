@@ -8,46 +8,63 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.v2.Window
 import androidx.lifecycle.ViewModelStore
+import com.cacaosd.platform.core.config.PlatformConfiguration
+import com.cacaosd.platform.core.di.platformConfiguration
+import com.cacaosd.platform.coroutines.di.platformCoroutines
+import com.cacaosd.platform.coroutines.dispatchers.PlatformDispatchers
 import com.cacaosd.wowtelemetry.client.di.appModule
 import com.cacaosd.wowtelemetry.data.database.AppDatabase
 import com.cacaosd.wowtelemetry.data.database.CharacterProfileDatabase
-import io.ktor.client.*
-import org.koin.core.context.startKoin
+import io.ktor.client.HttpClient
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.setMain
+import org.koin.compose.KoinApplication
+import org.koin.compose.LocalKoinApplication
 import java.net.URI
 
 private const val DEFAULT_WEBSOCKET_URL = "ws://127.0.0.1:8765"
 
-fun main(args: Array<String>) {
-    val websocketUrl = parseWebSocketUrl(args) ?: return
-    val koinApplication = startKoin {
-        allowOverride(false)
-        modules(appModule())
-    }
-    val database = koinApplication.koin.get<AppDatabase>()
-    val profileDatabase = koinApplication.koin.get<CharacterProfileDatabase>()
-    val httpClient = koinApplication.koin.get<HttpClient>()
-    val viewModel = koinApplication.koin.get<TelemetryViewModel>()
-    val viewModelStore = ViewModelStore().apply {
-        put("TelemetryViewModel", viewModel)
-    }
-    viewModel.start()
+fun main(args: Array<String>) = application {
+    val websocketUrl = parseWebSocketUrl(args) ?: return@application
 
-    application {
-        Window(
-            onCloseRequest = {
-                viewModelStore.clear()
-                httpClient.close()
-                database.close()
-                profileDatabase.close()
-                koinApplication.close()
-                exitApplication()
-            },
-            title = "WoW Telemetry Client",
-            minSize = DpSize(width = 1200.dp, height = 900.dp),
-        ) {
-            App(websocketUrl, viewModel)
+    KoinApplication(
+        application = {
+            platformCoroutines()
+            platformConfiguration(PlatformConfiguration())
+
+            allowOverride(false)
+            modules(appModule())
+            @OptIn(ExperimentalCoroutinesApi::class)
+            Dispatchers.setMain(koin.get<PlatformDispatchers>().main)
+        },
+        content = {
+            val koin = LocalKoinApplication.current
+            val database = koin.get<AppDatabase>()
+            val profileDatabase = koin.get<CharacterProfileDatabase>()
+            val httpClient = koin.get<HttpClient>()
+            val viewModel = koin.get<TelemetryViewModel>()
+            val viewModelStore = ViewModelStore().apply {
+                put("TelemetryViewModel", viewModel)
+            }
+            viewModel.start()
+
+            Window(
+                onCloseRequest = {
+                    viewModelStore.clear()
+                    httpClient.close()
+                    database.close()
+                    profileDatabase.close()
+                    koin.close()
+                    exitApplication()
+                },
+                title = "WoW Telemetry Client",
+                minSize = DpSize(width = 1200.dp, height = 900.dp),
+            ) {
+                App(websocketUrl, viewModel)
+            }
         }
-    }
+    )
 }
 
 private fun parseWebSocketUrl(args: Array<String>): String? {

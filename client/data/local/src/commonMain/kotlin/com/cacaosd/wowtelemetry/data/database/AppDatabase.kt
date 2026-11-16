@@ -15,6 +15,10 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun spellDao(): SpellDao
     abstract fun spellNameDao(): SpellNameDao
     abstract fun creatureDao(): CreatureDao
+
+    companion object {
+        const val DB_NAME = "wow-telemetry"
+    }
 }
 
 expect object AppDatabaseConstructor : RoomDatabaseConstructor<AppDatabase> {

@@ -1,6 +1,6 @@
 package com.cacaosd.wowtelemetry.data
 
-internal fun getHomeDirectory(): String {
+fun getHomeDirectory(): String {
     val homeDir = System.getProperty("user.home")
     val configDirectory = when {
         System.getProperty("os.name").startsWith("Windows", ignoreCase = true) ->

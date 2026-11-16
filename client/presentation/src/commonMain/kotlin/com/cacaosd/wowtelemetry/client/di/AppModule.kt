@@ -10,7 +10,6 @@ import org.koin.dsl.module
 fun appModule() = module {
     includes(networkDataModule(), localDataModule(), agetModule())
 
-
     factory { ProcessCombatEventUseCase(get()) }
 
     single {

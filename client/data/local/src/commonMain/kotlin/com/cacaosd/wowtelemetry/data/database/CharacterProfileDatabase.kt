@@ -13,6 +13,10 @@ import androidx.room.RoomDatabaseConstructor
 @ConstructedBy(CharacterProfileDatabaseConstructor::class)
 abstract class CharacterProfileDatabase : RoomDatabase() {
     abstract fun characterProfileDao(): CharacterProfileDao
+
+    companion object {
+        const val DB_NAME = "wow-telemetry-profile"
+    }
 }
 
 expect object CharacterProfileDatabaseConstructor :

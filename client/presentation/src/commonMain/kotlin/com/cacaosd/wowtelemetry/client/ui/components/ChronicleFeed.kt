@@ -3,14 +3,35 @@ package com.cacaosd.wowtelemetry.client.ui.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,7 +43,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cacaosd.wowtelemetry.client.CombatChatTurn
-import com.cacaosd.wowtelemetry.client.ui.theme.*
+import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleArcane
+import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleBorder
+import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleBorderSubtle
+import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleError
+import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleGold
+import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleGoldContainer
+import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleSuccess
+import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleSurface
+import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleSurfaceElevated
+import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleSurfaceVariant
+import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleTextMuted
+import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleTextPrimary
+import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleTextSecondary
+import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleWarning
 import com.cacaosd.wowtelemetry.domain.CharacterProfile
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -42,7 +76,7 @@ fun ChronicleFeed(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp),
+            .padding(horizontal = 16.dp),
     ) {
         if (assistantTurns.isEmpty() && !isPhrasingEvent) {
             EmptyChronicleState(
@@ -118,7 +152,7 @@ fun ChronicleCard(
         border = BorderStroke(1.dp, ChronicleBorder),
     ) {
         Column(
-            modifier = Modifier.padding(20.dp),
+            modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             // Card Header
@@ -129,7 +163,8 @@ fun ChronicleCard(
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.weight(1f, fill = false),
                 ) {
                     // Entry label
                     Surface(
@@ -139,7 +174,7 @@ fun ChronicleCard(
                     ) {
                         Text(
                             text = "ENTRY #$entryNumber",
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                            modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = ChronicleGold,
@@ -156,7 +191,7 @@ fun ChronicleCard(
                         ) {
                             Text(
                                 text = "⚡ $count events",
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Medium,
                                 color = ChronicleArcane,
@@ -191,7 +226,7 @@ fun ChronicleCard(
                             isCopied = false
                         }
                     },
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
                 ) {
                     Text(
                         text = if (isCopied) "✓ Copied" else "Copy",
@@ -205,7 +240,7 @@ fun ChronicleCard(
             Text(
                 text = turn.content,
                 style = MaterialTheme.typography.bodyLarge.copy(
-                    lineHeight = 25.sp,
+                    lineHeight = 24.sp,
                 ),
                 color = ChronicleTextPrimary,
             )
@@ -222,9 +257,9 @@ fun PhrasingLoadingCard() {
         border = BorderStroke(1.dp, ChronicleArcane.copy(alpha = 0.4f)),
     ) {
         Row(
-            modifier = Modifier.padding(18.dp),
+            modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             CircularProgressIndicator(
                 modifier = Modifier.size(20.dp),
@@ -263,21 +298,21 @@ fun EmptyChronicleState(
             shape = RoundedCornerShape(20.dp),
             color = ChronicleSurfaceVariant.copy(alpha = 0.7f),
             border = BorderStroke(1.dp, ChronicleBorder),
-            modifier = Modifier.widthIn(max = 520.dp).padding(24.dp),
+            modifier = Modifier.widthIn(max = 520.dp).padding(16.dp),
         ) {
             Column(
-                modifier = Modifier.padding(28.dp),
+                modifier = Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 Surface(
                     shape = CircleShape,
                     color = ChronicleSurfaceElevated,
                     border = BorderStroke(1.dp, ChronicleGold.copy(alpha = 0.3f)),
-                    modifier = Modifier.size(56.dp),
+                    modifier = Modifier.size(52.dp),
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        Text("📜", fontSize = 24.sp)
+                        Text("📜", fontSize = 22.sp)
                     }
                 }
 

@@ -1,5 +1,7 @@
 package com.cacaosd.wowtelemetry.data.database
 
-expect fun createAppDatabase(databasePath: String): AppDatabase
+import com.cacaosd.platform.core.config.PlatformConfiguration
 
-expect fun createCharacterProfileDatabase(databasePath: String): CharacterProfileDatabase
+expect fun createAppDatabase(platformConfiguration: PlatformConfiguration): AppDatabase
+
+expect fun createCharacterProfileDatabase(platformConfiguration: PlatformConfiguration): CharacterProfileDatabase

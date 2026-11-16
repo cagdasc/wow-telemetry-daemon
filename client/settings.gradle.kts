@@ -1,3 +1,4 @@
+System.setProperty("android.user.home", "/tmp/.android")
 rootProject.name = "WowTelemetryClient"
 
 pluginManagement {
@@ -23,6 +24,7 @@ dependencyResolutionManagement {
                 includeGroupAndSubgroups("com.google")
             }
         }
+        maven(url = "https://jitpack.io")
         mavenCentral()
     }
 }
@@ -32,6 +34,7 @@ plugins {
 }
 
 include(":desktopApp")
+include(":androidApp")
 include(":domain")
 include(":data")
 include(":data:network")

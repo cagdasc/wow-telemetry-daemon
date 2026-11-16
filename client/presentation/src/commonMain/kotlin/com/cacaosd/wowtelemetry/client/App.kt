@@ -5,25 +5,41 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.cacaosd.wowtelemetry.client.ui.components.*
-import com.cacaosd.wowtelemetry.client.ui.dialogs.*
+import com.cacaosd.wowtelemetry.client.ui.components.BottomStatusBar
+import com.cacaosd.wowtelemetry.client.ui.components.ChronicleFeed
+import com.cacaosd.wowtelemetry.client.ui.components.CombatActivityRibbon
+import com.cacaosd.wowtelemetry.client.ui.components.ConnectionPanel
+import com.cacaosd.wowtelemetry.client.ui.components.TopBar
+import com.cacaosd.wowtelemetry.client.ui.dialogs.CharacterSettingsDialog
+import com.cacaosd.wowtelemetry.client.ui.dialogs.ClearDaemonDialog
+import com.cacaosd.wowtelemetry.client.ui.dialogs.NarrationSettingsDialog
 import com.cacaosd.wowtelemetry.client.ui.theme.DarkChronicleColorScheme
 import com.cacaosd.wowtelemetry.domain.CharacterProfile
 import com.cacaosd.wowtelemetry.domain.DaemonConnectionState
-import java.net.URI
-import java.net.URISyntaxException
 
 @Composable
 fun App(
     initialWebsocketUrl: String,
     viewModel: TelemetryViewModel,
+    modifier: Modifier = Modifier,
 ) {
     val uiState = viewModel.uiState.collectAsState().value
     val chatHistory = uiState.chatHistory
@@ -61,11 +77,11 @@ fun App(
 
     MaterialTheme(colorScheme = DarkChronicleColorScheme) {
         Surface(
-            modifier = Modifier.fillMaxSize(),
+            modifier = modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background,
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
-                // 1. Sticky Navigation & Status Bar
+                // 1. Sticky Navigation & Status Bar (Responsive for Mobile & Desktop)
                 TopBar(
                     daemonAddress = daemonAddress,
                     connection = connection,
@@ -203,39 +219,25 @@ fun App(
     }
 }
 
-private fun initialDaemonAddress(url: String): String =
-    try {
-        val uri = URI(url)
-        val port = if (uri.port >= 0) uri.port else if (uri.scheme == "wss") 443 else 80
-        "${uri.host ?: "127.0.0.1"}:$port"
-    } catch (_: URISyntaxException) {
-        "127.0.0.1:8765"
-    }
+fun initialDaemonAddress(url: String): String {
+    val clean = url.trim().removePrefix("ws://").removePrefix("wss://").substringBefore('/')
+    return clean.ifBlank { "127.0.0.1:8765" }
+}
 
-private fun parseDaemonAddress(address: String): String? {
+fun parseDaemonAddress(address: String): String? {
     val value = address.trim()
-    val url = if (value.startsWith("ws://", ignoreCase = true) ||
-        value.startsWith("wss://", ignoreCase = true)
-    ) {
-        value
-    } else {
-        "ws://$value"
+    val raw = when {
+        value.startsWith("ws://", ignoreCase = true) -> value
+        value.startsWith("wss://", ignoreCase = true) -> value
+        else -> "ws://$value"
     }
-    return try {
-        val uri = URI(url)
-        if (
-            (uri.scheme == "ws" || uri.scheme == "wss") &&
-            uri.host != null &&
-            uri.port in 1..65535 &&
-            (uri.rawPath.isNullOrEmpty() || uri.rawPath == "/") &&
-            uri.rawQuery == null &&
-            uri.rawFragment == null
-        ) {
-            uri.toString()
-        } else {
-            null
-        }
-    } catch (_: URISyntaxException) {
-        null
-    }
+    val scheme = if (raw.startsWith("wss://", ignoreCase = true)) "wss" else "ws"
+    val withoutScheme = raw.substringAfter("://")
+    val hostPort = withoutScheme.substringBefore('/')
+    val parts = hostPort.split(':')
+    if (parts.size != 2) return null
+    val host = parts[0].trim()
+    val port = parts[1].trim().toIntOrNull() ?: return null
+    if (host.isEmpty() || port !in 1..65535) return null
+    return "$scheme://$host:$port"
 }
