@@ -1,6 +1,7 @@
 package com.cacaosd.wowtelemetry.data.di
 
 import com.cacaosd.wowtelemetry.data.mapper.CombatEventMapper
+import com.cacaosd.wowtelemetry.data.mapper.CombatStreamMessageDecoder
 import com.cacaosd.wowtelemetry.data.repository.CombatEventRepositoryImpl
 import com.cacaosd.wowtelemetry.data.repository.DesktopOllamaModelRepository
 import com.cacaosd.wowtelemetry.domain.CombatEventRepository
@@ -24,11 +25,12 @@ fun networkDataModule() = module {
     single<CombatEventRepository> {
         CombatEventRepositoryImpl(
             httpClient = get(),
-            combatEventMapper = get(),
+            streamMessageDecoder = get(),
         )
     }
 
     single { CombatEventMapper() }
+    single { CombatStreamMessageDecoder(combatEventMapper = get()) }
 
     single<OllamaModelRepository> { DesktopOllamaModelRepository(get()) }
 }

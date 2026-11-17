@@ -4,17 +4,31 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.cacaosd.wowtelemetry.agent.CombatEventNarrator
 import com.cacaosd.wowtelemetry.combatlog.CombatEventBatch
-import com.cacaosd.wowtelemetry.domain.*
+import com.cacaosd.wowtelemetry.domain.CharacterProfile
+import com.cacaosd.wowtelemetry.domain.CharacterProfileRepository
+import com.cacaosd.wowtelemetry.domain.CombatEvent
+import com.cacaosd.wowtelemetry.domain.CombatEventRepository
+import com.cacaosd.wowtelemetry.domain.CombatStreamMessage
+import com.cacaosd.wowtelemetry.domain.DaemonConnectionState
+import com.cacaosd.wowtelemetry.domain.ProcessCombatEventUseCase
 import com.cacaosd.wowtelemetry.domain.ollama.OllamaModelRepository
 import com.cacaosd.wowtelemetry.domain.preferences.BatchFlushStrategy
 import com.cacaosd.wowtelemetry.domain.preferences.NarrationSettings
 import com.cacaosd.wowtelemetry.domain.preferences.NarrationSettingsRepository
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.time.Duration.Companion.seconds
@@ -170,7 +184,7 @@ class TelemetryViewModel(
                 when (message) {
                     is CombatStreamMessage.Event -> {
                         val event = message.combatEvent
-                        _uiState.update { it.copy(latestEventSummary = event.toString()) } // enriched.summary
+                        _uiState.update { it.copy(latestEventSummary = event.toString()) }
                         collectBatchEvent(event)
                     }
 

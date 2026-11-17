@@ -1,6 +1,5 @@
 package com.cacaosd.wowtelemetry.data.repository
 
-import com.cacaosd.wowtelemetry.data.mapper.CombatEventMapper
 import com.cacaosd.wowtelemetry.data.mapper.CombatStreamMessageDecoder
 import com.cacaosd.wowtelemetry.data.mapper.toCombatLogEvent
 import com.cacaosd.wowtelemetry.data.model.CombatEventDecodeException
@@ -10,33 +9,44 @@ import com.cacaosd.wowtelemetry.domain.CombatEvent
 import com.cacaosd.wowtelemetry.domain.CombatEventRepository
 import com.cacaosd.wowtelemetry.domain.CombatStreamMessage
 import com.cacaosd.wowtelemetry.domain.DaemonConnectionState
-import io.ktor.client.*
-import io.ktor.client.plugins.websocket.*
-import io.ktor.websocket.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.*
-import kotlinx.serialization.json.*
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
+import io.ktor.client.plugins.websocket.webSocket
+import io.ktor.websocket.Frame
+import io.ktor.websocket.readBytes
+import io.ktor.websocket.readText
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.isActive
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.longOrNull
 import okio.IOException
 import kotlin.time.Duration.Companion.seconds
 
 class CombatEventRepositoryImpl(
     private val httpClient: HttpClient,
-    private val combatEventMapper: CombatEventMapper,
+    private val streamMessageDecoder: CombatStreamMessageDecoder,
     private val logError: (String) -> Unit = ::println,
 ) : CombatEventRepository {
-    private val streamMessageDecoder = CombatStreamMessageDecoder(combatEventMapper)
     private val selectedUrl = MutableStateFlow<String?>(null)
     private val mutableConnectionState = MutableStateFlow(DaemonConnectionState())
-    private val payloadLog = Channel<String>(Channel.UNLIMITED)
     private var streamEpoch: Long? = null
     private var lastSeq = NO_SEQ
-
-    init {
-        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-//            for (payload in payloadLog) println(payload)
-        }
-    }
 
     override val connectionState: StateFlow<DaemonConnectionState> =
         mutableConnectionState.asStateFlow()
@@ -124,7 +134,6 @@ class CombatEventRepositoryImpl(
                         if (frame !is Frame.Text) continue
                         try {
                             val payload = frame.readText()
-                            payloadLog.trySend(payload)
                             val root = parseCombatEventRoot(payload)
                             when (root["control"]?.jsonPrimitive?.contentOrNull) {
                                 HELLO -> {
