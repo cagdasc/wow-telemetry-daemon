@@ -1,14 +1,19 @@
 package com.cacaosd.wowtelemetry.data.repository
 
 import com.cacaosd.wowtelemetry.data.mapper.CombatStreamMessageDecoder
-import com.cacaosd.wowtelemetry.data.mapper.toCombatLogEvent
+import com.cacaosd.wowtelemetry.data.mapper.isRecordable
+import com.cacaosd.wowtelemetry.data.mapper.toStreamMessage
 import com.cacaosd.wowtelemetry.data.model.CombatEventDecodeException
 import com.cacaosd.wowtelemetry.data.model.parseCombatEventRoot
 import com.cacaosd.wowtelemetry.data.proto.Envelope
-import com.cacaosd.wowtelemetry.domain.CombatEvent
 import com.cacaosd.wowtelemetry.domain.CombatEventRepository
 import com.cacaosd.wowtelemetry.domain.CombatStreamMessage
 import com.cacaosd.wowtelemetry.domain.DaemonConnectionState
+import com.cacaosd.wowtelemetry.domain.session.CombatLogSessionException
+import com.cacaosd.wowtelemetry.domain.session.CombatLogSessionStore
+import com.cacaosd.wowtelemetry.domain.session.FrameKind
+import com.cacaosd.wowtelemetry.domain.session.IngestMode
+import com.cacaosd.wowtelemetry.domain.session.RawFrame
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
 import io.ktor.client.plugins.websocket.webSocket
@@ -41,15 +46,25 @@ import kotlin.time.Duration.Companion.seconds
 class CombatEventRepositoryImpl(
     private val httpClient: HttpClient,
     private val streamMessageDecoder: CombatStreamMessageDecoder,
+    private val sessionStore: CombatLogSessionStore,
     private val logError: (String) -> Unit = ::println,
 ) : CombatEventRepository {
     private val selectedUrl = MutableStateFlow<String?>(null)
     private val mutableConnectionState = MutableStateFlow(DaemonConnectionState())
+    private val mutableIngestMode = MutableStateFlow(IngestMode.LIVE)
+    private val mutableCollectError = MutableStateFlow<String?>(null)
     private var streamEpoch: Long? = null
     private var lastSeq = NO_SEQ
 
     override val connectionState: StateFlow<DaemonConnectionState> =
         mutableConnectionState.asStateFlow()
+    override val ingestMode: StateFlow<IngestMode> = mutableIngestMode.asStateFlow()
+    override val collectError: StateFlow<String?> = mutableCollectError.asStateFlow()
+
+    override fun setIngestMode(mode: IngestMode) {
+        mutableCollectError.value = null
+        mutableIngestMode.value = mode
+    }
 
     override fun connect(url: String) {
         resetStream()
@@ -114,14 +129,21 @@ class CombatEventRepositoryImpl(
                     for (frame in incoming) {
                         if (frame is Frame.Binary) {
                             try {
-                                val envelope = Envelope.ADAPTER.decode(frame.readBytes())
+                                val bytes = frame.readBytes()
+                                val envelope = Envelope.ADAPTER.decode(bytes)
                                 val hello = envelope.control?.hello
                                 if (hello != null) {
                                     checkProtocolVersion(hello.protocol_version.toLong(), url)
                                     resume(hello.epoch)
                                     continue
                                 }
-                                decodeBinary(envelope, url)?.let { emit(it) }
+                                if (!isNewEnvelope(envelope, url)) continue
+                                if (ingestMode.value == IngestMode.COLLECT) {
+                                    if (!envelope.isRecordable || recordFrame(RawFrame(FrameKind.BINARY, bytes))) {
+                                        continue
+                                    }
+                                }
+                                envelope.toStreamMessage()?.let { emit(it) }
                             } catch (error: IOException) {
                                 logError("Rejected invalid protobuf message from $url: ${error.message}")
                             } catch (error: CombatEventDecodeException) {
@@ -155,6 +177,13 @@ class CombatEventRepositoryImpl(
                                 if (seq <= lastSeq) continue
                                 lastSeq = seq
                             }
+                            if (ingestMode.value == IngestMode.COLLECT) {
+                                val control = root["control"]?.jsonPrimitive?.contentOrNull
+                                val recordable = control == null || control == CAUGHT_UP || control == LOG_CLEARED
+                                if (!recordable || recordFrame(RawFrame(FrameKind.TEXT, payload.encodeToByteArray()))) {
+                                    continue
+                                }
+                            }
                             emit(streamMessageDecoder.decode(root))
                         } catch (error: CombatEventDecodeException) {
                             logError("Rejected invalid WebSocket message from $url: ${error.message}")
@@ -182,25 +211,37 @@ class CombatEventRepositoryImpl(
         }
     }
 
-    private fun decodeBinary(envelope: Envelope, url: String): CombatStreamMessage? {
-        val control = envelope.control
-        if (control?.replay_gap != null) {
-            logError("Daemon replay gap from $url: ${control.replay_gap}")
-            return null
+    /** Logs replay gaps and drops frames at or below the last seen `seq`. */
+    private fun isNewEnvelope(envelope: Envelope, url: String): Boolean {
+        val replayGap = envelope.control?.replay_gap
+        if (replayGap != null) {
+            logError("Daemon replay gap from $url: $replayGap")
+            return false
         }
         if (envelope.seq != 0L) {
-            if (envelope.seq <= lastSeq) return null
+            if (envelope.seq <= lastSeq) return false
             lastSeq = envelope.seq
         }
-        return when {
-            envelope.event != null -> CombatStreamMessage.Event(
-                CombatEvent(envelope.event.timestamp, envelope.event.toCombatLogEvent())
-            )
+        return true
+    }
 
-            control?.log_caught_up != null -> CombatStreamMessage.CaughtUp
-            control?.log_cleared != null -> CombatStreamMessage.LogCleared
-            else -> null
+    /** Returns false after falling back to live mode, so the caller still processes the frame. */
+    private fun recordFrame(frame: RawFrame): Boolean =
+        try {
+            sessionStore.append(frame)
+            true
+        } catch (error: IOException) {
+            failCollecting(error)
+        } catch (error: CombatLogSessionException) {
+            failCollecting(error)
         }
+
+    private fun failCollecting(error: Exception): Boolean {
+        val message = "Could not save frames to disk, switched to live mode: ${error.message}"
+        logError(message)
+        mutableCollectError.value = message
+        mutableIngestMode.value = IngestMode.LIVE
+        return false
     }
 
     private fun checkProtocolVersion(version: Long?, url: String) {
@@ -231,6 +272,8 @@ class CombatEventRepositoryImpl(
     private companion object {
         const val CLEAR_LOG_RESULT = "CLEAR_LOG_RESULT"
         const val HELLO = "HELLO"
+        const val CAUGHT_UP = "LOG_CAUGHT_UP"
+        const val LOG_CLEARED = "LOG_CLEARED"
         const val REPLAY_GAP = "REPLAY_GAP"
         const val PROTOCOL_VERSION = 1L
         const val NO_SEQ = -1L

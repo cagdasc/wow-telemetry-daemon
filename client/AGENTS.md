@@ -26,6 +26,18 @@
 - The narration batch queue is unbounded so slow Ollama never blocks event receipt.
 - Connection is manual (Connect/Disconnect); `--ws-url` and `WOW_TELEMETRY_WS_URL` only prefill the address. Clear
   client history and Clear daemon backlog are independent actions.
+- Ingest mode is `LIVE` (default, decode and narrate immediately) or `COLLECT` (spill raw frames to a `.wowlog` session
+  file via `CombatLogSessionStore`, decode nothing). "Process now" and the Sessions dialog replay stored frames through
+  the same batch pipeline as live frames. Session files are append-only, never rotated: header `WOWL` + version byte,
+  then `[kind u8][length u32 BE][payload]` records holding frames exactly as received (protobuf or JSON text). Files
+  live
+  in `<config>/WowTelemetry/sessions` on desktop and `filesDir/sessions` on Android. A truncated tail is ignored. If a
+  write fails the repository falls back to `LIVE` and reports `collectError`. Desktop can open any file via a
+  `JFileChooser`; Android lists only in-app sessions (no document picker yet).
+- The Ask box answers from `CombatLogAnalyzer` (`combat-log`), which accumulates deterministic damage, healing,
+  interrupt, death and per-encounter statistics from processed events (live or replayed). The LLM receives only that
+  computed summary plus the question (`CombatEventNarrator.answer`, separate chat session) and never raw log rows.
+  Statistics reset on Clear View and when a session file is opened.
 - Ollama models are discovered from `/api/tags`; build `LLModel(provider = LLMProvider.Ollama, id = selectedModel)`,
   never copy another model's metadata. Supporting docs come from `./knowledge` (`.md`/`.txt`).
 

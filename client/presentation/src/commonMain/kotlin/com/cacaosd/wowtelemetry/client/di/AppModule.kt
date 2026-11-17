@@ -2,6 +2,7 @@ package com.cacaosd.wowtelemetry.client.di
 
 import com.cacaosd.wowtelemetry.agent.di.agetModule
 import com.cacaosd.wowtelemetry.client.TelemetryViewModel
+import com.cacaosd.wowtelemetry.combatlog.CombatLogAnalyzer
 import com.cacaosd.wowtelemetry.data.di.localDataModule
 import com.cacaosd.wowtelemetry.data.di.networkDataModule
 import com.cacaosd.wowtelemetry.domain.ProcessCombatEventUseCase
@@ -20,6 +21,9 @@ fun appModule() = module {
             narrationSettingsRepository = get(),
             ollamaModelRepository = get(),
             combatEventNarrator = get(),
+            sessionStore = get(),
+            sessionReplayer = get(),
+            analyzer = CombatLogAnalyzer(),
         )
     }
 }

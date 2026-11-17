@@ -3,9 +3,11 @@ package com.cacaosd.wowtelemetry.data.di
 import com.cacaosd.wowtelemetry.data.mapper.CombatEventMapper
 import com.cacaosd.wowtelemetry.data.mapper.CombatStreamMessageDecoder
 import com.cacaosd.wowtelemetry.data.repository.CombatEventRepositoryImpl
+import com.cacaosd.wowtelemetry.data.repository.CombatSessionReplayerImpl
 import com.cacaosd.wowtelemetry.data.repository.DesktopOllamaModelRepository
 import com.cacaosd.wowtelemetry.domain.CombatEventRepository
 import com.cacaosd.wowtelemetry.domain.ollama.OllamaModelRepository
+import com.cacaosd.wowtelemetry.domain.session.CombatSessionReplayer
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.websocket.WebSockets
@@ -26,7 +28,12 @@ fun networkDataModule() = module {
         CombatEventRepositoryImpl(
             httpClient = get(),
             streamMessageDecoder = get(),
+            sessionStore = get(),
         )
+    }
+
+    single<CombatSessionReplayer> {
+        CombatSessionReplayerImpl(store = get(), decoder = get())
     }
 
     single { CombatEventMapper() }

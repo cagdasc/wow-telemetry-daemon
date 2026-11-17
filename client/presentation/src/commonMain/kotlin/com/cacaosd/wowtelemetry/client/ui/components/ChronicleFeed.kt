@@ -173,7 +173,7 @@ fun ChronicleCard(
                         border = BorderStroke(1.dp, ChronicleGold.copy(alpha = 0.4f)),
                     ) {
                         Text(
-                            text = "ENTRY #$entryNumber",
+                            text = if (turn.question != null) "ANSWER" else "ENTRY #$entryNumber",
                             modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
@@ -234,6 +234,15 @@ fun ChronicleCard(
                         color = if (isCopied) ChronicleSuccess else ChronicleTextMuted,
                     )
                 }
+            }
+
+            turn.question?.let { question ->
+                Text(
+                    text = "You asked: $question",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = ChronicleArcane,
+                )
             }
 
             // Narration Body

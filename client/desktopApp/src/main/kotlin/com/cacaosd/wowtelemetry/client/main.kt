@@ -15,13 +15,18 @@ import com.cacaosd.platform.coroutines.dispatchers.PlatformDispatchers
 import com.cacaosd.wowtelemetry.client.di.appModule
 import com.cacaosd.wowtelemetry.data.database.AppDatabase
 import com.cacaosd.wowtelemetry.data.database.CharacterProfileDatabase
+import com.cacaosd.wowtelemetry.data.getHomeDirectory
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.withContext
 import org.koin.compose.KoinApplication
 import org.koin.compose.LocalKoinApplication
 import java.net.URI
+import javax.swing.JFileChooser
+import javax.swing.SwingUtilities
+import javax.swing.filechooser.FileNameExtensionFilter
 
 private const val DEFAULT_WEBSOCKET_URL = "ws://127.0.0.1:8765"
 
@@ -61,10 +66,24 @@ fun main(args: Array<String>) = application {
                 title = "WoW Telemetry Client",
                 minSize = DpSize(width = 1200.dp, height = 900.dp),
             ) {
-                App(websocketUrl, viewModel)
+                App(websocketUrl, viewModel, pickSessionFile = ::chooseSessionFile)
             }
         }
     )
+}
+
+private suspend fun chooseSessionFile(): String? = withContext(Dispatchers.IO) {
+    var selected: String? = null
+    SwingUtilities.invokeAndWait {
+        val chooser = JFileChooser(getHomeDirectory() + "/sessions").apply {
+            dialogTitle = "Open combat log session"
+            fileFilter = FileNameExtensionFilter("WoW telemetry session (*.wowlog)", "wowlog")
+        }
+        if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+            selected = chooser.selectedFile.absolutePath
+        }
+    }
+    selected
 }
 
 private fun parseWebSocketUrl(args: Array<String>): String? {

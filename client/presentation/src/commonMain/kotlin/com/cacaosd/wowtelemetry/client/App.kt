@@ -20,26 +20,32 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.cacaosd.wowtelemetry.client.ui.components.AskComposer
 import com.cacaosd.wowtelemetry.client.ui.components.BottomStatusBar
 import com.cacaosd.wowtelemetry.client.ui.components.ChronicleFeed
 import com.cacaosd.wowtelemetry.client.ui.components.CombatActivityRibbon
 import com.cacaosd.wowtelemetry.client.ui.components.ConnectionPanel
+import com.cacaosd.wowtelemetry.client.ui.components.SessionPanel
 import com.cacaosd.wowtelemetry.client.ui.components.TopBar
 import com.cacaosd.wowtelemetry.client.ui.dialogs.CharacterSettingsDialog
 import com.cacaosd.wowtelemetry.client.ui.dialogs.ClearDaemonDialog
 import com.cacaosd.wowtelemetry.client.ui.dialogs.NarrationSettingsDialog
+import com.cacaosd.wowtelemetry.client.ui.dialogs.SessionsDialog
 import com.cacaosd.wowtelemetry.client.ui.theme.DarkChronicleColorScheme
 import com.cacaosd.wowtelemetry.domain.CharacterProfile
 import com.cacaosd.wowtelemetry.domain.DaemonConnectionState
+import kotlinx.coroutines.launch
 
 @Composable
 fun App(
     initialWebsocketUrl: String,
     viewModel: TelemetryViewModel,
     modifier: Modifier = Modifier,
+    pickSessionFile: (suspend () -> String?)? = null,
 ) {
     val uiState = viewModel.uiState.collectAsState().value
     val chatHistory = uiState.chatHistory
@@ -58,6 +64,8 @@ fun App(
     }
     var endpointError by remember { mutableStateOf<String?>(null) }
     var isConnectionPanelExpanded by remember { mutableStateOf(false) }
+    var isSessionsDialogVisible by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     val assistantTurns = chatHistory.filter { it.role == "Assistant" }
     val listState = rememberLazyListState()
@@ -131,6 +139,21 @@ fun App(
                     )
                 }
 
+                SessionPanel(
+                    ingestMode = uiState.ingestMode,
+                    recording = uiState.recording,
+                    pendingFrames = uiState.pendingFrames,
+                    isProcessing = uiState.isProcessingSession,
+                    message = uiState.sessionMessage,
+                    messageIsError = uiState.sessionMessageIsError,
+                    onIngestModeChange = viewModel::setIngestMode,
+                    onProcessNow = viewModel::processCollected,
+                    onOpenSessions = {
+                        viewModel.refreshSessions()
+                        isSessionsDialogVisible = true
+                    },
+                )
+
                 // Profile notice
                 profileError?.let { error ->
                     Surface(
@@ -170,6 +193,13 @@ fun App(
                     modifier = Modifier.weight(1f),
                 )
 
+                AskComposer(
+                    analyzedEvents = uiState.analyzedEvents,
+                    isAnswering = uiState.isAnswering,
+                    error = uiState.askError,
+                    onAsk = viewModel::ask,
+                )
+
                 // 5. Pinned Footer Status Bar
                 BottomStatusBar(
                     model = uiState.narrationSettings.model,
@@ -204,6 +234,29 @@ fun App(
                     isNarrationSettingsVisible = false
                 },
                 onRefreshModels = viewModel::discoverOllamaModels,
+            )
+        }
+
+        if (isSessionsDialogVisible) {
+            SessionsDialog(
+                sessions = uiState.sessions,
+                activePath = uiState.recording.session?.path,
+                isProcessing = uiState.isProcessingSession,
+                onProcess = {
+                    isSessionsDialogVisible = false
+                    viewModel.processSessionFile(it.path)
+                },
+                onBrowse = pickSessionFile?.let { pick ->
+                    {
+                        scope.launch {
+                            pick()?.let {
+                                isSessionsDialogVisible = false
+                                viewModel.processSessionFile(it)
+                            }
+                        }
+                    }
+                },
+                onDismiss = { isSessionsDialogVisible = false },
             )
         }
 
