@@ -43,6 +43,7 @@ import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleWarning
 import com.cacaosd.wowtelemetry.client.ui.theme.wowClassColor
 import com.cacaosd.wowtelemetry.domain.CharacterProfile
 import com.cacaosd.wowtelemetry.domain.DaemonConnectionState
+import com.cacaosd.wowtelemetry.domain.session.IngestMode
 
 @Composable
 fun TopBar(
@@ -53,6 +54,12 @@ fun TopBar(
     onToggleConnectionPanel: () -> Unit,
     onOpenCharacterSettings: () -> Unit,
     onOpenNarrationSettings: () -> Unit,
+    ingestMode: IngestMode,
+    pendingFrames: Long,
+    isProcessing: Boolean,
+    onIngestModeChange: (IngestMode) -> Unit,
+    onProcess: () -> Unit,
+    onStop: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val isConnected = connection.status == DaemonConnectionState.Status.CONNECTED
@@ -117,6 +124,8 @@ fun TopBar(
                             onToggleConnectionPanel = onToggleConnectionPanel,
                         )
                     }
+
+                    IngestControls(ingestMode, pendingFrames, isProcessing, onIngestModeChange, onProcess, onStop)
                 }
             } else {
                 // Desktop / Tablet Wide Layout
@@ -131,6 +140,7 @@ fun TopBar(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
+                        IngestControls(ingestMode, pendingFrames, isProcessing, onIngestModeChange, onProcess, onStop)
                         CharacterPill(
                             characterProfile = characterProfile,
                             onOpenCharacterSettings = onOpenCharacterSettings,

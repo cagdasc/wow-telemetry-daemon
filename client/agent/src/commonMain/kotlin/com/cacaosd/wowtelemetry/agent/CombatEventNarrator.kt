@@ -49,6 +49,24 @@ class CombatEventNarrator(
         input = batch.toPromptText(null),
     )
 
+    /** Narrates one overview of everything processed, from [statistics] computed by the application. */
+    suspend fun summarize(
+        sessionId: String,
+        profile: CharacterProfile?,
+        statistics: String,
+    ): String = run(
+        sessionId = sessionId,
+        profile = profile,
+        instructions = """
+            Never ask the user questions.
+            Write one self-contained overview of the processed World of Warcraft combat log using ONLY the
+            computed statistics below. They were calculated by the application, not by you.
+            Never invent or recalculate numbers, names, timings, causes, or outcomes.
+            Never display raw combat-log rows. Be brief and do not repeat information.
+            """.trimIndent(),
+        input = "Computed statistics:\n$statistics",
+    )
+
     /**
      * Answers a user question from [statistics] only. The client computes the statistics
      * deterministically; the model phrases them and must not add facts. Each call sends the current

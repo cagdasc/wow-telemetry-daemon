@@ -57,6 +57,13 @@ class CombatLogAnalyzer(
 
     val hasData: Boolean get() = eventCount > 0
 
+    /** True between an `ENCOUNTER_START` and its `ENCOUNTER_END`. */
+    val hasOpenEncounter: Boolean get() = current != null
+
+    val firstTimestamp: String? get() = overall.firstTimestamp
+
+    val lastTimestamp: String? get() = overall.lastTimestamp
+
     /** Compact text for the LLM: only computed results, never raw log rows. */
     fun summaryText(topN: Int = DEFAULT_TOP_N): String {
         if (!hasData) return "No combat events have been processed yet."

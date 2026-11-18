@@ -28,7 +28,12 @@
   client history and Clear daemon backlog are independent actions.
 - Ingest mode is `LIVE` (default, decode and narrate immediately) or `COLLECT` (spill raw frames to a `.wowlog` session
   file via `CombatLogSessionStore`, decode nothing). "Process now" and the Sessions dialog replay stored frames through
-  the same batch pipeline as live frames. Session files are append-only, never rotated: header `WOWL` + version byte,
+  the same decode pipeline as live frames, in 2,000-frame chunks that Stop can interrupt between chunks. During replay
+  batches only bound memory (flush on `ENCOUNTER_START`/`ENCOUNTER_END`, on `LOG_CAUGHT_UP`/`LOG_CLEARED`, and on a gap
+  of `batchSilenceTimeoutSeconds` between event timestamps) and are not narrated. When a replay completes with no
+  encounter still open, one LLM overview of the computed statistics is requested (`CombatEventNarrator.summarize`);
+  an open encounter stays in the batch and no summary is made until a later Process finishes it. Session files are
+  append-only, never rotated: header `WOWL` + version byte,
   then `[kind u8][length u32 BE][payload]` records holding frames exactly as received (protobuf or JSON text). Files
   live
   in `<config>/WowTelemetry/sessions` on desktop and `filesDir/sessions` on Android. A truncated tail is ignored. If a

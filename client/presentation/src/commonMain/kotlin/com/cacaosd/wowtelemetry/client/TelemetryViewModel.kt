@@ -11,6 +11,8 @@ import com.cacaosd.wowtelemetry.domain.CombatEvent
 import com.cacaosd.wowtelemetry.domain.CombatEventRepository
 import com.cacaosd.wowtelemetry.domain.CombatStreamMessage
 import com.cacaosd.wowtelemetry.domain.DaemonConnectionState
+import com.cacaosd.wowtelemetry.domain.EncounterEndEvent
+import com.cacaosd.wowtelemetry.domain.EncounterStartEvent
 import com.cacaosd.wowtelemetry.domain.ProcessCombatEventUseCase
 import com.cacaosd.wowtelemetry.domain.ollama.OllamaModelRepository
 import com.cacaosd.wowtelemetry.domain.preferences.BatchFlushStrategy
@@ -37,6 +39,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.math.abs
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeMark
@@ -115,6 +118,15 @@ class TelemetryViewModel(
     private var started = false
     private val batchQueue = Channel<QueuedChatBatch>(Channel.UNLIMITED)
     private val sessionMutex = Mutex()
+
+    @Volatile
+    private var stopRequested = false
+
+    // While replaying stored frames, batches only bound memory; one summary is narrated at the end.
+    @Volatile
+    private var replaying = false
+    private var lastReplayTimeMs: Long? = null
+    private var summaryJob: Job? = null
     private val processedFrames = mutableMapOf<String, Long>()
     private var lastActiveBatchPublish: TimeMark? = null
 
@@ -236,12 +248,14 @@ class TelemetryViewModel(
             is CombatStreamMessage.Event -> {
                 val event = message.combatEvent
                 _uiState.update { it.copy(latestEventSummary = event.toString()) }
+                if (replaying && startsNewReplayBatch(event)) flushBatch(narrate = false)
                 collectBatchEvent(event)
+                if (replaying && event.event is EncounterEndEvent) flushBatch(narrate = false)
             }
 
-            CombatStreamMessage.CaughtUp -> flushBatch()
+            CombatStreamMessage.CaughtUp -> flushBatch(narrate = !replaying)
 
-            CombatStreamMessage.LogCleared -> flushBatch()
+            CombatStreamMessage.LogCleared -> flushBatch(narrate = !replaying)
         }
     }
 
@@ -259,6 +273,10 @@ class TelemetryViewModel(
             sessionStore.finishRecording()
             refreshSessions()
         }
+    }
+
+    fun stopProcessing() {
+        stopRequested = true
     }
 
     fun processCollected() {
@@ -312,22 +330,99 @@ class TelemetryViewModel(
         if (skip >= total) skip = 0L
         val count = total - skip
         if (count <= 0) return@withLock
+        stopRequested = false
+        replaying = true
+        lastReplayTimeMs = null
         _uiState.update { it.copy(isProcessingSession = true, sessionMessage = null) }
         try {
-            sessionReplayer.replay(path, skip, count).collect(::handleMessage)
-            flushBatch()
-            processedFrames[path] = total
+            var done = 0L
+            // Chunks run to completion so a stop never leaves a half-counted chunk behind.
+            while (done < count && !stopRequested) {
+                val chunk = minOf(REPLAY_CHUNK_FRAMES, count - done)
+                sessionReplayer.replay(path, skip + done, chunk).collect(::handleMessage)
+                done += chunk
+                processedFrames[path] = skip + done
+                _uiState.update { it.copy(pendingFrames = pendingFrames(it.recording)) }
+            }
+            val stopped = done < count
+            val encounterOpen = batchMutex.withLock { analyzer.hasOpenEncounter }
+            // An unfinished encounter stays in the open batch so the next Process continues it.
+            if (stopped || !encounterOpen) flushBatch(narrate = false)
             _uiState.update {
                 it.copy(
                     pendingFrames = pendingFrames(it.recording),
-                    sessionMessage = "Processed $count frames.",
+                    sessionMessage = when {
+                        stopped -> "Stopped after $done of $count frames."
+                        encounterOpen -> "Processed $count frames. An encounter is still in progress; process again after it ends."
+                        else -> "Processed $count frames."
+                    },
                     sessionMessageIsError = false,
                 )
             }
+            if (!stopped && !encounterOpen) summarizeProcessed()
         } finally {
+            replaying = false
             _uiState.update { it.copy(isProcessingSession = false) }
         }
     }
+
+    private suspend fun startsNewReplayBatch(event: CombatEvent): Boolean {
+        val timeMs = event.timestamp.toLogTimeMillis()
+        val previous = lastReplayTimeMs
+        lastReplayTimeMs = timeMs ?: previous
+        if (event.event is EncounterStartEvent) return true
+        if (timeMs == null || previous == null) return false
+        val silenceMs = _uiState.value.narrationSettings.batchSilenceTimeoutSeconds * 1000L
+        return abs(timeMs - previous) > silenceMs
+    }
+
+    // One LLM call for the whole processed dataset; follow-up questions go through ask().
+    private fun summarizeProcessed() {
+        summaryJob?.cancel()
+        val generation = chatGeneration
+        val sessionId = chatSessionId
+        summaryJob = viewModelScope.launch(Dispatchers.IO) {
+            val (statistics, count, first, last) = batchMutex.withLock {
+                SummaryInput(
+                    analyzer.summaryText(),
+                    analyzer.eventCount,
+                    analyzer.firstTimestamp,
+                    analyzer.lastTimestamp
+                )
+            }
+            if (count == 0L) return@launch
+            _uiState.update { it.copy(isPhrasingEvent = true, phrasingError = null) }
+            try {
+                val answer = combatEventNarrator.summarize(sessionId, _uiState.value.profile, statistics)
+                check(answer.isNotBlank()) { "Ollama returned an empty response." }
+                if (generation == chatGeneration) {
+                    _uiState.update {
+                        it.copy(
+                            chatHistory = it.chatHistory + CombatChatTurn(
+                                role = "Assistant",
+                                content = answer,
+                                batchStartTimestamp = first,
+                                batchEndTimestamp = last,
+                                eventCount = count.toInt(),
+                            )
+                        )
+                    }
+                }
+            } catch (error: CancellationException) {
+                if (!viewModelScope.isActive) throw error
+            } catch (error: Exception) {
+                if (generation == chatGeneration) {
+                    _uiState.update {
+                        it.copy(phrasingError = error.message ?: "Could not reach the local Ollama service.")
+                    }
+                }
+            } finally {
+                if (generation == chatGeneration) _uiState.update { it.copy(isPhrasingEvent = false) }
+            }
+        }
+    }
+
+    private data class SummaryInput(val statistics: String, val count: Long, val first: String?, val last: String?)
 
     private fun pendingFrames(recording: RecordingState): Long {
         val path = recording.session?.path ?: return 0
@@ -389,6 +484,7 @@ class TelemetryViewModel(
         askSessionId = askSessionId(chatGeneration)
         activeResponse?.cancel()
         askJob?.cancel()
+        summaryJob?.cancel()
         _uiState.update {
             it.copy(
                 chatHistory = emptyList(),
@@ -544,6 +640,7 @@ class TelemetryViewModel(
     private fun armWatchdog() {
         batchWatchdog?.cancel()
         batchWatchdog = null
+        if (replaying) return
         val settings = _uiState.value.narrationSettings
         if (settings.batchFlushStrategy != BatchFlushStrategy.SILENCE_WATCHDOG) return
         batchWatchdog = viewModelScope.launch {
@@ -552,7 +649,7 @@ class TelemetryViewModel(
         }
     }
 
-    private suspend fun flushBatch(cancelWatchdog: Boolean = true) {
+    private suspend fun flushBatch(cancelWatchdog: Boolean = true, narrate: Boolean = true) {
         val queuedBatch = batchMutex.withLock {
             if (cancelWatchdog) {
                 batchWatchdog?.cancel()
@@ -579,7 +676,7 @@ class TelemetryViewModel(
             }
             QueuedChatBatch(generation, result)
         }
-        if (queuedBatch.generation == chatGeneration) {
+        if (narrate && queuedBatch.generation == chatGeneration) {
             batchQueue.send(queuedBatch)
         }
     }
@@ -598,6 +695,18 @@ class TelemetryViewModel(
     private companion object {
 
         val ACTIVE_BATCH_PUBLISH_INTERVAL = 200.milliseconds
+        const val REPLAY_CHUNK_FRAMES = 2_000L
+
+        // Month and day only: the log timestamp has no year, and only gaps between nearby events matter.
+        fun String.toLogTimeMillis(): Long? {
+            val match = LOG_TIME.matchEntire(this) ?: return null
+            val (month, day, hour, minute, second, millis) = match.destructured
+            val seconds = ((month.toLong() * 31 + day.toLong()) * 24 + hour.toLong()) * 3600 +
+                    minute.toLong() * 60 + second.toLong()
+            return seconds * 1000 + millis.toLong()
+        }
+
+        val LOG_TIME = Regex("""(\d{1,2})/(\d{1,2})\s+(\d{1,2}):(\d{2}):(\d{2})\.(\d{3})""")
 
         fun sessionId(generation: Long) = "combat-chat-$generation"
 

@@ -103,6 +103,12 @@ fun App(
                         isNarrationSettingsVisible = true
                         viewModel.discoverOllamaModels()
                     },
+                    ingestMode = uiState.ingestMode,
+                    pendingFrames = uiState.pendingFrames,
+                    isProcessing = uiState.isProcessingSession,
+                    onIngestModeChange = viewModel::setIngestMode,
+                    onProcess = viewModel::processCollected,
+                    onStop = viewModel::stopProcessing,
                 )
 
                 // 2. Collapsible Connection Drawer
@@ -143,11 +149,8 @@ fun App(
                     ingestMode = uiState.ingestMode,
                     recording = uiState.recording,
                     pendingFrames = uiState.pendingFrames,
-                    isProcessing = uiState.isProcessingSession,
                     message = uiState.sessionMessage,
                     messageIsError = uiState.sessionMessageIsError,
-                    onIngestModeChange = viewModel::setIngestMode,
-                    onProcessNow = viewModel::processCollected,
                     onOpenSessions = {
                         viewModel.refreshSessions()
                         isSessionsDialogVisible = true
