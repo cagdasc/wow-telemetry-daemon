@@ -111,7 +111,7 @@ class CombatEventNarrator(
                 ) {
                     system(
                         """
-                        $SYSTEM_PROMPT
+                        ${getSystemPrompt(settings.effortMode)}
                         
                         Additional instructions:
                         $instructions

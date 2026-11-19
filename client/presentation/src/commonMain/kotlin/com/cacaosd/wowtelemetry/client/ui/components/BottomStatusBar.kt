@@ -18,12 +18,14 @@ import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleBorderSubtle
 import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleSurface
 import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleTextMuted
 import com.cacaosd.wowtelemetry.domain.preferences.BatchFlushStrategy
+import com.cacaosd.wowtelemetry.domain.preferences.EffortMode
 
 @Composable
 fun BottomStatusBar(
     model: String,
     temperature: Double,
     strategy: BatchFlushStrategy,
+    effortMode: EffortMode,
     turnCount: Int,
     modifier: Modifier = Modifier,
 ) {
@@ -46,7 +48,7 @@ fun BottomStatusBar(
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Text(
-                        text = "Ollama: $model · ${(temperature * 10).toInt() / 10f}",
+                        text = "Ollama: $model · ${effortMode.displayName}",
                         style = MaterialTheme.typography.labelSmall,
                         color = ChronicleTextMuted,
                     )
@@ -68,6 +70,12 @@ fun BottomStatusBar(
                     ) {
                         Text(
                             text = "Ollama: $model",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = ChronicleTextMuted,
+                        )
+                        Text("·", style = MaterialTheme.typography.labelSmall, color = ChronicleBorder)
+                        Text(
+                            text = "Effort: ${effortMode.displayName}",
                             style = MaterialTheme.typography.labelSmall,
                             color = ChronicleTextMuted,
                         )

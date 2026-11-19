@@ -3,9 +3,11 @@ package com.cacaosd.wowtelemetry.data.datastore.impl
 import com.cacaosd.wowtelemetry.data.datastore.DataStoreManager
 import com.cacaosd.wowtelemetry.data.datastore.keys.BatchFlushStrategyPreferences
 import com.cacaosd.wowtelemetry.data.datastore.keys.BatchSilenceTimeoutSecondsPreferences
+import com.cacaosd.wowtelemetry.data.datastore.keys.EffortModePreferences
 import com.cacaosd.wowtelemetry.data.datastore.keys.LLModelPreferences
 import com.cacaosd.wowtelemetry.data.datastore.keys.TemperaturePreferences
 import com.cacaosd.wowtelemetry.domain.preferences.BatchFlushStrategy
+import com.cacaosd.wowtelemetry.domain.preferences.EffortMode
 import com.cacaosd.wowtelemetry.domain.preferences.NarrationSettings
 import com.cacaosd.wowtelemetry.domain.preferences.NarrationSettingsRepository
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +30,11 @@ class DesktopNarrationSettingsRepository(private val dataStoreManager: DataStore
                     NarrationSettings.MIN_SILENCE_TIMEOUT_SECONDS,
                     NarrationSettings.MAX_SILENCE_TIMEOUT_SECONDS,
                 ),
+            effortMode = runCatching {
+                EffortMode.valueOf(
+                    dataStoreManager.readData(EffortModePreferences).first()
+                )
+            }.getOrDefault(EffortMode.BALANCED),
         )
     }
 
@@ -36,5 +43,6 @@ class DesktopNarrationSettingsRepository(private val dataStoreManager: DataStore
         dataStoreManager.saveData(LLModelPreferences, settings.model)
         dataStoreManager.saveData(BatchFlushStrategyPreferences, settings.batchFlushStrategy.name)
         dataStoreManager.saveData(BatchSilenceTimeoutSecondsPreferences, settings.batchSilenceTimeoutSeconds)
+        dataStoreManager.saveData(EffortModePreferences, settings.effortMode.name)
     }
 }

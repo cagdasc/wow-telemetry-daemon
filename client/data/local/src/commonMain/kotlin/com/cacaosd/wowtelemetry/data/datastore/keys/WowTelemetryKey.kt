@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.cacaosd.wowtelemetry.domain.preferences.BatchFlushStrategy
+import com.cacaosd.wowtelemetry.domain.preferences.EffortMode
 
 abstract class WowTelemetryKey<T>(val key: Preferences.Key<T>, val defaultValue: T) {
     internal companion object {
@@ -13,6 +14,7 @@ abstract class WowTelemetryKey<T>(val key: Preferences.Key<T>, val defaultValue:
         const val FLUSH_STRATEGY_KEY = "batchFlushStrategy"
         const val SILENCE_TIMEOUT_KEY = "batchSilenceTimeoutSeconds"
         const val TEMPERATURE_KEY = "temperature"
+        const val EFFORT_MODE_KEY = "effortMode"
 
         const val DEFAULT_SILENCE_TIMEOUT_SECONDS = 10
         const val DEFAULT_TEMPERATURE = .5
@@ -29,3 +31,6 @@ data object BatchSilenceTimeoutSecondsPreferences :
 
 data object TemperaturePreferences :
     WowTelemetryKey<Double>(key = doublePreferencesKey(TEMPERATURE_KEY), DEFAULT_TEMPERATURE)
+
+data object EffortModePreferences :
+    WowTelemetryKey<String>(key = stringPreferencesKey(EFFORT_MODE_KEY), EffortMode.BALANCED.name)

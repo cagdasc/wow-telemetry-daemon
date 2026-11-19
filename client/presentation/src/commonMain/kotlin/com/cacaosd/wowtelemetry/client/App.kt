@@ -115,6 +115,10 @@ fun App(
                     pendingFrames = uiState.pendingFrames,
                     message = uiState.sessionMessage,
                     messageIsError = uiState.sessionMessageIsError,
+                    isConnected = isConnected,
+                    isClearingDaemonBacklog = uiState.isClearingDaemonBacklog,
+                    onClearView = viewModel::clearView,
+                    onOpenClearDaemonDialog = { isClearDaemonDialogVisible = true },
                 )
 
                 // Profile notice
@@ -175,6 +179,7 @@ fun App(
                     model = uiState.narrationSettings.model,
                     temperature = uiState.narrationSettings.temperature,
                     strategy = uiState.narrationSettings.batchFlushStrategy,
+                    effortMode = uiState.narrationSettings.effortMode,
                     turnCount = assistantTurns.size,
                 )
             }

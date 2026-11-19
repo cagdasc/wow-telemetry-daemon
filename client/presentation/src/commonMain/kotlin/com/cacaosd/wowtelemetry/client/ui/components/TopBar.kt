@@ -96,14 +96,7 @@ fun TopBar(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        BrandHeader()
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            OpenSessionFile(onOpenSessions)
-                            OpenSettings(onOpenNarrationSettings)
-                        }
+                        OpenSettings(onOpenNarrationSettings)
                     }
 
                     Row(
@@ -124,7 +117,7 @@ fun TopBar(
                             onOpenConnectionSettings = onOpenConnectionSettings,
                         )
                     }
-
+                    OpenSessionFile(onOpenSessions)
                     IngestControls(ingestMode, pendingFrames, isProcessing, onIngestModeChange, onProcess, onStop)
                 }
             } else {
@@ -140,6 +133,7 @@ fun TopBar(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
+                        OpenSessionFile(onOpenSessions)
                         IngestControls(ingestMode, pendingFrames, isProcessing, onIngestModeChange, onProcess, onStop)
                         CharacterPill(
                             characterProfile = characterProfile,
@@ -152,7 +146,6 @@ fun TopBar(
                             statusColor = statusColor,
                             onOpenConnectionSettings = onOpenConnectionSettings,
                         )
-                        OpenSessionFile(onOpenSessions)
                         OpenSettings(onOpenNarrationSettings)
                     }
                 }

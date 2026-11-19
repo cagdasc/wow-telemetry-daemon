@@ -539,7 +539,7 @@ class TelemetryViewModel(
         }
     }
 
-    fun clearHistory() {
+    fun clearView() {
         val previousSessionId = chatSessionId
         val previousAskSessionId = askSessionId
         chatGeneration++
@@ -548,15 +548,22 @@ class TelemetryViewModel(
         activeResponse?.cancel()
         askJob?.cancel()
         summaryJob?.cancel()
+        processedFrames.clear()
         _uiState.update {
             it.copy(
                 chatHistory = emptyList(),
                 phrasingError = null,
                 isAnswering = false,
                 askError = null,
+                selectedSession = null,
+                ingestMode = IngestMode.LIVE,
+                pendingFrames = 0,
+                sessionMessage = null,
+                sessionMessageIsError = false,
             )
         }
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
+            combatEventRepository.setIngestMode(IngestMode.LIVE)
             batchMutex.withLock {
                 if (batchEvents.isNotEmpty()) batchChatGeneration = chatGeneration
                 analyzer.reset()
@@ -565,6 +572,10 @@ class TelemetryViewModel(
             combatEventNarrator.clearChat(previousSessionId)
             combatEventNarrator.clearChat(previousAskSessionId)
         }
+    }
+
+    fun clearHistory() {
+        clearView()
     }
 
     /** Answers from deterministic statistics; the LLM never sees raw log rows. */

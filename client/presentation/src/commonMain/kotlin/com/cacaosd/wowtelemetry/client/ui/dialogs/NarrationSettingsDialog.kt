@@ -36,6 +36,7 @@ import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleBorderSubtle
 import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleGold
 import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleTextMuted
 import com.cacaosd.wowtelemetry.domain.preferences.BatchFlushStrategy
+import com.cacaosd.wowtelemetry.domain.preferences.EffortMode
 import com.cacaosd.wowtelemetry.domain.preferences.NarrationSettings
 
 @Composable
@@ -55,6 +56,7 @@ fun NarrationSettingsDialog(
     var silenceTimeout by remember(settings) {
         mutableFloatStateOf(settings.batchSilenceTimeoutSeconds.toFloat())
     }
+    var selectedEffortMode by remember(settings) { mutableStateOf(settings.effortMode) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -130,7 +132,43 @@ fun NarrationSettingsDialog(
 
                 HorizontalDivider(color = ChronicleBorderSubtle)
 
-                // Section 2: Temperature
+                // Section 2: Analysis Effort / Depth
+                Text(
+                    "ANALYSIS EFFORT / DEPTH",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = ChronicleGold,
+                )
+                EffortMode.entries.forEach { mode ->
+                    Row(
+                        verticalAlignment = Alignment.Top,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { selectedEffortMode = mode },
+                    ) {
+                        RadioButton(
+                            selected = selectedEffortMode == mode,
+                            onClick = { selectedEffortMode = mode },
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Column {
+                            Text(
+                                mode.displayName,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            Text(
+                                mode.description,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = ChronicleTextMuted,
+                            )
+                        }
+                    }
+                }
+
+                HorizontalDivider(color = ChronicleBorderSubtle)
+
+                // Section 3: Temperature
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -166,7 +204,7 @@ fun NarrationSettingsDialog(
 
                 HorizontalDivider(color = ChronicleBorderSubtle)
 
-                // Section 3: Batch Flush
+                // Section 4: Batch Flush
                 Text(
                     "BATCH DISPATCH STRATEGY",
                     style = MaterialTheme.typography.labelMedium,
@@ -201,7 +239,7 @@ fun NarrationSettingsDialog(
                         Text(
                             "${silenceTimeout.toInt()} seconds",
                             style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
                         )
                     }
                     Slider(
@@ -234,6 +272,7 @@ fun NarrationSettingsDialog(
                             model = selectedModel,
                             batchFlushStrategy = flushStrategy,
                             batchSilenceTimeoutSeconds = silenceTimeout.toInt(),
+                            effortMode = selectedEffortMode,
                         )
                     )
                 },

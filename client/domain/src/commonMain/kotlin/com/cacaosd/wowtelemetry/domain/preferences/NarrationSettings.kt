@@ -5,6 +5,7 @@ data class NarrationSettings(
     val model: String = "llama3.2:latest",
     val batchFlushStrategy: BatchFlushStrategy = BatchFlushStrategy.SILENCE_WATCHDOG,
     val batchSilenceTimeoutSeconds: Int = DEFAULT_SILENCE_TIMEOUT_SECONDS,
+    val effortMode: EffortMode = EffortMode.BALANCED,
 ) {
     init {
         require(batchSilenceTimeoutSeconds in MIN_SILENCE_TIMEOUT_SECONDS..MAX_SILENCE_TIMEOUT_SECONDS) {

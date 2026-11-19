@@ -107,7 +107,7 @@ private fun ActionPill(
         shape = RoundedCornerShape(20.dp),
         color = ChronicleSurfaceVariant,
         border = BorderStroke(1.dp, if (enabled) accent.copy(alpha = 0.6f) else ChronicleBorder),
-        modifier = Modifier.clickable(enabled = enabled, onClick = onClick).clip(CircleShape),
+        modifier = Modifier.clip(CircleShape).clickable(enabled = enabled, onClick = onClick),
     ) {
         Text(
             text = label,
