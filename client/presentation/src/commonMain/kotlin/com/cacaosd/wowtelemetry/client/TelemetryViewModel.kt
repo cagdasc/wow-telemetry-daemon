@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.cacaosd.wowtelemetry.agent.CombatEventNarrator
 import com.cacaosd.wowtelemetry.combatlog.CombatEventBatch
 import com.cacaosd.wowtelemetry.combatlog.CombatLogAnalyzer
+import com.cacaosd.wowtelemetry.combatlog.CombatPlayer
 import com.cacaosd.wowtelemetry.domain.CharacterProfile
 import com.cacaosd.wowtelemetry.domain.CharacterProfileRepository
 import com.cacaosd.wowtelemetry.domain.CombatEvent
@@ -74,12 +75,14 @@ data class TelemetryUiState(
     val ollamaModelError: String? = null,
     val ingestMode: IngestMode = IngestMode.LIVE,
     val recording: RecordingState = RecordingState(),
+    val selectedSession: CombatLogSession? = null,
     val pendingFrames: Long = 0,
     val sessions: List<CombatLogSession> = emptyList(),
     val isProcessingSession: Boolean = false,
     val sessionMessage: String? = null,
     val sessionMessageIsError: Boolean = false,
     val analyzedEvents: Long = 0,
+    val players: List<CombatPlayer> = emptyList(),
     val isAnswering: Boolean = false,
     val askError: String? = null,
 )
@@ -213,14 +216,18 @@ class TelemetryViewModel(
         viewModelScope.launch {
             sessionStore.recording.collect { recording ->
                 _uiState.update {
-                    it.copy(recording = recording, pendingFrames = pendingFrames(recording))
+                    it.copy(
+                        recording = recording,
+                        pendingFrames = pendingFrames(recording, it.selectedSession),
+                    )
                 }
             }
         }
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val profile = characterProfileRepository.getProfile()
-                _uiState.update { it.copy(profile = profile, profileError = null) }
+                analyzer.setCharacterProfile(profile)
+                _uiState.update { it.copy(profile = profile, profileError = null, players = analyzer.players) }
             } catch (error: Exception) {
                 _uiState.update {
                     it.copy(
@@ -271,6 +278,7 @@ class TelemetryViewModel(
             combatEventRepository.setIngestMode(IngestMode.LIVE)
             drainActiveRecording()
             sessionStore.finishRecording()
+            _uiState.update { it.copy(selectedSession = null) }
             refreshSessions()
         }
     }
@@ -279,8 +287,54 @@ class TelemetryViewModel(
         stopRequested = true
     }
 
+    fun selectSessionFile(path: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val session = sessionStore.open(path)
+                batchMutex.withLock { analyzer.reset() }
+                publishAnalyzedEvents()
+                combatEventRepository.setIngestMode(IngestMode.COLLECT)
+                val total = session.frameCount ?: 0L
+                val skip = processedFrames[path] ?: 0L
+                val pending = (total - skip).coerceAtLeast(0)
+                _uiState.update {
+                    it.copy(
+                        selectedSession = session,
+                        ingestMode = IngestMode.COLLECT,
+                        pendingFrames = pending,
+                        sessionMessage = null,
+                        sessionMessageIsError = false,
+                    )
+                }
+            } catch (error: Exception) {
+                reportSessionError(error)
+            }
+        }
+    }
+
+    fun unselectSessionFile() {
+        viewModelScope.launch(Dispatchers.IO) {
+            combatEventRepository.setIngestMode(IngestMode.LIVE)
+            _uiState.update {
+                it.copy(
+                    selectedSession = null,
+                    ingestMode = IngestMode.LIVE,
+                    pendingFrames = 0,
+                    sessionMessage = null,
+                    sessionMessageIsError = false,
+                )
+            }
+            clearHistory()
+        }
+    }
+
     fun processCollected() {
-        viewModelScope.launch(Dispatchers.IO) { drainActiveRecording() }
+        val selected = _uiState.value.selectedSession
+        if (selected != null) {
+            processSessionFile(selected.path)
+        } else {
+            viewModelScope.launch(Dispatchers.IO) { drainActiveRecording() }
+        }
     }
 
     fun processSessionFile(path: String) {
@@ -290,10 +344,12 @@ class TelemetryViewModel(
                 val total = if (active?.path == path) {
                     _uiState.value.recording.frameCount
                 } else {
+                    val opened = sessionStore.open(path)
+                    _uiState.update { state -> state.copy(selectedSession = opened) }
                     // A loaded file is its own dataset, so statistics from other sources must not mix in.
                     batchMutex.withLock { analyzer.reset() }
                     publishAnalyzedEvents()
-                    sessionStore.open(path).frameCount ?: 0L
+                    opened.frameCount ?: 0L
                 }
                 processSession(path, total)
             } catch (error: Exception) {
@@ -342,7 +398,7 @@ class TelemetryViewModel(
                 sessionReplayer.replay(path, skip + done, chunk).collect(::handleMessage)
                 done += chunk
                 processedFrames[path] = skip + done
-                _uiState.update { it.copy(pendingFrames = pendingFrames(it.recording)) }
+                _uiState.update { it.copy(pendingFrames = pendingFrames(it.recording, it.selectedSession)) }
             }
             val stopped = done < count
             val encounterOpen = batchMutex.withLock { analyzer.hasOpenEncounter }
@@ -350,7 +406,7 @@ class TelemetryViewModel(
             if (stopped || !encounterOpen) flushBatch(narrate = false)
             _uiState.update {
                 it.copy(
-                    pendingFrames = pendingFrames(it.recording),
+                    pendingFrames = pendingFrames(it.recording, it.selectedSession),
                     sessionMessage = when {
                         stopped -> "Stopped after $done of $count frames."
                         encounterOpen -> "Processed $count frames. An encounter is still in progress; process again after it ends."
@@ -424,7 +480,14 @@ class TelemetryViewModel(
 
     private data class SummaryInput(val statistics: String, val count: Long, val first: String?, val last: String?)
 
-    private fun pendingFrames(recording: RecordingState): Long {
+    private fun pendingFrames(
+        recording: RecordingState,
+        selectedSession: CombatLogSession? = _uiState.value.selectedSession,
+    ): Long {
+        if (selectedSession != null) {
+            val total = selectedSession.frameCount ?: 0L
+            return (total - (processedFrames[selectedSession.path] ?: 0L)).coerceAtLeast(0)
+        }
         val path = recording.session?.path ?: return 0
         return (recording.frameCount - (processedFrames[path] ?: 0L)).coerceAtLeast(0)
     }
@@ -542,7 +605,7 @@ class TelemetryViewModel(
     }
 
     private fun publishAnalyzedEvents(count: Long = analyzer.eventCount) {
-        _uiState.update { it.copy(analyzedEvents = count) }
+        _uiState.update { it.copy(analyzedEvents = count, players = analyzer.players) }
     }
 
     fun saveNarrationSettings(settings: NarrationSettings) {
@@ -591,7 +654,14 @@ class TelemetryViewModel(
             )
             try {
                 characterProfileRepository.saveProfile(normalizedProfile)
-                _uiState.update { it.copy(profile = normalizedProfile, profileError = null) }
+                analyzer.setCharacterProfile(normalizedProfile)
+                _uiState.update {
+                    it.copy(
+                        profile = normalizedProfile,
+                        profileError = null,
+                        players = analyzer.players
+                    )
+                }
             } catch (error: Exception) {
                 _uiState.update {
                     it.copy(
@@ -626,6 +696,7 @@ class TelemetryViewModel(
                 _uiState.update {
                     it.copy(
                         analyzedEvents = analyzer.eventCount,
+                        players = analyzer.players,
                         activeBatch = CombatEventBatch(
                             startTimestamp = batchStartTimestamp!!,
                             endTimestamp = event.timestamp,
@@ -672,6 +743,7 @@ class TelemetryViewModel(
                     latestBatch = result,
                     phrasingError = null,
                     analyzedEvents = analyzer.eventCount,
+                    players = analyzer.players,
                 )
             }
             QueuedChatBatch(generation, result)

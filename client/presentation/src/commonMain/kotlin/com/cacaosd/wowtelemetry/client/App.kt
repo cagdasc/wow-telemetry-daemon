@@ -1,10 +1,5 @@
 package com.cacaosd.wowtelemetry.client
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,11 +23,12 @@ import com.cacaosd.wowtelemetry.client.ui.components.AskComposer
 import com.cacaosd.wowtelemetry.client.ui.components.BottomStatusBar
 import com.cacaosd.wowtelemetry.client.ui.components.ChronicleFeed
 import com.cacaosd.wowtelemetry.client.ui.components.CombatActivityRibbon
-import com.cacaosd.wowtelemetry.client.ui.components.ConnectionPanel
+import com.cacaosd.wowtelemetry.client.ui.components.PlayerRosterBar
 import com.cacaosd.wowtelemetry.client.ui.components.SessionPanel
 import com.cacaosd.wowtelemetry.client.ui.components.TopBar
 import com.cacaosd.wowtelemetry.client.ui.dialogs.CharacterSettingsDialog
 import com.cacaosd.wowtelemetry.client.ui.dialogs.ClearDaemonDialog
+import com.cacaosd.wowtelemetry.client.ui.dialogs.ConnectionDialog
 import com.cacaosd.wowtelemetry.client.ui.dialogs.NarrationSettingsDialog
 import com.cacaosd.wowtelemetry.client.ui.dialogs.SessionsDialog
 import com.cacaosd.wowtelemetry.client.ui.theme.DarkChronicleColorScheme
@@ -63,7 +59,7 @@ fun App(
         mutableStateOf(initialDaemonAddress(initialWebsocketUrl))
     }
     var endpointError by remember { mutableStateOf<String?>(null) }
-    var isConnectionPanelExpanded by remember { mutableStateOf(false) }
+    var isConnectionDialogVisible by remember { mutableStateOf(false) }
     var isSessionsDialogVisible by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
@@ -94,14 +90,15 @@ fun App(
                     daemonAddress = daemonAddress,
                     connection = connection,
                     characterProfile = characterProfile,
-                    isConnectionPanelExpanded = isConnectionPanelExpanded,
-                    onToggleConnectionPanel = {
-                        isConnectionPanelExpanded = !isConnectionPanelExpanded
-                    },
+                    onOpenConnectionSettings = { isConnectionDialogVisible = true },
                     onOpenCharacterSettings = { isSettingsVisible = true },
                     onOpenNarrationSettings = {
                         isNarrationSettingsVisible = true
                         viewModel.discoverOllamaModels()
+                    },
+                    onOpenSessions = {
+                        viewModel.refreshSessions()
+                        isSessionsDialogVisible = true
                     },
                     ingestMode = uiState.ingestMode,
                     pendingFrames = uiState.pendingFrames,
@@ -111,50 +108,13 @@ fun App(
                     onStop = viewModel::stopProcessing,
                 )
 
-                // 2. Collapsible Connection Drawer
-                AnimatedVisibility(
-                    visible = isConnectionPanelExpanded || !isConnected,
-                    enter = fadeIn() + expandVertically(),
-                    exit = fadeOut() + shrinkVertically(),
-                ) {
-                    ConnectionPanel(
-                        daemonAddress = daemonAddress,
-                        onDaemonAddressChange = {
-                            daemonAddress = it
-                            endpointError = null
-                        },
-                        endpointError = endpointError,
-                        canDisconnect = canDisconnect,
-                        isConnected = isConnected,
-                        onConnect = {
-                            val url = parseDaemonAddress(daemonAddress)
-                            if (url == null) {
-                                endpointError = "Enter a valid daemon IP:port (e.g. 127.0.0.1:8765)."
-                            } else {
-                                endpointError = null
-                                viewModel.connectToDaemon(url)
-                            }
-                        },
-                        onDisconnect = viewModel::disconnectDaemon,
-                        hasHistory = chatHistory.isNotEmpty() || isPhrasingEvent,
-                        onClearHistory = viewModel::clearHistory,
-                        isClearingDaemonBacklog = uiState.isClearingDaemonBacklog,
-                        onOpenClearDaemonDialog = { isClearDaemonDialogVisible = true },
-                        daemonBacklogMessage = uiState.daemonBacklogMessage,
-                        daemonBacklogError = uiState.daemonBacklogError,
-                    )
-                }
-
                 SessionPanel(
                     ingestMode = uiState.ingestMode,
                     recording = uiState.recording,
+                    selectedSession = uiState.selectedSession,
                     pendingFrames = uiState.pendingFrames,
                     message = uiState.sessionMessage,
                     messageIsError = uiState.sessionMessageIsError,
-                    onOpenSessions = {
-                        viewModel.refreshSessions()
-                        isSessionsDialogVisible = true
-                    },
                 )
 
                 // Profile notice
@@ -182,6 +142,13 @@ fun App(
                     latestBatch = latestBatch,
                     isConnected = isConnected,
                 )
+
+                if (uiState.players.isNotEmpty()) {
+                    PlayerRosterBar(
+                        players = uiState.players,
+                        localPlayerName = characterProfile.characterName,
+                    )
+                }
 
                 // 4. Scrollable Chronicle Narration Feed
                 ChronicleFeed(
@@ -243,23 +210,58 @@ fun App(
         if (isSessionsDialogVisible) {
             SessionsDialog(
                 sessions = uiState.sessions,
-                activePath = uiState.recording.session?.path,
+                selectedPath = uiState.selectedSession?.path ?: uiState.recording.session?.path,
                 isProcessing = uiState.isProcessingSession,
-                onProcess = {
+                onSelectSession = { session ->
                     isSessionsDialogVisible = false
-                    viewModel.processSessionFile(it.path)
+                    viewModel.selectSessionFile(session.path)
+                },
+                onUnselectSession = {
+                    isSessionsDialogVisible = false
+                    viewModel.unselectSessionFile()
                 },
                 onBrowse = pickSessionFile?.let { pick ->
                     {
                         scope.launch {
-                            pick()?.let {
+                            pick()?.let { path ->
                                 isSessionsDialogVisible = false
-                                viewModel.processSessionFile(it)
+                                viewModel.selectSessionFile(path)
                             }
                         }
                     }
                 },
                 onDismiss = { isSessionsDialogVisible = false },
+            )
+        }
+
+        if (isConnectionDialogVisible) {
+            ConnectionDialog(
+                daemonAddress = daemonAddress,
+                onDaemonAddressChange = {
+                    daemonAddress = it
+                    endpointError = null
+                },
+                endpointError = endpointError,
+                connection = connection,
+                canDisconnect = canDisconnect,
+                isConnected = isConnected,
+                onConnect = {
+                    val url = parseDaemonAddress(daemonAddress)
+                    if (url == null) {
+                        endpointError = "Enter a valid daemon IP:port (e.g. 127.0.0.1:8765)."
+                    } else {
+                        endpointError = null
+                        viewModel.connectToDaemon(url)
+                    }
+                },
+                onDisconnect = viewModel::disconnectDaemon,
+                hasHistory = chatHistory.isNotEmpty() || isPhrasingEvent,
+                onClearHistory = viewModel::clearHistory,
+                isClearingDaemonBacklog = uiState.isClearingDaemonBacklog,
+                onOpenClearDaemonDialog = { isClearDaemonDialogVisible = true },
+                daemonBacklogMessage = uiState.daemonBacklogMessage,
+                daemonBacklogError = uiState.daemonBacklogError,
+                onDismiss = { isConnectionDialogVisible = false },
             )
         }
 

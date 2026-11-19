@@ -50,10 +50,10 @@ fun TopBar(
     daemonAddress: String,
     connection: DaemonConnectionState,
     characterProfile: CharacterProfile,
-    isConnectionPanelExpanded: Boolean,
-    onToggleConnectionPanel: () -> Unit,
+    onOpenConnectionSettings: () -> Unit,
     onOpenCharacterSettings: () -> Unit,
     onOpenNarrationSettings: () -> Unit,
+    onOpenSessions: () -> Unit,
     ingestMode: IngestMode,
     pendingFrames: Long,
     isProcessing: Boolean,
@@ -97,11 +97,12 @@ fun TopBar(
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         BrandHeader()
-                        IconButton(
-                            onClick = onOpenNarrationSettings,
-                            modifier = Modifier.size(36.dp),
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
                         ) {
-                            Text(text = "⚙️", fontSize = 16.sp)
+                            OpenSessionFile(onOpenSessions)
+                            OpenSettings(onOpenNarrationSettings)
                         }
                     }
 
@@ -120,8 +121,7 @@ fun TopBar(
                             daemonAddress = daemonAddress,
                             connection = connection,
                             statusColor = statusColor,
-                            isConnectionPanelExpanded = isConnectionPanelExpanded,
-                            onToggleConnectionPanel = onToggleConnectionPanel,
+                            onOpenConnectionSettings = onOpenConnectionSettings,
                         )
                     }
 
@@ -150,16 +150,34 @@ fun TopBar(
                             daemonAddress = daemonAddress,
                             connection = connection,
                             statusColor = statusColor,
-                            isConnectionPanelExpanded = isConnectionPanelExpanded,
-                            onToggleConnectionPanel = onToggleConnectionPanel,
+                            onOpenConnectionSettings = onOpenConnectionSettings,
                         )
-                        IconButton(onClick = onOpenNarrationSettings) {
-                            Text(text = "⚙️", fontSize = 16.sp)
-                        }
+                        OpenSessionFile(onOpenSessions)
+                        OpenSettings(onOpenNarrationSettings)
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun OpenSettings(onOpenNarrationSettings: () -> Unit) {
+    IconButton(
+        onClick = onOpenNarrationSettings,
+        modifier = Modifier.size(36.dp),
+    ) {
+        Text(text = "⚙️", fontSize = 16.sp)
+    }
+}
+
+@Composable
+private fun OpenSessionFile(onOpenSessions: () -> Unit) {
+    IconButton(
+        onClick = onOpenSessions,
+        modifier = Modifier.size(36.dp),
+    ) {
+        Text(text = "\uD83D\uDCE5", fontSize = 16.sp)
     }
 }
 
@@ -213,7 +231,7 @@ private fun CharacterPill(
         shape = RoundedCornerShape(20.dp),
         color = ChronicleSurfaceVariant,
         border = BorderStroke(1.dp, ChronicleBorder),
-        modifier = modifier.clickable(onClick = onOpenCharacterSettings),
+        modifier = modifier.clip(CircleShape).clickable(onClick = onOpenCharacterSettings),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
@@ -257,18 +275,14 @@ private fun ConnectionPill(
     daemonAddress: String,
     connection: DaemonConnectionState,
     statusColor: Color,
-    isConnectionPanelExpanded: Boolean,
-    onToggleConnectionPanel: () -> Unit,
+    onOpenConnectionSettings: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Surface(
         shape = RoundedCornerShape(20.dp),
         color = ChronicleSurfaceVariant,
-        border = BorderStroke(
-            1.dp,
-            if (isConnectionPanelExpanded) ChronicleGold.copy(alpha = 0.5f) else ChronicleBorder
-        ),
-        modifier = modifier.clickable(onClick = onToggleConnectionPanel),
+        border = BorderStroke(1.dp, ChronicleBorder),
+        modifier = modifier.clip(CircleShape).clickable(onClick = onOpenConnectionSettings),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
@@ -292,11 +306,6 @@ private fun ConnectionPill(
                 color = if (isConnected) ChronicleTextPrimary else statusColor,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
-            )
-            Text(
-                text = if (isConnectionPanelExpanded) "▴" else "▾",
-                style = MaterialTheme.typography.labelSmall,
-                color = ChronicleTextMuted,
             )
         }
     }

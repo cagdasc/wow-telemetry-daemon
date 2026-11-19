@@ -37,3 +37,9 @@
 # Operating-system files
 **/.DS_Store
 **/Thumbs.db
+
+# Logs and session recordings
+**/logs/
+**/*.log
+**/*.wowlog
+

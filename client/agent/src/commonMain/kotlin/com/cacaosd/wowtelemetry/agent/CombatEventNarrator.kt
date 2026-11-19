@@ -109,7 +109,14 @@ class CombatEventNarrator(
                     params = LLMParams(temperature = settings.temperature),
                     clock = clock,
                 ) {
-                    system("$systemPrompt\n$instructions")
+                    system(
+                        """
+                        $SYSTEM_PROMPT
+                        
+                        Additional instructions:
+                        $instructions
+                    """.trimIndent()
+                    )
                 },
                 model = settings.toLLModel(),
                 maxAgentIterations = 50
@@ -170,7 +177,7 @@ private fun CharacterProfile.toChatMessage(): String? {
     if (details.isEmpty()) return null
 
     return buildString {
-        appendLine("Character profile for this combat chat:")
+        appendLine("Main character profile for this combat chat:")
         details.forEach { (label, value) -> appendLine("$label: ${value.trim()}") }
         append("Use this profile as context; do not infer missing profile details.")
     }
