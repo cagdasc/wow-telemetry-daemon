@@ -586,12 +586,9 @@ mod tests {
         client
             .send(Message::Text(r#"{"command":"CLEAR_LOG"}"#.into()))
             .unwrap();
-        let response_sender = match clear_receiver
+        let TailCommand::ClearLog(response_sender) = clear_receiver
             .recv_timeout(Duration::from_secs(1))
-            .expect("receive clear command")
-        {
-            TailCommand::ClearLog(response_sender) => response_sender,
-        };
+            .expect("receive clear command");
         response_sender.send(Ok(())).unwrap();
 
         assert_eq!(read_json(&mut client)["control"], "HELLO");
