@@ -14,11 +14,14 @@ import com.cacaosd.wowtelemetry.domain.CombatStreamMessage
 import com.cacaosd.wowtelemetry.domain.DaemonConnectionState
 import com.cacaosd.wowtelemetry.domain.EncounterEndEvent
 import com.cacaosd.wowtelemetry.domain.EncounterStartEvent
+import com.cacaosd.wowtelemetry.domain.LogAttachment
+import com.cacaosd.wowtelemetry.domain.LogAttachmentRepository
 import com.cacaosd.wowtelemetry.domain.ProcessCombatEventUseCase
 import com.cacaosd.wowtelemetry.domain.ollama.OllamaModelRepository
 import com.cacaosd.wowtelemetry.domain.preferences.BatchFlushStrategy
 import com.cacaosd.wowtelemetry.domain.preferences.NarrationSettings
 import com.cacaosd.wowtelemetry.domain.preferences.NarrationSettingsRepository
+import com.cacaosd.wowtelemetry.domain.preferences.SupporterFeedingMode
 import com.cacaosd.wowtelemetry.domain.session.CombatLogSession
 import com.cacaosd.wowtelemetry.domain.session.CombatLogSessionStore
 import com.cacaosd.wowtelemetry.domain.session.CombatSessionReplayer
@@ -32,6 +35,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -56,7 +60,6 @@ data class CombatChatTurn(
 )
 
 data class TelemetryUiState(
-    val latestEventSummary: String? = null,
     val chatHistory: List<CombatChatTurn> = emptyList(),
     val isPhrasingEvent: Boolean = false,
     val phrasingError: String? = null,
@@ -85,11 +88,8 @@ data class TelemetryUiState(
     val players: List<CombatPlayer> = emptyList(),
     val isAnswering: Boolean = false,
     val askError: String? = null,
-)
-
-private data class QueuedChatBatch(
-    val generation: Long,
-    val batch: CombatEventBatch,
+    val attachments: List<LogAttachment> = emptyList(),
+    val activeAttachmentCount: Int = 0,
 )
 
 class TelemetryViewModel(
@@ -102,6 +102,7 @@ class TelemetryViewModel(
     private val sessionStore: CombatLogSessionStore,
     private val sessionReplayer: CombatSessionReplayer,
     private val analyzer: CombatLogAnalyzer,
+    private val logAttachmentRepository: LogAttachmentRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TelemetryUiState())
@@ -119,7 +120,7 @@ class TelemetryViewModel(
     private var askJob: Job? = null
     private var activeResponse: Deferred<String>? = null
     private var started = false
-    private val batchQueue = Channel<QueuedChatBatch>(Channel.UNLIMITED)
+    private val batchQueue = Channel<CombatEventBatch>(Channel.UNLIMITED)
     private val sessionMutex = Mutex()
 
     @Volatile
@@ -134,7 +135,8 @@ class TelemetryViewModel(
     private var lastActiveBatchPublish: TimeMark? = null
 
     private val batchWorker = viewModelScope.launch(start = CoroutineStart.LAZY) {
-        for ((generation, batch) in batchQueue) {
+        for (batch in batchQueue) {
+            val generation = batch.generation
             if (generation != chatGeneration) continue
 
             val responseSessionId = chatSessionId
@@ -223,12 +225,25 @@ class TelemetryViewModel(
                 }
             }
         }
+        viewModelScope.launch {
+            logAttachmentRepository.attachments.collect { attachments ->
+                _uiState.update {
+                    it.copy(
+                        attachments = attachments,
+                        activeAttachmentCount = attachments.count { att -> att.isEnabled }
+                    )
+                }
+            }
+        }
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val profile = characterProfileRepository.getProfile()
                 analyzer.setCharacterProfile(profile)
                 _uiState.update { it.copy(profile = profile, profileError = null, players = analyzer.players) }
             } catch (error: Exception) {
+                if (error is CancellationException) {
+                    ensureActive()
+                }
                 _uiState.update {
                     it.copy(
                         profileError = error.message ?: "Could not load the saved character profile."
@@ -239,6 +254,9 @@ class TelemetryViewModel(
                 val settings = narrationSettingsRepository.load()
                 _uiState.update { it.copy(narrationSettings = settings, settingsError = null) }
             } catch (error: Exception) {
+                if (error is CancellationException) {
+                    ensureActive()
+                }
                 _uiState.update {
                     it.copy(
                         settingsError = error.message ?: "Could not load narration settings."
@@ -254,7 +272,6 @@ class TelemetryViewModel(
         when (message) {
             is CombatStreamMessage.Event -> {
                 val event = message.combatEvent
-                _uiState.update { it.copy(latestEventSummary = event.toString()) }
                 if (replaying && startsNewReplayBatch(event)) flushBatch(narrate = false)
                 collectBatchEvent(event)
                 if (replaying && event.event is EncounterEndEvent) flushBatch(narrate = false)
@@ -422,7 +439,7 @@ class TelemetryViewModel(
         }
     }
 
-    private suspend fun startsNewReplayBatch(event: CombatEvent): Boolean {
+    private fun startsNewReplayBatch(event: CombatEvent): Boolean {
         val timeMs = event.timestamp.toLogTimeMillis()
         val previous = lastReplayTimeMs
         lastReplayTimeMs = timeMs ?: previous
@@ -528,6 +545,9 @@ class TelemetryViewModel(
                     )
                 }
             } catch (error: Exception) {
+                if (error is CancellationException) {
+                    ensureActive()
+                }
                 _uiState.update {
                     it.copy(
                         isClearingDaemonBacklog = false,
@@ -625,11 +645,20 @@ class TelemetryViewModel(
                 narrationSettingsRepository.save(settings)
                 _uiState.update { it.copy(narrationSettings = settings, settingsError = null) }
             } catch (error: Exception) {
+                if (error is CancellationException) {
+                    ensureActive()
+                }
                 _uiState.update {
                     it.copy(settingsError = error.message ?: "Could not save narration settings.")
                 }
             }
         }
+    }
+
+    fun setSupporterFeedingMode(mode: SupporterFeedingMode) {
+        val current = _uiState.value.narrationSettings
+        if (current.supporterFeedingMode == mode) return
+        saveNarrationSettings(current.copy(supporterFeedingMode = mode))
     }
 
     fun discoverOllamaModels() {
@@ -644,6 +673,9 @@ class TelemetryViewModel(
                     it.copy(ollamaModels = models, isDiscoveringOllamaModels = false)
                 }
             } catch (error: Exception) {
+                if (error is CancellationException) {
+                    ensureActive()
+                }
                 _uiState.update {
                     it.copy(
                         isDiscoveringOllamaModels = false,
@@ -674,12 +706,43 @@ class TelemetryViewModel(
                     )
                 }
             } catch (error: Exception) {
+                if (error is CancellationException) {
+                    ensureActive()
+                }
                 _uiState.update {
                     it.copy(
                         profileError = error.message ?: "Could not save the character profile."
                     )
                 }
             }
+        }
+    }
+
+    fun addAttachment(pathOrUri: String, displayName: String? = null, description: String = "") {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                logAttachmentRepository.addAttachment(pathOrUri, displayName, description)
+            } catch (error: Exception) {
+                if (error is CancellationException) throw error
+            }
+        }
+    }
+
+    fun removeAttachment(id: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            logAttachmentRepository.removeAttachment(id)
+        }
+    }
+
+    fun updateAttachmentDescription(id: String, description: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            logAttachmentRepository.updateDescription(id, description)
+        }
+    }
+
+    fun toggleAttachment(id: String, isEnabled: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            logAttachmentRepository.setEnabled(id, isEnabled)
         }
     }
 
@@ -691,7 +754,12 @@ class TelemetryViewModel(
                 batchChatGeneration = chatGeneration
                 _uiState.update {
                     it.copy(
-                        activeBatch = CombatEventBatch(event.timestamp, event.timestamp, emptyList()),
+                        activeBatch = CombatEventBatch(
+                            startTimestamp = event.timestamp,
+                            endTimestamp = event.timestamp,
+                            events = emptyList(),
+                            generation = batchChatGeneration,
+                        ),
                         latestBatch = null,
                         phrasingError = null,
                     )
@@ -712,6 +780,7 @@ class TelemetryViewModel(
                             startTimestamp = batchStartTimestamp!!,
                             endTimestamp = event.timestamp,
                             events = batchEvents.toList(),
+                            generation = batchChatGeneration,
                         )
                     )
                 }
@@ -732,22 +801,23 @@ class TelemetryViewModel(
     }
 
     private suspend fun flushBatch(cancelWatchdog: Boolean = true, narrate: Boolean = true) {
-        val queuedBatch = batchMutex.withLock {
+        val batch = batchMutex.withLock {
             if (cancelWatchdog) {
                 batchWatchdog?.cancel()
                 batchWatchdog = null
             }
             if (batchEvents.isEmpty()) return
+            val generation = batchChatGeneration
             val result = CombatEventBatch(
                 startTimestamp = batchStartTimestamp!!,
                 endTimestamp = batchEndTimestamp!!,
                 events = batchEvents.toList(),
+                generation = generation,
             )
             batchEvents.clear()
             lastActiveBatchPublish = null
             batchStartTimestamp = null
             batchEndTimestamp = null
-            val generation = batchChatGeneration
             _uiState.update {
                 it.copy(
                     activeBatch = null,
@@ -757,13 +827,14 @@ class TelemetryViewModel(
                     players = analyzer.players,
                 )
             }
-            QueuedChatBatch(generation, result)
+            result
         }
-        if (narrate && queuedBatch.generation == chatGeneration) {
-            batchQueue.send(queuedBatch)
+        if (narrate && batch.generation == chatGeneration) {
+            batchQueue.send(batch)
         }
     }
 
+    @Suppress("EmptySuperCall")
     override fun onCleared() {
         batchWatchdog?.cancel()
         activeResponse?.cancel()

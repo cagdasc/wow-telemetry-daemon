@@ -5,11 +5,14 @@ import com.cacaosd.wowtelemetry.data.datastore.keys.BatchFlushStrategyPreference
 import com.cacaosd.wowtelemetry.data.datastore.keys.BatchSilenceTimeoutSecondsPreferences
 import com.cacaosd.wowtelemetry.data.datastore.keys.EffortModePreferences
 import com.cacaosd.wowtelemetry.data.datastore.keys.LLModelPreferences
+import com.cacaosd.wowtelemetry.data.datastore.keys.SupporterFeedingModePreferences
+import com.cacaosd.wowtelemetry.data.datastore.keys.SupporterSummaryModelPreferences
 import com.cacaosd.wowtelemetry.data.datastore.keys.TemperaturePreferences
 import com.cacaosd.wowtelemetry.domain.preferences.BatchFlushStrategy
 import com.cacaosd.wowtelemetry.domain.preferences.EffortMode
 import com.cacaosd.wowtelemetry.domain.preferences.NarrationSettings
 import com.cacaosd.wowtelemetry.domain.preferences.NarrationSettingsRepository
+import com.cacaosd.wowtelemetry.domain.preferences.SupporterFeedingMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
@@ -35,6 +38,12 @@ class DesktopNarrationSettingsRepository(private val dataStoreManager: DataStore
                     dataStoreManager.readData(EffortModePreferences).first()
                 )
             }.getOrDefault(EffortMode.BALANCED),
+            supporterFeedingMode = runCatching {
+                SupporterFeedingMode.valueOf(
+                    dataStoreManager.readData(SupporterFeedingModePreferences).first()
+                )
+            }.getOrDefault(SupporterFeedingMode.DIRECT_ATTACHMENT),
+            supporterSummaryModel = dataStoreManager.readData(SupporterSummaryModelPreferences).first(),
         )
     }
 
@@ -44,5 +53,7 @@ class DesktopNarrationSettingsRepository(private val dataStoreManager: DataStore
         dataStoreManager.saveData(BatchFlushStrategyPreferences, settings.batchFlushStrategy.name)
         dataStoreManager.saveData(BatchSilenceTimeoutSecondsPreferences, settings.batchSilenceTimeoutSeconds)
         dataStoreManager.saveData(EffortModePreferences, settings.effortMode.name)
+        dataStoreManager.saveData(SupporterFeedingModePreferences, settings.supporterFeedingMode.name)
+        dataStoreManager.saveData(SupporterSummaryModelPreferences, settings.supporterSummaryModel)
     }
 }

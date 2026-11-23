@@ -66,10 +66,29 @@ fun main(args: Array<String>) = application {
                 title = "WoW Telemetry Client",
                 minSize = DpSize(width = 1200.dp, height = 900.dp),
             ) {
-                App(websocketUrl, viewModel, pickSessionFile = ::chooseSessionFile)
+                App(
+                    websocketUrl,
+                    viewModel,
+                    pickSessionFile = ::chooseSessionFile,
+                    pickLogFile = ::chooseLogFile,
+                )
             }
         }
     )
+}
+
+private suspend fun chooseLogFile(): String? = withContext(Dispatchers.IO) {
+    var selected: String? = null
+    SwingUtilities.invokeAndWait {
+        val chooser = JFileChooser().apply {
+            dialogTitle = "Attach combat log file"
+            fileFilter = FileNameExtensionFilter("Combat logs (*.txt, *.log, *.wowlog)", "txt", "log", "wowlog")
+        }
+        if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+            selected = chooser.selectedFile.absolutePath
+        }
+    }
+    selected
 }
 
 private suspend fun chooseSessionFile(): String? = withContext(Dispatchers.IO) {

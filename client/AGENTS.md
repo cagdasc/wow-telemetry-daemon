@@ -55,7 +55,9 @@
 - `combat-log` owns deterministic transformation and enrichment of transport events into analysis-ready combat entries
   and batches. Keep rule evaluation deterministic and testable.
 - `agent` owns Koog/Ollama interaction and chat memory. Character-profile context is a user turn, never part of the
-  system prompt.
+  system prompt. `DIRECT_ATTACHMENT` sends supporter files as Koog file attachments. `SUBGRAPH_SUMMARY` runs
+  `summarizeSupporterDocuments` with the selected supporter-summary model and `freshHistory = true`, appends only
+  its result to the main request, and discards supporter raw content from the main chat history.
 - `presentation` owns the lifecycle-aware ViewModel and reactive UI state. `desktopApp` owns Compose screens, JVM-only
   APIs, and platform-specific dependency wiring.
 - Room schema includes `Spell`, `SpellName`, and `Creature`, with primary-key ID lookups. No metadata import, combat metrics, or encounter state machine exists yet; describe these as future work unless implemented.

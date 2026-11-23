@@ -11,11 +11,6 @@ fun getSystemPrompt(effortMode: EffortMode): String = when (effortMode) {
     EffortMode.COMPREHENSIVE -> COMPREHENSIVE_SYSTEM_PROMPT
 }
 
-/**
- * Legacy default system prompt (equivalent to [EffortMode.BALANCED]).
- */
-val SYSTEM_PROMPT: String = getSystemPrompt(EffortMode.BALANCED)
-
 private val CONCISE_SYSTEM_PROMPT = """
     # Role & Persona
     You are an elite, high-speed World of Warcraft tactical combat analyst. Your objective is to deliver 

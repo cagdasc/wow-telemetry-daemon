@@ -94,14 +94,6 @@ fun TopBar(
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        OpenSettings(onOpenNarrationSettings)
-                    }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         CharacterPill(
@@ -116,9 +108,17 @@ fun TopBar(
                             statusColor = statusColor,
                             onOpenConnectionSettings = onOpenConnectionSettings,
                         )
+
+                        OpenSettings(onOpenNarrationSettings)
                     }
-                    OpenSessionFile(onOpenSessions)
-                    IngestControls(ingestMode, pendingFrames, isProcessing, onIngestModeChange, onProcess, onStop)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        OpenSessionFile(onOpenSessions)
+                        IngestControls(ingestMode, pendingFrames, isProcessing, onIngestModeChange, onProcess, onStop)
+                    }
                 }
             } else {
                 // Desktop / Tablet Wide Layout

@@ -1,10 +1,10 @@
 package com.cacaosd.wowtelemetry.agent
 
 import ai.koog.agents.chatMemory.feature.ChatMemory
+import ai.koog.agents.chatMemory.feature.ChatMemoryPreProcessor
 import ai.koog.agents.chatMemory.feature.InMemoryChatHistoryProvider
 import ai.koog.agents.core.agent.AIAgent
 import ai.koog.agents.core.agent.config.AIAgentConfig
-import ai.koog.agents.core.agent.functionalStrategy
 import ai.koog.prompt.dsl.prompt
 import ai.koog.prompt.executor.llms.MultiLLMPromptExecutor
 import ai.koog.prompt.executor.ollama.client.OllamaClient
@@ -15,21 +15,21 @@ import ai.koog.prompt.message.MessagePart
 import ai.koog.prompt.message.RequestMetaInfo
 import ai.koog.prompt.params.LLMParams
 import ai.koog.utils.time.KoogClock
+import com.cacaosd.wowtelemetry.agent.strategy.combatNarrationStrategy
+import com.cacaosd.wowtelemetry.agent.supporter.SupportingFileReader
 import com.cacaosd.wowtelemetry.combatlog.CombatEventBatch
 import com.cacaosd.wowtelemetry.domain.CharacterProfile
-import com.cacaosd.wowtelemetry.domain.CommonHeader
-import com.cacaosd.wowtelemetry.domain.RangeDamageEvent
-import com.cacaosd.wowtelemetry.domain.SpellDamageEvent
-import com.cacaosd.wowtelemetry.domain.SpellPrefix
+import com.cacaosd.wowtelemetry.domain.LogAttachmentRepository
 import com.cacaosd.wowtelemetry.domain.preferences.NarrationSettings
 import com.cacaosd.wowtelemetry.domain.preferences.NarrationSettingsRepository
-import kotlin.math.max
 
 class CombatEventNarrator(
     private val clock: KoogClock,
     private val settingsRepository: NarrationSettingsRepository,
+    private val logAttachmentRepository: LogAttachmentRepository,
 ) {
     private val chatHistoryProvider = InMemoryChatHistoryProvider()
+    private val supportingFileReader = SupportingFileReader()
 
     suspend fun respond(
         sessionId: String,
@@ -102,11 +102,17 @@ class CombatEventNarrator(
         addProfileAsFirstUserMessage(sessionId, profile)
         val settings = settingsRepository.load()
         val executor = MultiLLMPromptExecutor(OllamaClient())
+
+        val enabledAttachments = logAttachmentRepository.listAttachedLogs()
+        val mainParams = LLMParams(temperature = settings.temperature)
+        val summaryParams = LLMParams(temperature = settings.temperature)
+
         val agent = AIAgent(
+            promptExecutor = executor,
             agentConfig = AIAgentConfig(
                 prompt = prompt(
                     id = sessionId,
-                    params = LLMParams(temperature = settings.temperature),
+                    params = mainParams,
                     clock = clock,
                 ) {
                     system(
@@ -121,15 +127,17 @@ class CombatEventNarrator(
                 model = settings.toLLModel(),
                 maxAgentIterations = 50
             ),
-            promptExecutor = executor,
-            strategy = functionalStrategy { userInput: String ->
-                requestLLM(userInput).parts
-                    .filterIsInstance<MessagePart.Text>()
-                    .joinToString("\n") { it.text }
-            },
+            strategy = combatNarrationStrategy(
+                feedingMode = settings.supporterFeedingMode,
+                attachments = enabledAttachments,
+                resolveSupporters = supportingFileReader::resolveAll,
+                summaryModel = settings.supporterSummaryModelOrMain().toLLModel(),
+                summaryParams = summaryParams,
+            ),
             installFeatures = {
                 install(ChatMemory) {
                     chatHistoryProvider = this@CombatEventNarrator.chatHistoryProvider
+                    addPreProcessor(RemoveAttachmentsFromHistory)
                 }
             }
         )
@@ -164,6 +172,25 @@ class CombatEventNarrator(
         provider = LLMProvider.Ollama,
         id = model,
     )
+
+    private fun NarrationSettings.supporterSummaryModelOrMain(): NarrationSettings =
+        copy(model = supporterSummaryModel.ifBlank { model })
+
+}
+
+private object RemoveAttachmentsFromHistory : ChatMemoryPreProcessor {
+    override fun preprocess(messages: List<Message>): List<Message> =
+        messages.map { message ->
+            if (message !is Message.User) {
+                message
+            } else {
+                Message.User(
+                    parts = message.parts.filterNot { it is MessagePart.Attachment },
+                    metaInfo = message.metaInfo,
+                    id = message.id,
+                )
+            }
+        }
 }
 
 private fun CharacterProfile.toChatMessage(): String? {
@@ -210,30 +237,4 @@ private fun CombatEventBatch.toPromptText(supportingContext: String? = null): St
         appendLine("Relevant supporting documents:")
         appendLine(supportingContext)
     }
-}
-
-private fun CommonHeader.toPromptText(): String = buildString {
-    appendLine("Common Header:")
-    sourceName?.let { appendLine("Source Name: $it") }
-    sourceGuid?.let { appendLine("Source GUID: $it") }
-    destName?.let { appendLine("Destination Name: $it") }
-    destGuid?.let { appendLine("Destination GUID: $it") }
-}
-
-private fun SpellPrefix.toPromptText(): String = buildString {
-    appendLine("Spell Prefix:")
-    appendLine("Spell ID: $spellId")
-    spellName?.let { appendLine("Spell Name: $it") }
-}
-
-private fun SpellDamageEvent.toPromptText(): String = buildString {
-    appendLine("Spell Damage Event:")
-    val effectiveDamage = max(0L, baseAmount!! + blocked!! + resisted!! - max(0, overkill!!))
-    appendLine("Amount: $effectiveDamage")
-}
-
-private fun RangeDamageEvent.toPromptText(): String = buildString {
-    appendLine("Spell Damage Event:")
-    val effectiveDamage = max(0L, baseAmount!! + blocked!! + resisted!! - max(0, overkill!!))
-    appendLine("Amount: $effectiveDamage")
 }

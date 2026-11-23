@@ -6,6 +6,8 @@ data class NarrationSettings(
     val batchFlushStrategy: BatchFlushStrategy = BatchFlushStrategy.SILENCE_WATCHDOG,
     val batchSilenceTimeoutSeconds: Int = DEFAULT_SILENCE_TIMEOUT_SECONDS,
     val effortMode: EffortMode = EffortMode.BALANCED,
+    val supporterFeedingMode: SupporterFeedingMode = SupporterFeedingMode.DIRECT_ATTACHMENT,
+    val supporterSummaryModel: String = "",
 ) {
     init {
         require(batchSilenceTimeoutSeconds in MIN_SILENCE_TIMEOUT_SECONDS..MAX_SILENCE_TIMEOUT_SECONDS) {

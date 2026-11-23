@@ -38,6 +38,7 @@ import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleTextMuted
 import com.cacaosd.wowtelemetry.domain.preferences.BatchFlushStrategy
 import com.cacaosd.wowtelemetry.domain.preferences.EffortMode
 import com.cacaosd.wowtelemetry.domain.preferences.NarrationSettings
+import com.cacaosd.wowtelemetry.domain.preferences.SupporterFeedingMode
 
 @Composable
 fun NarrationSettingsDialog(
@@ -52,6 +53,13 @@ fun NarrationSettingsDialog(
     var temperature by remember(settings) { mutableFloatStateOf(settings.temperature.toFloat()) }
     var selectedModel by remember(settings.model) { mutableStateOf(settings.model) }
     var isModelMenuExpanded by remember { mutableStateOf(false) }
+    var selectedSummaryModel by remember(settings.supporterSummaryModel) {
+        mutableStateOf(settings.supporterSummaryModel)
+    }
+    var isSummaryModelMenuExpanded by remember { mutableStateOf(false) }
+    var supporterFeedingMode by remember(settings.supporterFeedingMode) {
+        mutableStateOf(settings.supporterFeedingMode)
+    }
     var flushStrategy by remember(settings) { mutableStateOf(settings.batchFlushStrategy) }
     var silenceTimeout by remember(settings) {
         mutableFloatStateOf(settings.batchSilenceTimeoutSeconds.toFloat())
@@ -129,6 +137,90 @@ fun NarrationSettingsDialog(
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
+
+                HorizontalDivider(color = ChronicleBorderSubtle)
+
+                Text(
+                    "SUPPORTER FEEDING MODE",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = ChronicleGold,
+                )
+                listOf(
+                    Triple(
+                        SupporterFeedingMode.DIRECT_ATTACHMENT,
+                        "Direct attachment",
+                        "Send supporter files with the main request.",
+                    ),
+                    Triple(
+                        SupporterFeedingMode.SUBGRAPH_SUMMARY,
+                        "Subgraph summary",
+                        "Summarize supporter files first, then send the summary.",
+                    ),
+                ).forEach { (mode, title, description) ->
+                    Row(
+                        verticalAlignment = Alignment.Top,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { supporterFeedingMode = mode },
+                    ) {
+                        RadioButton(
+                            selected = supporterFeedingMode == mode,
+                            onClick = { supporterFeedingMode = mode },
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Column {
+                            Text(title, fontWeight = FontWeight.SemiBold)
+                            Text(
+                                description,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = ChronicleTextMuted,
+                            )
+                        }
+                    }
+                }
+
+                HorizontalDivider(color = ChronicleBorderSubtle)
+
+                Text(
+                    "SUPPORTER SUMMARY MODEL",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = ChronicleGold,
+                )
+                OutlinedButton(
+                    onClick = { isSummaryModelMenuExpanded = true },
+                    enabled = models.isNotEmpty(),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(selectedSummaryModel.ifBlank { "Same as narration model" })
+                }
+                DropdownMenu(
+                    expanded = isSummaryModelMenuExpanded,
+                    onDismissRequest = { isSummaryModelMenuExpanded = false },
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Same as narration model") },
+                        onClick = {
+                            selectedSummaryModel = ""
+                            isSummaryModelMenuExpanded = false
+                        },
+                    )
+                    models.forEach { model ->
+                        DropdownMenuItem(
+                            text = { Text(model) },
+                            onClick = {
+                                selectedSummaryModel = model
+                                isSummaryModelMenuExpanded = false
+                            },
+                        )
+                    }
+                }
+                Text(
+                    "Used only when supporter files are summarized through a subgraph.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = ChronicleTextMuted,
+                )
 
                 HorizontalDivider(color = ChronicleBorderSubtle)
 
@@ -273,6 +365,8 @@ fun NarrationSettingsDialog(
                             batchFlushStrategy = flushStrategy,
                             batchSilenceTimeoutSeconds = silenceTimeout.toInt(),
                             effortMode = selectedEffortMode,
+                            supporterFeedingMode = supporterFeedingMode,
+                            supporterSummaryModel = selectedSummaryModel,
                         )
                     )
                 },

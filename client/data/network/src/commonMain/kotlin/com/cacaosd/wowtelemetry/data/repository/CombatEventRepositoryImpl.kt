@@ -3,7 +3,6 @@ package com.cacaosd.wowtelemetry.data.repository
 import com.cacaosd.wowtelemetry.data.mapper.CombatStreamMessageDecoder
 import com.cacaosd.wowtelemetry.data.mapper.isRecordable
 import com.cacaosd.wowtelemetry.data.mapper.toStreamMessage
-import com.cacaosd.wowtelemetry.data.model.CombatEventDecodeException
 import com.cacaosd.wowtelemetry.data.model.parseCombatEventRoot
 import com.cacaosd.wowtelemetry.data.proto.Envelope
 import com.cacaosd.wowtelemetry.domain.CombatEventRepository
@@ -127,67 +126,12 @@ class CombatEventRepositoryImpl(
                     mutableConnectionState.value =
                         DaemonConnectionState(DaemonConnectionState.Status.CONNECTED, url)
                     for (frame in incoming) {
-                        if (frame is Frame.Binary) {
-                            try {
-                                val bytes = frame.readBytes()
-                                val envelope = Envelope.ADAPTER.decode(bytes)
-                                val hello = envelope.control?.hello
-                                if (hello != null) {
-                                    checkProtocolVersion(hello.protocol_version.toLong(), url)
-                                    resume(hello.epoch)
-                                    continue
-                                }
-                                if (!isNewEnvelope(envelope, url)) continue
-                                if (ingestMode.value == IngestMode.COLLECT) {
-                                    if (!envelope.isRecordable || recordFrame(RawFrame(FrameKind.BINARY, bytes))) {
-                                        continue
-                                    }
-                                }
-                                envelope.toStreamMessage()?.let { emit(it) }
-                            } catch (error: IOException) {
-                                logError("Rejected invalid protobuf message from $url: ${error.message}")
-                            } catch (error: CombatEventDecodeException) {
-                                logError("Rejected invalid protobuf message from $url: ${error.message}")
-                            } catch (error: IllegalArgumentException) {
-                                logError("Rejected invalid protobuf message from $url: ${error.message}")
-                            }
-                            continue
+                        val message = when (frame) {
+                            is Frame.Binary -> processBinaryFrame(frame, url)
+                            is Frame.Text -> processTextFrame(frame, url)
+                            else -> null
                         }
-                        if (frame !is Frame.Text) continue
-                        try {
-                            val payload = frame.readText()
-                            val root = parseCombatEventRoot(payload)
-                            when (root["control"]?.jsonPrimitive?.contentOrNull) {
-                                HELLO -> {
-                                    checkProtocolVersion(
-                                        root["protocol_version"]?.jsonPrimitive?.longOrNull,
-                                        url,
-                                    )
-                                    resume(root["epoch"]?.jsonPrimitive?.longOrNull)
-                                    continue
-                                }
-
-                                REPLAY_GAP -> {
-                                    logError("Daemon replay gap from $url: $root")
-                                    continue
-                                }
-                            }
-                            val seq = root["seq"]?.jsonPrimitive?.longOrNull
-                            if (seq != null) {
-                                if (seq <= lastSeq) continue
-                                lastSeq = seq
-                            }
-                            if (ingestMode.value == IngestMode.COLLECT) {
-                                val control = root["control"]?.jsonPrimitive?.contentOrNull
-                                val recordable = control == null || control == CAUGHT_UP || control == LOG_CLEARED
-                                if (!recordable || recordFrame(RawFrame(FrameKind.TEXT, payload.encodeToByteArray()))) {
-                                    continue
-                                }
-                            }
-                            emit(streamMessageDecoder.decode(root))
-                        } catch (error: CombatEventDecodeException) {
-                            logError("Rejected invalid WebSocket message from $url: ${error.message}")
-                        }
+                        if (message != null) emit(message)
                     }
                     val close = closeReason.await()
                     val description = close?.let { "${it.code}: ${it.message}" } ?: "no close frame"
@@ -211,6 +155,80 @@ class CombatEventRepositoryImpl(
         }
     }
 
+    private suspend fun DefaultClientWebSocketSession.processBinaryFrame(
+        frame: Frame.Binary,
+        url: String,
+    ): CombatStreamMessage? = try {
+        val bytes = frame.readBytes()
+        val envelope = Envelope.ADAPTER.decode(bytes)
+        val hello = envelope.control?.hello
+        when {
+            hello != null -> {
+                checkProtocolVersion(hello.protocol_version.toLong(), url)
+                resume(hello.epoch)
+                null
+            }
+
+            !isNewEnvelope(envelope, url) -> null
+            ingestMode.value == IngestMode.COLLECT &&
+                    (!envelope.isRecordable || recordFrame(RawFrame(FrameKind.BINARY, bytes))) -> null
+
+            else -> envelope.toStreamMessage()
+        }
+    } catch (error: IOException) {
+        logInvalidFrame("protobuf", url, error)
+    } catch (error: IllegalArgumentException) {
+        logInvalidFrame("protobuf", url, error)
+    }
+
+    private suspend fun DefaultClientWebSocketSession.processTextFrame(
+        frame: Frame.Text,
+        url: String,
+    ): CombatStreamMessage? = try {
+        val payload = frame.readText()
+        val root = parseCombatEventRoot(payload)
+        when (val control = root["control"]?.jsonPrimitive?.contentOrNull) {
+            HELLO -> {
+                checkProtocolVersion(
+                    root["protocol_version"]?.jsonPrimitive?.longOrNull,
+                    url,
+                )
+                resume(root["epoch"]?.jsonPrimitive?.longOrNull)
+                null
+            }
+
+            REPLAY_GAP -> {
+                logError("Daemon replay gap from $url: $root")
+                null
+            }
+
+            else -> {
+                val seq = root["seq"]?.jsonPrimitive?.longOrNull
+                if (!isNewSequence(seq)) {
+                    null
+                } else if (
+                    ingestMode.value == IngestMode.COLLECT &&
+                    (!isRecordable(control) || recordFrame(RawFrame(FrameKind.TEXT, payload.encodeToByteArray())))
+                ) {
+                    null
+                } else {
+                    streamMessageDecoder.decode(root)
+                }
+            }
+        }
+    } catch (error: IllegalArgumentException) {
+        logInvalidFrame("WebSocket", url, error)
+    }
+
+    private fun logInvalidFrame(
+        format: String,
+        url: String,
+        error: Exception,
+    ): CombatStreamMessage? {
+        logError("Rejected invalid $format message from $url: ${error.message}")
+        return null
+    }
+
     /** Logs replay gaps and drops frames at or below the last seen `seq`. */
     private fun isNewEnvelope(envelope: Envelope, url: String): Boolean {
         val replayGap = envelope.control?.replay_gap
@@ -218,12 +236,18 @@ class CombatEventRepositoryImpl(
             logError("Daemon replay gap from $url: $replayGap")
             return false
         }
-        if (envelope.seq != 0L) {
-            if (envelope.seq <= lastSeq) return false
-            lastSeq = envelope.seq
-        }
+        return isNewSequence(envelope.seq)
+    }
+
+    private fun isNewSequence(seq: Long?): Boolean {
+        if (seq == null || seq == UNSEQUENCED_SEQ) return true
+        if (seq <= lastSeq) return false
+        lastSeq = seq
         return true
     }
+
+    private fun isRecordable(control: String?): Boolean =
+        control == null || control == CAUGHT_UP || control == LOG_CLEARED
 
     /** Returns false after falling back to live mode, so the caller still processes the frame. */
     private fun recordFrame(frame: RawFrame): Boolean =
@@ -277,6 +301,7 @@ class CombatEventRepositoryImpl(
         const val REPLAY_GAP = "REPLAY_GAP"
         const val PROTOCOL_VERSION = 1L
         const val NO_SEQ = -1L
+        const val UNSEQUENCED_SEQ = 0L
         val RECONNECT_DELAY = 3.seconds
     }
 }
