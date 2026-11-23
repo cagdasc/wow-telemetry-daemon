@@ -11,27 +11,22 @@ import androidx.lifecycle.ViewModelStore
 import com.cacaosd.platform.core.config.PlatformConfiguration
 import com.cacaosd.platform.core.di.platformConfiguration
 import com.cacaosd.platform.coroutines.di.platformCoroutines
-import com.cacaosd.platform.coroutines.dispatchers.PlatformDispatchers
+import com.cacaosd.wowtelemetry.client.cli.CommandLineParser
 import com.cacaosd.wowtelemetry.client.di.appModule
+import com.cacaosd.wowtelemetry.client.filechooser.chooseLogFile
+import com.cacaosd.wowtelemetry.client.filechooser.chooseSessionFile
 import com.cacaosd.wowtelemetry.data.database.AppDatabase
 import com.cacaosd.wowtelemetry.data.database.CharacterProfileDatabase
-import com.cacaosd.wowtelemetry.data.getHomeDirectory
 import io.ktor.client.HttpClient
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.setMain
-import kotlinx.coroutines.withContext
 import org.koin.compose.KoinApplication
 import org.koin.compose.LocalKoinApplication
-import java.net.URI
-import javax.swing.JFileChooser
-import javax.swing.SwingUtilities
-import javax.swing.filechooser.FileNameExtensionFilter
+import org.koin.core.Koin
 
-private const val DEFAULT_WEBSOCKET_URL = "ws://127.0.0.1:8765"
+private const val WINDOW_TITLE = "WoW Telemetry Client"
+private val WINDOW_MIN_SIZE = DpSize(width = 1200.dp, height = 900.dp)
 
 fun main(args: Array<String>) = application {
-    val websocketUrl = parseWebSocketUrl(args) ?: return@application
+    val config = CommandLineParser.parse(args) ?: return@application
 
     KoinApplication(
         application = {
@@ -40,8 +35,6 @@ fun main(args: Array<String>) = application {
 
             allowOverride(false)
             modules(appModule())
-            @OptIn(ExperimentalCoroutinesApi::class)
-            Dispatchers.setMain(koin.get<PlatformDispatchers>().main)
         },
         content = {
             val koin = LocalKoinApplication.current
@@ -56,19 +49,15 @@ fun main(args: Array<String>) = application {
 
             Window(
                 onCloseRequest = {
-                    viewModelStore.clear()
-                    httpClient.close()
-                    database.close()
-                    profileDatabase.close()
-                    koin.close()
+                    shutdown(viewModelStore, httpClient, database, profileDatabase, koin)
                     exitApplication()
                 },
-                title = "WoW Telemetry Client",
-                minSize = DpSize(width = 1200.dp, height = 900.dp),
+                title = WINDOW_TITLE,
+                minSize = WINDOW_MIN_SIZE,
             ) {
                 App(
-                    websocketUrl,
-                    viewModel,
+                    initialWebsocketUrl = config.websocketUrl,
+                    viewModel = viewModel,
                     pickSessionFile = ::chooseSessionFile,
                     pickLogFile = ::chooseLogFile,
                 )
@@ -77,62 +66,16 @@ fun main(args: Array<String>) = application {
     )
 }
 
-private suspend fun chooseLogFile(): String? = withContext(Dispatchers.IO) {
-    var selected: String? = null
-    SwingUtilities.invokeAndWait {
-        val chooser = JFileChooser().apply {
-            dialogTitle = "Attach combat log file"
-            fileFilter = FileNameExtensionFilter("Combat logs (*.txt, *.log, *.wowlog)", "txt", "log", "wowlog")
-        }
-        if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-            selected = chooser.selectedFile.absolutePath
-        }
-    }
-    selected
-}
-
-private suspend fun chooseSessionFile(): String? = withContext(Dispatchers.IO) {
-    var selected: String? = null
-    SwingUtilities.invokeAndWait {
-        val chooser = JFileChooser(getHomeDirectory() + "/sessions").apply {
-            dialogTitle = "Open combat log session"
-            fileFilter = FileNameExtensionFilter("WoW telemetry session (*.wowlog)", "wowlog")
-        }
-        if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-            selected = chooser.selectedFile.absolutePath
-        }
-    }
-    selected
-}
-
-private fun parseWebSocketUrl(args: Array<String>): String? {
-    var url = System.getenv("WOW_TELEMETRY_WS_URL") ?: DEFAULT_WEBSOCKET_URL
-    var index = 0
-
-    while (index < args.size) {
-        when (val argument = args[index]) {
-            "--ws-url" -> {
-                require(index + 1 < args.size) { "--ws-url requires a URL" }
-                url = args[++index]
-            }
-
-            "--help", "-h" -> {
-                println(
-                    "Usage: WowTelemetryClient [--ws-url ws://HOST:8765]\n" +
-                            "Set WOW_TELEMETRY_WS_URL to prefill the connection panel.",
-                )
-                return null
-            }
-
-            else -> error("Unknown argument: $argument")
-        }
-        index++
-    }
-
-    val uri = URI(url)
-    require(uri.scheme == "ws" || uri.scheme == "wss") {
-        "WebSocket URL must use ws:// or wss://"
-    }
-    require(uri.host != null) { "WebSocket URL must include a host" }
-    return uri.toString()
+private fun shutdown(
+    viewModelStore: ViewModelStore,
+    httpClient: HttpClient,
+    database: AppDatabase,
+    profileDatabase: CharacterProfileDatabase,
+    koin: Koin,
+) {
+    runCatching { viewModelStore.clear() }
+    runCatching { httpClient.close() }
+    runCatching { database.close() }
+    runCatching { profileDatabase.close() }
+    runCatching { koin.close() }
 }
