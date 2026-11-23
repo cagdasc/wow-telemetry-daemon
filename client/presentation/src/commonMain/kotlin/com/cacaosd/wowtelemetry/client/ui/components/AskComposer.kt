@@ -35,13 +35,14 @@ import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleTextMuted
 fun AskComposer(
     analyzedEvents: Long,
     isAnswering: Boolean,
+    isProcessingSession: Boolean,
     error: String?,
     onAsk: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var text by remember { mutableStateOf("") }
     val hasData = analyzedEvents > 0
-    val canSend = hasData && !isAnswering && text.isNotBlank()
+    val canSend = hasData && !isAnswering && !isProcessingSession && text.isNotBlank()
     val send = {
         if (canSend) {
             onAsk(text)
@@ -87,6 +88,7 @@ fun AskComposer(
             Text(
                 text = when {
                     error != null -> error
+                    isProcessingSession -> "Wait for processing to finish before asking."
                     hasData -> "Answers use statistics computed from $analyzedEvents events. Log lines are not shown."
                     else -> "Process some combat events first, then ask questions about them."
                 },

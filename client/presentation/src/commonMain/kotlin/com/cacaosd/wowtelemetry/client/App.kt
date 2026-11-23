@@ -217,6 +217,7 @@ fun App(
                         strategy = uiState.narrationSettings.batchFlushStrategy,
                         effortMode = uiState.narrationSettings.effortMode,
                         turnCount = assistantTurns.size,
+                        contextUsage = uiState.contextUsage,
                     )
                 }
             }

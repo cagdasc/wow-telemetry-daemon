@@ -85,6 +85,7 @@ fun ChatScreen(
         AskComposer(
             analyzedEvents = uiState.analyzedEvents,
             isAnswering = uiState.isAnswering,
+            isProcessingSession = uiState.isProcessingSession,
             error = uiState.askError,
             onAsk = ask,
         )

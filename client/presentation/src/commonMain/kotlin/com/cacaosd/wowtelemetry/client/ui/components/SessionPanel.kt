@@ -47,7 +47,11 @@ fun SessionPanel(
     val status = when {
         message != null -> message
         selectedSession != null -> {
-            val total = selectedSession.frameCount ?: 0L
+            val total = if (recording.session?.path == selectedSession.path) {
+                recording.frameCount
+            } else {
+                selectedSession.frameCount ?: 0L
+            }
             "Session: ${selectedSession.name} · $total frames · $pendingFrames unprocessed"
         }
         ingestMode == IngestMode.COLLECT || recording.session != null ->

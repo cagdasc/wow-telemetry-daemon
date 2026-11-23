@@ -78,7 +78,7 @@ fun ChronicleFeed(
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
     ) {
-        if (assistantTurns.isEmpty() && !isPhrasingEvent) {
+        if (assistantTurns.isEmpty() && !isPhrasingEvent && phrasingError == null) {
             EmptyChronicleState(
                 isConnected = isConnected,
                 characterProfile = characterProfile,

@@ -82,7 +82,7 @@ fun ActiveAttachmentsChip(
                 FilterChip(
                     selected = feedingMode == SupporterFeedingMode.DIRECT_ATTACHMENT,
                     onClick = { onFeedingModeChange(SupporterFeedingMode.DIRECT_ATTACHMENT) },
-                    label = { Text("Direct", fontSize = 11.sp) },
+                    label = { Text("Raw", fontSize = 11.sp) },
                     shape = RoundedCornerShape(6.dp),
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -93,7 +93,7 @@ fun ActiveAttachmentsChip(
                 FilterChip(
                     selected = feedingMode == SupporterFeedingMode.SUBGRAPH_SUMMARY,
                     onClick = { onFeedingModeChange(SupporterFeedingMode.SUBGRAPH_SUMMARY) },
-                    label = { Text("Subgraph", fontSize = 11.sp) },
+                    label = { Text("AI Summary", fontSize = 11.sp) },
                     shape = RoundedCornerShape(6.dp),
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,

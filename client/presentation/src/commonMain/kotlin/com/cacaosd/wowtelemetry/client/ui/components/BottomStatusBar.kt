@@ -3,6 +3,7 @@ package com.cacaosd.wowtelemetry.client.ui.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -13,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.cacaosd.wowtelemetry.client.ContextUsage
 import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleBorder
 import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleBorderSubtle
 import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleSurface
@@ -27,6 +29,7 @@ fun BottomStatusBar(
     strategy: BatchFlushStrategy,
     effortMode: EffortMode,
     turnCount: Int,
+    contextUsage: ContextUsage?,
     modifier: Modifier = Modifier,
 ) {
     Surface(
@@ -42,18 +45,27 @@ fun BottomStatusBar(
             val isCompact = maxWidth < 600.dp
 
             if (isCompact) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Text(
+                            text = "Ollama: $model · ${effortMode.displayName}",
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = ChronicleTextMuted,
+                            maxLines = 1,
+                        )
+                        Text(
+                            text = "$turnCount entries",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = ChronicleTextMuted,
+                        )
+                    }
                     Text(
-                        text = "Ollama: $model · ${effortMode.displayName}",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = ChronicleTextMuted,
-                    )
-                    Text(
-                        text = "$turnCount entries",
+                        text = contextUsageLabel(contextUsage),
                         style = MaterialTheme.typography.labelSmall,
                         color = ChronicleTextMuted,
                     )
@@ -96,13 +108,28 @@ fun BottomStatusBar(
                         )
                     }
 
-                    Text(
-                        text = "$turnCount chronicle entries",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = ChronicleTextMuted,
-                    )
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(
+                            text = "$turnCount chronicle entries",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = ChronicleTextMuted,
+                        )
+                        Text(
+                            text = contextUsageLabel(contextUsage),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = ChronicleTextMuted,
+                        )
+                    }
                 }
+
             }
         }
     }
+}
+
+private fun contextUsageLabel(usage: ContextUsage?): String {
+    val input = usage?.inputTokens ?: return "Last input: unavailable"
+    val limit = usage.contextLength ?: return "Last input: $input tokens (limit unavailable)"
+    val warning = if (input.toLong() * 100 >= limit.toLong() * 80) " · near limit; Ollama may truncate" else ""
+    return "Last input: $input / $limit tokens$warning"
 }

@@ -49,16 +49,17 @@ classes and decoder are generated from the daemon's combat-log specification.
 - `presentation/` owns the lifecycle-aware ViewModel and reactive state;
   `desktopApp/` owns Compose UI and JVM-specific startup/wiring.
 - The client batches streamed events until the daemon's caught-up marker arrives (with a quiet-time fallback for older
-  daemons), then automatically rephrases
-  the batch with a Koog agent
+  daemons), then automatically narrates cumulative computed statistics
+  with a Koog agent
   and Ollama at `http://localhost:11434` using the selected model. Open **Settings** to discover installed Ollama models
   and select one. Each batch
   displays its first and last
-  log timestamps. Koog chat memory carries previous batches and assistant
-  replies as separate turns. **Clear client history** resets that context while
-  narration continues. Chat history has no size limit yet and may exceed
-  the model's context window in long sessions. The agent only describes
-  supplied log data and must not invent facts.
+  log timestamps. Live narration, collected summaries, and questions share
+  in-memory Koog history for the current dataset. **Clear client history** or
+  opening another session resets it. The status bar reports the last request's
+  input tokens and the running model's context limit when available. It does not
+  predict the next request's size. History has no size limit; Ollama may truncate
+  context in long sessions. The agent must not invent facts.
 
 Character name, class, specialization, realm, and region can be saved in the
 Character settings dialog. The profile is stored in its own Room database and

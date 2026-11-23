@@ -367,12 +367,12 @@ private fun NarrationSettingsCard(
             listOf(
                 Triple(
                     SupporterFeedingMode.DIRECT_ATTACHMENT,
-                    "Direct attachment",
+                    "Raw attachment",
                     "Send supporter files with the main request.",
                 ),
                 Triple(
                     SupporterFeedingMode.SUBGRAPH_SUMMARY,
-                    "Subgraph summary",
+                    "AI summary",
                     "Summarize supporter files first, then send the summary.",
                 ),
             ).forEach { (mode, title, description) ->
