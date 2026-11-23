@@ -13,7 +13,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -26,8 +25,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleBorderSubtle
 import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleError
 import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleGold
 import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleSuccess
@@ -43,15 +40,8 @@ fun ConnectionDialog(
     endpointError: String?,
     connection: DaemonConnectionState,
     canDisconnect: Boolean,
-    isConnected: Boolean,
     onConnect: () -> Unit,
     onDisconnect: () -> Unit,
-    hasHistory: Boolean,
-    onClearHistory: () -> Unit,
-    isClearingDaemonBacklog: Boolean,
-    onOpenClearDaemonDialog: () -> Unit,
-    daemonBacklogMessage: String?,
-    daemonBacklogError: Boolean,
     onDismiss: () -> Unit,
 ) {
     val statusColor = when (connection.status) {
@@ -152,46 +142,6 @@ fun ConnectionDialog(
                             Text("Connect", fontWeight = FontWeight.Bold)
                         }
                     }
-                }
-
-                HorizontalDivider(color = ChronicleBorderSubtle)
-
-                Text(
-                    text = "MAINTENANCE & LOGS",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        fontWeight = FontWeight.SemiBold,
-                        color = ChronicleTextMuted,
-                        letterSpacing = 1.sp,
-                    ),
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    OutlinedButton(
-                        onClick = onClearHistory,
-                        enabled = hasHistory,
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Text("Clear View")
-                    }
-
-                    OutlinedButton(
-                        onClick = onOpenClearDaemonDialog,
-                        enabled = isConnected && !isClearingDaemonBacklog,
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Text(if (isClearingDaemonBacklog) "Flushing…" else "Clear Daemon Log")
-                    }
-                }
-
-                daemonBacklogMessage?.let { message ->
-                    Text(
-                        text = message,
-                        color = if (daemonBacklogError) ChronicleError else ChronicleSuccess,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
                 }
             }
         },

@@ -23,7 +23,7 @@ import org.koin.compose.LocalKoinApplication
 import org.koin.core.Koin
 
 private const val WINDOW_TITLE = "WoW Telemetry Client"
-private val WINDOW_MIN_SIZE = DpSize(width = 1200.dp, height = 900.dp)
+private val WINDOW_MIN_SIZE = DpSize(width = 1400.dp, height = 1100.dp)
 
 fun main(args: Array<String>) = application {
     val config = CommandLineParser.parse(args) ?: return@application

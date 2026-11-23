@@ -30,6 +30,10 @@ kotlin {
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
+            implementation(libs.compose.adaptive)
+            implementation(libs.compose.adaptive.layout)
+            implementation(libs.compose.adaptive.navigation)
+            implementation(libs.compose.adaptive.navigation.suite)
             implementation(libs.compose.ui)
             implementation(libs.compose.uiToolingPreview)
         }

@@ -1,29 +1,17 @@
 package com.cacaosd.wowtelemetry.client
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationRail
-import androidx.compose.material3.NavigationRailItem
-import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,20 +21,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.cacaosd.wowtelemetry.client.ui.components.ActiveAttachmentsChip
-import com.cacaosd.wowtelemetry.client.ui.components.AskComposer
 import com.cacaosd.wowtelemetry.client.ui.components.BottomStatusBar
-import com.cacaosd.wowtelemetry.client.ui.components.ChronicleFeed
-import com.cacaosd.wowtelemetry.client.ui.components.CombatActivityRibbon
-import com.cacaosd.wowtelemetry.client.ui.components.PlayerRosterBar
 import com.cacaosd.wowtelemetry.client.ui.components.SessionPanel
 import com.cacaosd.wowtelemetry.client.ui.components.TopBar
-import com.cacaosd.wowtelemetry.client.ui.dialogs.CharacterSettingsDialog
 import com.cacaosd.wowtelemetry.client.ui.dialogs.ClearDaemonDialog
 import com.cacaosd.wowtelemetry.client.ui.dialogs.ConnectionDialog
-import com.cacaosd.wowtelemetry.client.ui.dialogs.NarrationSettingsDialog
 import com.cacaosd.wowtelemetry.client.ui.dialogs.SessionsDialog
 import com.cacaosd.wowtelemetry.client.ui.screens.AttachmentsScreen
+import com.cacaosd.wowtelemetry.client.ui.screens.ChatScreen
+import com.cacaosd.wowtelemetry.client.ui.screens.SettingsScreen
 import com.cacaosd.wowtelemetry.client.ui.theme.DarkChronicleColorScheme
 import com.cacaosd.wowtelemetry.domain.CharacterProfile
 import com.cacaosd.wowtelemetry.domain.DaemonConnectionState
@@ -55,6 +38,7 @@ import kotlinx.coroutines.launch
 enum class MainAppTab(val title: String) {
     CHAT("Chronicle"),
     ATTACHMENTS("Attachments"),
+    SETTINGS("Settings"),
 }
 
 @Composable
@@ -67,16 +51,10 @@ fun App(
 ) {
     val uiState = viewModel.uiState.collectAsState().value
     val chatHistory = uiState.chatHistory
-    val isPhrasingEvent = uiState.isPhrasingEvent
-    val phrasingError = uiState.phrasingError
-    val activeBatch = uiState.activeBatch
-    val latestBatch = uiState.latestBatch
     val characterProfile = uiState.profile ?: CharacterProfile()
     val profileError = uiState.profileError
 
     var selectedTab by remember { mutableStateOf(MainAppTab.CHAT) }
-    var isSettingsVisible by remember { mutableStateOf(false) }
-    var isNarrationSettingsVisible by remember { mutableStateOf(false) }
     var isClearDaemonDialogVisible by remember { mutableStateOf(false) }
     var daemonAddress by remember(initialWebsocketUrl) {
         mutableStateOf(initialDaemonAddress(initialWebsocketUrl))
@@ -87,270 +65,164 @@ fun App(
     val scope = rememberCoroutineScope()
 
     val assistantTurns = chatHistory.filter { it.role == "Assistant" }
-    val listState = rememberLazyListState()
+
     val connection = uiState.daemonConnection
     val isConnected = connection.status == DaemonConnectionState.Status.CONNECTED
     val canDisconnect = connection.status != DaemonConnectionState.Status.DISCONNECTED
-
-    // Auto-scroll to latest chronicle passage when turns arrive or phrasing starts
-    LaunchedEffect(assistantTurns.size, isPhrasingEvent) {
-        if (assistantTurns.isNotEmpty() || isPhrasingEvent) {
-            val target = assistantTurns.size + (if (isPhrasingEvent) 1 else 0)
-            if (target > 0) {
-                listState.animateScrollToItem(target - 1)
-            }
-        }
-    }
 
     MaterialTheme(colorScheme = DarkChronicleColorScheme) {
         Surface(
             modifier = modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background,
         ) {
-            BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-                val isWide = maxWidth >= 768.dp
+            NavigationSuiteScaffold(
+                navigationSuiteItems = {
+                    item(
+                        selected = selectedTab == MainAppTab.CHAT,
+                        onClick = { selectedTab = MainAppTab.CHAT },
+                        icon = { Text("📜", fontSize = 18.sp) },
+                        label = { Text("Chronicle") },
+                    )
+                    item(
+                        selected = selectedTab == MainAppTab.ATTACHMENTS,
+                        onClick = { selectedTab = MainAppTab.ATTACHMENTS },
+                        icon = {
+                            Text("📎", fontSize = 18.sp)
+                        },
+                        badge = {
+                            if (uiState.activeAttachmentCount > 0) {
+                                Badge { Text("${uiState.activeAttachmentCount}") }
+                            }
+                        },
+                        label = { Text("Attachments") },
+                    )
+                    item(
+                        selected = selectedTab == MainAppTab.SETTINGS,
+                        onClick = {
+                            selectedTab = MainAppTab.SETTINGS
+                            viewModel.discoverOllamaModels()
+                        },
+                        icon = { Text("⚙️", fontSize = 18.sp) },
+                        label = { Text("Settings") },
+                    )
+                },
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    // Sticky TopBar
+                    TopBar(
+                        daemonAddress = daemonAddress,
+                        connection = connection,
+                        characterProfile = characterProfile,
+                        onOpenConnectionSettings = { isConnectionDialogVisible = true },
+                        onNavigateToSettings = {
+                            selectedTab = MainAppTab.SETTINGS
+                            viewModel.discoverOllamaModels()
+                        },
+                        onOpenSessions = {
+                            viewModel.refreshSessions()
+                            isSessionsDialogVisible = true
+                        },
+                        ingestMode = uiState.ingestMode,
+                        pendingFrames = uiState.pendingFrames,
+                        isProcessing = uiState.isProcessingSession,
+                        onIngestModeChange = viewModel::setIngestMode,
+                        onProcess = viewModel::processCollected,
+                        onStop = viewModel::stopProcessing,
+                    )
 
-                Row(modifier = Modifier.fillMaxSize()) {
-                    // Navigation Rail on wider screens (Desktop / Tablet)
-                    if (isWide) {
-                        NavigationRail(
-                            containerColor = MaterialTheme.colorScheme.surface,
-                            contentColor = MaterialTheme.colorScheme.onSurface,
+                    // Session recording panel
+                    SessionPanel(
+                        ingestMode = uiState.ingestMode,
+                        recording = uiState.recording,
+                        selectedSession = uiState.selectedSession,
+                        pendingFrames = uiState.pendingFrames,
+                        message = uiState.sessionMessage,
+                        messageIsError = uiState.sessionMessageIsError,
+                        isConnected = isConnected,
+                        isClearingDaemonBacklog = uiState.isClearingDaemonBacklog,
+                        onClearView = viewModel::clearView,
+                        onOpenClearDaemonDialog = { isClearDaemonDialogVisible = true },
+                    )
+
+                    // Profile notice
+                    profileError?.let { error ->
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 4.dp),
+                            color = MaterialTheme.colorScheme.errorContainer,
+                            shape = RoundedCornerShape(8.dp),
                         ) {
-                            Spacer(modifier = Modifier.height(16.dp))
-                            NavigationRailItem(
-                                selected = selectedTab == MainAppTab.CHAT,
-                                onClick = { selectedTab = MainAppTab.CHAT },
-                                icon = { Text("📜", fontSize = 20.sp) },
-                                label = { Text("Chat") },
-                                colors = NavigationRailItemDefaults.colors(
-                                    selectedIconColor = MaterialTheme.colorScheme.primary,
-                                    selectedTextColor = MaterialTheme.colorScheme.primary,
-                                    indicatorColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
-                                ),
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            NavigationRailItem(
-                                selected = selectedTab == MainAppTab.ATTACHMENTS,
-                                onClick = { selectedTab = MainAppTab.ATTACHMENTS },
-                                icon = {
-                                    BadgedBox(
-                                        badge = {
-                                            if (uiState.activeAttachmentCount > 0) {
-                                                Badge { Text("${uiState.activeAttachmentCount}") }
-                                            }
-                                        }
-                                    ) {
-                                        Text("📎", fontSize = 20.sp)
-                                    }
-                                },
-                                label = { Text("Files") },
-                                colors = NavigationRailItemDefaults.colors(
-                                    selectedIconColor = MaterialTheme.colorScheme.primary,
-                                    selectedTextColor = MaterialTheme.colorScheme.primary,
-                                    indicatorColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
-                                ),
+                            Text(
+                                text = "Character profile notice: $error",
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                style = MaterialTheme.typography.bodySmall,
                             )
                         }
                     }
 
-                    // Main App Content
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight(),
-                    ) {
-                        // Sticky TopBar
-                        TopBar(
-                            daemonAddress = daemonAddress,
-                            connection = connection,
-                            characterProfile = characterProfile,
-                            onOpenConnectionSettings = { isConnectionDialogVisible = true },
-                            onOpenCharacterSettings = { isSettingsVisible = true },
-                            onOpenNarrationSettings = {
-                                isNarrationSettingsVisible = true
-                                viewModel.discoverOllamaModels()
-                            },
-                            onOpenSessions = {
-                                viewModel.refreshSessions()
-                                isSessionsDialogVisible = true
-                            },
-                            ingestMode = uiState.ingestMode,
-                            pendingFrames = uiState.pendingFrames,
-                            isProcessing = uiState.isProcessingSession,
-                            onIngestModeChange = viewModel::setIngestMode,
-                            onProcess = viewModel::processCollected,
-                            onStop = viewModel::stopProcessing,
-                        )
-
-                        // Session recording panel
-                        SessionPanel(
-                            ingestMode = uiState.ingestMode,
-                            recording = uiState.recording,
-                            selectedSession = uiState.selectedSession,
-                            pendingFrames = uiState.pendingFrames,
-                            message = uiState.sessionMessage,
-                            messageIsError = uiState.sessionMessageIsError,
-                            isConnected = isConnected,
-                            isClearingDaemonBacklog = uiState.isClearingDaemonBacklog,
-                            onClearView = viewModel::clearView,
-                            onOpenClearDaemonDialog = { isClearDaemonDialogVisible = true },
-                        )
-
-                        // Profile notice
-                        profileError?.let { error ->
-                            Surface(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 4.dp),
-                                color = MaterialTheme.colorScheme.errorContainer,
-                                shape = RoundedCornerShape(8.dp),
-                            ) {
-                                Text(
-                                    text = "Character profile notice: $error",
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                                    color = MaterialTheme.colorScheme.onErrorContainer,
-                                    style = MaterialTheme.typography.bodySmall,
-                                )
-                            }
-                        }
-
-                        // Tab Content Area (preserves LazyListState and active streams)
-                        Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
-                            when (selectedTab) {
-                                MainAppTab.CHAT -> {
-                                    Column(modifier = Modifier.fillMaxSize()) {
-                                        // Combat Activity Ribbon
-                                        CombatActivityRibbon(
-                                            isPhrasingEvent = isPhrasingEvent,
-                                            activeBatch = activeBatch,
-                                            latestBatch = latestBatch,
-                                            isConnected = isConnected,
-                                        )
-
-                                        if (uiState.players.isNotEmpty()) {
-                                            PlayerRosterBar(
-                                                players = uiState.players,
-                                                localPlayerName = characterProfile.characterName,
-                                            )
-                                        }
-
-                                        // Chronicle Narration Feed
-                                        ChronicleFeed(
-                                            assistantTurns = assistantTurns,
-                                            isPhrasingEvent = isPhrasingEvent,
-                                            phrasingError = phrasingError,
-                                            listState = listState,
-                                            isConnected = isConnected,
-                                            characterProfile = characterProfile,
-                                            model = uiState.narrationSettings.model,
-                                            onOpenCharacterSettings = { isSettingsVisible = true },
-                                            modifier = Modifier.weight(1f),
-                                        )
-
-                                        // Compact active-attachment chip above composer
-                                        ActiveAttachmentsChip(
-                                            activeCount = uiState.activeAttachmentCount,
-                                            totalCount = uiState.attachments.size,
-                                            feedingMode = uiState.narrationSettings.supporterFeedingMode,
-                                            onFeedingModeChange = viewModel::setSupporterFeedingMode,
-                                            onNavigateToAttachments = { selectedTab = MainAppTab.ATTACHMENTS },
-                                        )
-
-                                        // Ask Composer
-                                        AskComposer(
-                                            analyzedEvents = uiState.analyzedEvents,
-                                            isAnswering = uiState.isAnswering,
-                                            error = uiState.askError,
-                                            onAsk = viewModel::ask,
-                                        )
-                                    }
-                                }
-
-                                MainAppTab.ATTACHMENTS -> {
-                                    AttachmentsScreen(
-                                        attachments = uiState.attachments,
-                                        onToggleEnabled = viewModel::toggleAttachment,
-                                        onDescriptionChange = viewModel::updateAttachmentDescription,
-                                        onRemoveAttachment = viewModel::removeAttachment,
-                                        onAddAttachment = viewModel::addAttachment,
-                                        pickLogFile = pickLogFile,
-                                    )
-                                }
-                            }
-                        }
-
-                        // Pinned Footer Status Bar
-                        BottomStatusBar(
-                            model = uiState.narrationSettings.model,
-                            temperature = uiState.narrationSettings.temperature,
-                            strategy = uiState.narrationSettings.batchFlushStrategy,
-                            effortMode = uiState.narrationSettings.effortMode,
-                            turnCount = assistantTurns.size,
-                        )
-
-                        // Bottom Navigation Bar on compact screens (Mobile / Android)
-                        if (!isWide) {
-                            NavigationBar(
-                                containerColor = MaterialTheme.colorScheme.surface,
-                                tonalElevation = 3.dp,
-                            ) {
-                                NavigationBarItem(
-                                    selected = selectedTab == MainAppTab.CHAT,
-                                    onClick = { selectedTab = MainAppTab.CHAT },
-                                    icon = { Text("📜", fontSize = 18.sp) },
-                                    label = { Text("Chronicle") },
-                                )
-                                NavigationBarItem(
-                                    selected = selectedTab == MainAppTab.ATTACHMENTS,
-                                    onClick = { selectedTab = MainAppTab.ATTACHMENTS },
-                                    icon = {
-                                        BadgedBox(
-                                            badge = {
-                                                if (uiState.activeAttachmentCount > 0) {
-                                                    Badge { Text("${uiState.activeAttachmentCount}") }
-                                                }
-                                            }
-                                        ) {
-                                            Text("📎", fontSize = 18.sp)
-                                        }
+                    // Tab Content Area (preserves LazyListState and active streams)
+                    Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                        when (selectedTab) {
+                            MainAppTab.CHAT -> {
+                                ChatScreen(
+                                    uiState = uiState,
+                                    isConnected = isConnected,
+                                    characterProfile = characterProfile,
+                                    assistantTurns = assistantTurns,
+                                    onOpenCharacterSettings = {
+                                        selectedTab = MainAppTab.SETTINGS
+                                        viewModel.discoverOllamaModels()
                                     },
-                                    label = { Text("Attachments") },
+                                    onNavigateAttachments = {
+                                        selectedTab = MainAppTab.ATTACHMENTS
+                                    },
+                                    setSupporterFeedingMode = viewModel::setSupporterFeedingMode,
+                                    ask = viewModel::ask,
+                                )
+                            }
+
+                            MainAppTab.ATTACHMENTS -> {
+                                AttachmentsScreen(
+                                    attachments = uiState.attachments,
+                                    onToggleEnabled = viewModel::toggleAttachment,
+                                    onDescriptionChange = viewModel::updateAttachmentDescription,
+                                    onRemoveAttachment = viewModel::removeAttachment,
+                                    onAddAttachment = viewModel::addAttachment,
+                                    pickLogFile = pickLogFile,
+                                )
+                            }
+
+                            MainAppTab.SETTINGS -> {
+                                SettingsScreen(
+                                    characterProfile = characterProfile,
+                                    narrationSettings = uiState.narrationSettings,
+                                    ollamaModels = uiState.ollamaModels,
+                                    isDiscoveringModels = uiState.isDiscoveringOllamaModels,
+                                    modelError = uiState.ollamaModelError,
+                                    onSaveCharacterProfile = viewModel::saveCharacterProfile,
+                                    onSaveNarrationSettings = viewModel::saveNarrationSettings,
+                                    onRefreshModels = viewModel::discoverOllamaModels,
                                 )
                             }
                         }
                     }
+
+                    // Pinned Footer Status Bar
+                    BottomStatusBar(
+                        model = uiState.narrationSettings.model,
+                        temperature = uiState.narrationSettings.temperature,
+                        strategy = uiState.narrationSettings.batchFlushStrategy,
+                        effortMode = uiState.narrationSettings.effortMode,
+                        turnCount = assistantTurns.size,
+                    )
                 }
             }
         }
 
         // Modals
-        if (isSettingsVisible) {
-            CharacterSettingsDialog(
-                profile = characterProfile,
-                onDismiss = { isSettingsVisible = false },
-                onSave = {
-                    viewModel.saveCharacterProfile(it)
-                    isSettingsVisible = false
-                },
-            )
-        }
-
-        if (isNarrationSettingsVisible) {
-            NarrationSettingsDialog(
-                settings = uiState.narrationSettings,
-                models = uiState.ollamaModels,
-                isDiscoveringModels = uiState.isDiscoveringOllamaModels,
-                modelError = uiState.ollamaModelError,
-                onDismiss = { isNarrationSettingsVisible = false },
-                onSave = {
-                    viewModel.saveNarrationSettings(it)
-                    isNarrationSettingsVisible = false
-                },
-                onRefreshModels = viewModel::discoverOllamaModels,
-            )
-        }
-
         if (isSessionsDialogVisible) {
             SessionsDialog(
                 sessions = uiState.sessions,
@@ -388,7 +260,6 @@ fun App(
                 endpointError = endpointError,
                 connection = connection,
                 canDisconnect = canDisconnect,
-                isConnected = isConnected,
                 onConnect = {
                     val url = parseDaemonAddress(daemonAddress)
                     if (url == null) {
@@ -399,12 +270,6 @@ fun App(
                     }
                 },
                 onDisconnect = viewModel::disconnectDaemon,
-                hasHistory = chatHistory.isNotEmpty() || isPhrasingEvent,
-                onClearHistory = viewModel::clearHistory,
-                isClearingDaemonBacklog = uiState.isClearingDaemonBacklog,
-                onOpenClearDaemonDialog = { isClearDaemonDialogVisible = true },
-                daemonBacklogMessage = uiState.daemonBacklogMessage,
-                daemonBacklogError = uiState.daemonBacklogError,
                 onDismiss = { isConnectionDialogVisible = false },
             )
         }

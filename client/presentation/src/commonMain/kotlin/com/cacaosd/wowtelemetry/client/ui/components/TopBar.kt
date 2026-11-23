@@ -51,8 +51,7 @@ fun TopBar(
     connection: DaemonConnectionState,
     characterProfile: CharacterProfile,
     onOpenConnectionSettings: () -> Unit,
-    onOpenCharacterSettings: () -> Unit,
-    onOpenNarrationSettings: () -> Unit,
+    onNavigateToSettings: () -> Unit,
     onOpenSessions: () -> Unit,
     ingestMode: IngestMode,
     pendingFrames: Long,
@@ -98,7 +97,7 @@ fun TopBar(
                     ) {
                         CharacterPill(
                             characterProfile = characterProfile,
-                            onOpenCharacterSettings = onOpenCharacterSettings,
+                            onOpenCharacterSettings = onNavigateToSettings,
                             modifier = Modifier.weight(1f, fill = false),
                         )
                         ConnectionPill(
@@ -108,8 +107,6 @@ fun TopBar(
                             statusColor = statusColor,
                             onOpenConnectionSettings = onOpenConnectionSettings,
                         )
-
-                        OpenSettings(onOpenNarrationSettings)
                     }
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -137,7 +134,7 @@ fun TopBar(
                         IngestControls(ingestMode, pendingFrames, isProcessing, onIngestModeChange, onProcess, onStop)
                         CharacterPill(
                             characterProfile = characterProfile,
-                            onOpenCharacterSettings = onOpenCharacterSettings,
+                            onOpenCharacterSettings = onNavigateToSettings,
                         )
                         ConnectionPill(
                             isConnected = isConnected,
@@ -146,21 +143,10 @@ fun TopBar(
                             statusColor = statusColor,
                             onOpenConnectionSettings = onOpenConnectionSettings,
                         )
-                        OpenSettings(onOpenNarrationSettings)
                     }
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun OpenSettings(onOpenNarrationSettings: () -> Unit) {
-    IconButton(
-        onClick = onOpenNarrationSettings,
-        modifier = Modifier.size(36.dp),
-    ) {
-        Text(text = "⚙️", fontSize = 16.sp)
     }
 }
 
