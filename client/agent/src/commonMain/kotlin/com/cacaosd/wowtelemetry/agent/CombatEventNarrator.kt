@@ -7,6 +7,7 @@ import ai.koog.agents.core.agent.AIAgent
 import ai.koog.agents.core.agent.config.AIAgentConfig
 import ai.koog.prompt.dsl.prompt
 import ai.koog.prompt.executor.llms.MultiLLMPromptExecutor
+import ai.koog.prompt.executor.ollama.client.ContextWindowStrategy
 import ai.koog.prompt.executor.ollama.client.OllamaClient
 import ai.koog.prompt.llm.LLMProvider
 import ai.koog.prompt.llm.LLModel
@@ -119,7 +120,12 @@ class CombatEventNarrator(
             listOf(Message.System(systemPrompt, RequestMetaInfo.Empty)) +
                     listOfNotNull(profileMessage?.let { Message.User(it, RequestMetaInfo.Empty) }) + history,
         )
-        val executor = MultiLLMPromptExecutor(OllamaClient())
+        val contextStrategy = if (settings.model.contextLength > 0) {
+            ContextWindowStrategy.Companion.Fixed(settings.model.contextLength)
+        } else {
+            ContextWindowStrategy.Companion.None
+        }
+        val executor = MultiLLMPromptExecutor(OllamaClient(contextWindowStrategy = contextStrategy))
 
         val enabledAttachments = logAttachmentRepository.listAttachedLogs()
         val mainParams = LLMParams(temperature = settings.temperature)
@@ -144,7 +150,7 @@ class CombatEventNarrator(
                 resolveSupporters = supportingFileReader::resolveAll,
                 summaryModel = settings.supporterSummaryModelOrMain().toLLModel(),
                 summaryParams = summaryParams,
-                mainModel = settings.model,
+                mainModel = settings.model.name,
             ),
             installFeatures = {
                 install(ChatMemory) {
@@ -174,11 +180,21 @@ class CombatEventNarrator(
 
     private fun NarrationSettings.toLLModel(): LLModel = LLModel(
         provider = LLMProvider.Ollama,
-        id = model,
+        id = model.name,
+        contextLength = model.contextLength,
     )
 
     private fun NarrationSettings.supporterSummaryModelOrMain(): NarrationSettings =
-        copy(model = supporterSummaryModel.ifBlank { model })
+        if (supporterSummaryModel.isBlank()) {
+            this
+        } else {
+            copy(
+                model = com.cacaosd.wowtelemetry.domain.ollama.LocalModel(
+                    name = supporterSummaryModel,
+                    contextLength = model.contextLength
+                )
+            )
+        }
 
 }
 

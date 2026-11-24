@@ -200,11 +200,16 @@ fun App(
                                     characterProfile = characterProfile,
                                     narrationSettings = uiState.narrationSettings,
                                     ollamaModels = uiState.ollamaModels,
+                                    runningModels = uiState.runningModels,
                                     isDiscoveringModels = uiState.isDiscoveringOllamaModels,
+                                    isPreloadingModel = uiState.isPreloadingModel,
+                                    isOffloadingModel = uiState.isOffloadingModel,
                                     modelError = uiState.ollamaModelError,
                                     onSaveCharacterProfile = viewModel::saveCharacterProfile,
                                     onSaveNarrationSettings = viewModel::saveNarrationSettings,
                                     onRefreshModels = viewModel::discoverOllamaModels,
+                                    onPreloadModel = viewModel::preloadModel,
+                                    onOffloadModel = viewModel::offloadModel,
                                 )
                             }
                         }
@@ -212,7 +217,7 @@ fun App(
 
                     // Pinned Footer Status Bar
                     BottomStatusBar(
-                        model = uiState.narrationSettings.model,
+                        model = uiState.narrationSettings.model.name,
                         temperature = uiState.narrationSettings.temperature,
                         strategy = uiState.narrationSettings.batchFlushStrategy,
                         effortMode = uiState.narrationSettings.effortMode,

@@ -67,7 +67,7 @@ fun ChatScreen(
             listState = listState,
             isConnected = isConnected,
             characterProfile = characterProfile,
-            model = uiState.narrationSettings.model,
+            model = uiState.narrationSettings.model.name,
             onOpenCharacterSettings = onOpenCharacterSettings,
             modifier = Modifier.weight(1f),
         )

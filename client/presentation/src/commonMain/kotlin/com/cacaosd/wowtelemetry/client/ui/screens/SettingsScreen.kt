@@ -50,6 +50,7 @@ import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleSurface
 import com.cacaosd.wowtelemetry.client.ui.theme.ChronicleTextMuted
 import com.cacaosd.wowtelemetry.client.ui.theme.wowClassColor
 import com.cacaosd.wowtelemetry.domain.CharacterProfile
+import com.cacaosd.wowtelemetry.domain.ollama.LocalModel
 import com.cacaosd.wowtelemetry.domain.preferences.BatchFlushStrategy
 import com.cacaosd.wowtelemetry.domain.preferences.EffortMode
 import com.cacaosd.wowtelemetry.domain.preferences.NarrationSettings
@@ -59,12 +60,17 @@ import com.cacaosd.wowtelemetry.domain.preferences.SupporterFeedingMode
 fun SettingsScreen(
     characterProfile: CharacterProfile,
     narrationSettings: NarrationSettings,
-    ollamaModels: List<String>,
+    ollamaModels: List<LocalModel>,
+    runningModels: List<String>,
     isDiscoveringModels: Boolean,
+    isPreloadingModel: Boolean = false,
+    isOffloadingModel: Boolean = false,
     modelError: String?,
     onSaveCharacterProfile: (CharacterProfile) -> Unit,
     onSaveNarrationSettings: (NarrationSettings) -> Unit,
     onRefreshModels: () -> Unit,
+    onPreloadModel: (String) -> Unit = {},
+    onOffloadModel: (String) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     BoxWithConstraints(
@@ -91,10 +97,15 @@ fun SettingsScreen(
                 NarrationSettingsCard(
                     settings = narrationSettings,
                     models = ollamaModels,
+                    runningModels = runningModels,
                     isDiscoveringModels = isDiscoveringModels,
+                    isPreloadingModel = isPreloadingModel,
+                    isOffloadingModel = isOffloadingModel,
                     modelError = modelError,
                     onSave = onSaveNarrationSettings,
                     onRefreshModels = onRefreshModels,
+                    onPreloadModel = onPreloadModel,
+                    onOffloadModel = onOffloadModel,
                     modifier = Modifier.weight(0.6f),
                 )
             }
@@ -113,10 +124,15 @@ fun SettingsScreen(
                 NarrationSettingsCard(
                     settings = narrationSettings,
                     models = ollamaModels,
+                    runningModels = runningModels,
                     isDiscoveringModels = isDiscoveringModels,
+                    isPreloadingModel = isPreloadingModel,
+                    isOffloadingModel = isOffloadingModel,
                     modelError = modelError,
                     onSave = onSaveNarrationSettings,
                     onRefreshModels = onRefreshModels,
+                    onPreloadModel = onPreloadModel,
+                    onOffloadModel = onOffloadModel,
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
@@ -254,11 +270,16 @@ private fun CharacterProfileCard(
 @Composable
 private fun NarrationSettingsCard(
     settings: NarrationSettings,
-    models: List<String>,
+    models: List<LocalModel>,
+    runningModels: List<String>,
     isDiscoveringModels: Boolean,
+    isPreloadingModel: Boolean,
+    isOffloadingModel: Boolean,
     modelError: String?,
     onSave: (NarrationSettings) -> Unit,
     onRefreshModels: () -> Unit,
+    onPreloadModel: (String) -> Unit,
+    onOffloadModel: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var temperature by remember(settings) { mutableFloatStateOf(settings.temperature.toFloat()) }
@@ -319,7 +340,7 @@ private fun NarrationSettingsCard(
                     enabled = models.isNotEmpty(),
                     modifier = Modifier.weight(1f),
                 ) {
-                    Text(selectedModel.ifBlank { "Select Ollama Model" })
+                    Text(selectedModel.name.ifBlank { "Select Ollama Model" })
                 }
                 DropdownMenu(
                     expanded = isModelMenuExpanded,
@@ -327,7 +348,7 @@ private fun NarrationSettingsCard(
                 ) {
                     models.forEach { model ->
                         DropdownMenuItem(
-                            text = { Text(model) },
+                            text = { Text(model.name) },
                             onClick = {
                                 selectedModel = model
                                 isModelMenuExpanded = false
@@ -342,6 +363,33 @@ private fun NarrationSettingsCard(
                     Text(if (isDiscoveringModels) "Searching…" else "Refresh")
                 }
             }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                OutlinedButton(
+                    onClick = { onPreloadModel(selectedModel.name) },
+                    enabled = !isPreloadingModel && selectedModel.name.isNotBlank(),
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text(if (isPreloadingModel) "Preloading…" else "⚡ Preload (VRAM)")
+                }
+                OutlinedButton(
+                    onClick = { onOffloadModel(selectedModel.name) },
+                    enabled = !isOffloadingModel && selectedModel.name.isNotBlank(),
+                    modifier = Modifier.weight(1f),
+                ) {
+                    Text(if (isOffloadingModel) "Offloading…" else "⏹️ Offload (VRAM)")
+                }
+            }
+            val isLoaded = runningModels.any {
+                it == selectedModel.name || selectedModel.name.contains(it) || it.contains(selectedModel.name)
+            }
+            Text(
+                text = if (isLoaded) "● Loaded in VRAM" else "○ Not loaded in VRAM",
+                style = MaterialTheme.typography.bodySmall,
+                color = if (isLoaded) Color(0xFF4CAF50) else ChronicleTextMuted,
+            )
             when {
                 modelError != null -> Text(
                     modelError,
@@ -355,6 +403,34 @@ private fun NarrationSettingsCard(
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
+
+            // Context Length Slider
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    "MAXIMUM CONTEXT LENGTH",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = ChronicleGold,
+                )
+                Text(
+                    "${selectedModel.contextLength} tokens",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = ChronicleGold,
+                )
+            }
+            val maxContext = maxOf(131072L, selectedModel.contextLength).toFloat()
+            Slider(
+                value = selectedModel.contextLength.toFloat().coerceIn(512f, maxContext),
+                onValueChange = {
+                    selectedModel = selectedModel.copy(contextLength = it.toLong())
+                },
+                valueRange = 512f..maxContext,
+            )
 
             HorizontalDivider(color = ChronicleBorderSubtle)
 
@@ -426,9 +502,9 @@ private fun NarrationSettingsCard(
                 )
                 models.forEach { model ->
                     DropdownMenuItem(
-                        text = { Text(model) },
+                        text = { Text(model.name) },
                         onClick = {
-                            selectedSummaryModel = model
+                            selectedSummaryModel = model.name
                             isSummaryModelMenuExpanded = false
                         },
                     )

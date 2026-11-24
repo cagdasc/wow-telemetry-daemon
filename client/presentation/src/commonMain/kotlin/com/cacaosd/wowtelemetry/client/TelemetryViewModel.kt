@@ -18,6 +18,7 @@ import com.cacaosd.wowtelemetry.domain.EncounterStartEvent
 import com.cacaosd.wowtelemetry.domain.LogAttachment
 import com.cacaosd.wowtelemetry.domain.LogAttachmentRepository
 import com.cacaosd.wowtelemetry.domain.ProcessCombatEventUseCase
+import com.cacaosd.wowtelemetry.domain.ollama.LocalModel
 import com.cacaosd.wowtelemetry.domain.ollama.OllamaModelRepository
 import com.cacaosd.wowtelemetry.domain.preferences.BatchFlushStrategy
 import com.cacaosd.wowtelemetry.domain.preferences.NarrationSettings
@@ -110,8 +111,11 @@ data class TelemetryUiState(
     val daemonBacklogMessage: String? = null,
     val daemonBacklogError: Boolean = false,
     val isClearingDaemonBacklog: Boolean = false,
-    val ollamaModels: List<String> = emptyList(),
+    val ollamaModels: List<LocalModel> = emptyList(),
+    val runningModels: List<String> = emptyList(),
     val isDiscoveringOllamaModels: Boolean = false,
+    val isPreloadingModel: Boolean = false,
+    val isOffloadingModel: Boolean = false,
     val ollamaModelError: String? = null,
     val ingestMode: IngestMode = IngestMode.LIVE,
     val recording: RecordingState = RecordingState(),
@@ -236,7 +240,7 @@ class TelemetryViewModel(
                         }
                         state.copy(
                             chatHistory = state.chatHistory + turns,
-                            contextUsage = if (state.narrationSettings.model == result.model) {
+                            contextUsage = if (state.narrationSettings.model.name == result.model) {
                                 usage
                             } else null,
                         )
@@ -784,7 +788,7 @@ class TelemetryViewModel(
                     it.copy(
                         narrationSettings = settings,
                         settingsError = null,
-                        contextUsage = it.contextUsage?.takeIf { usage -> usage.model == settings.model },
+                        contextUsage = it.contextUsage?.takeIf { usage -> usage.model == settings.model.name },
                     )
                 }
             } catch (error: Exception) {
@@ -804,6 +808,17 @@ class TelemetryViewModel(
         saveNarrationSettings(current.copy(supporterFeedingMode = mode))
     }
 
+    fun refreshRunningModels() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val running = ollamaModelRepository.listRunningModels()
+                _uiState.update { it.copy(runningModels = running) }
+            } catch (error: Exception) {
+                if (error is CancellationException) ensureActive()
+            }
+        }
+    }
+
     fun discoverOllamaModels() {
         if (_uiState.value.isDiscoveringOllamaModels) return
         _uiState.update {
@@ -812,8 +827,9 @@ class TelemetryViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val models = ollamaModelRepository.discoverModels()
+                val running = runCatching { ollamaModelRepository.listRunningModels() }.getOrDefault(emptyList())
                 _uiState.update {
-                    it.copy(ollamaModels = models, isDiscoveringOllamaModels = false)
+                    it.copy(ollamaModels = models, runningModels = running, isDiscoveringOllamaModels = false)
                 }
             } catch (error: Exception) {
                 if (error is CancellationException) {
@@ -823,6 +839,46 @@ class TelemetryViewModel(
                     it.copy(
                         isDiscoveringOllamaModels = false,
                         ollamaModelError = error.message ?: "Could not discover Ollama models.",
+                    )
+                }
+            }
+        }
+    }
+
+    fun preloadModel(modelName: String = _uiState.value.narrationSettings.model.name) {
+        if (_uiState.value.isPreloadingModel) return
+        _uiState.update { it.copy(isPreloadingModel = true, ollamaModelError = null) }
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                ollamaModelRepository.preloadModel(modelName)
+                val running = runCatching { ollamaModelRepository.listRunningModels() }.getOrDefault(emptyList())
+                _uiState.update { it.copy(isPreloadingModel = false, runningModels = running) }
+            } catch (error: Exception) {
+                if (error is CancellationException) ensureActive()
+                _uiState.update {
+                    it.copy(
+                        isPreloadingModel = false,
+                        ollamaModelError = error.message ?: "Failed to preload model.",
+                    )
+                }
+            }
+        }
+    }
+
+    fun offloadModel(modelName: String = _uiState.value.narrationSettings.model.name) {
+        if (_uiState.value.isOffloadingModel) return
+        _uiState.update { it.copy(isOffloadingModel = true, ollamaModelError = null) }
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                ollamaModelRepository.offloadModel(modelName)
+                val running = runCatching { ollamaModelRepository.listRunningModels() }.getOrDefault(emptyList())
+                _uiState.update { it.copy(isOffloadingModel = false, runningModels = running) }
+            } catch (error: Exception) {
+                if (error is CancellationException) ensureActive()
+                _uiState.update {
+                    it.copy(
+                        isOffloadingModel = false,
+                        ollamaModelError = error.message ?: "Failed to offload model.",
                     )
                 }
             }

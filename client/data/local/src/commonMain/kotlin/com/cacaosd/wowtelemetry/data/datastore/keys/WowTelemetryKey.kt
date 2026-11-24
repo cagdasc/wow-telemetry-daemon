@@ -10,7 +10,7 @@ import com.cacaosd.wowtelemetry.domain.preferences.SupporterFeedingMode
 
 abstract class WowTelemetryKey<T>(val key: Preferences.Key<T>, val defaultValue: T) {
     internal companion object {
-        const val DEFAULT_MODEL = "llama3.2:latest"
+        const val DEFAULT_MODEL = """{"name":"llama3.2:latest","contextLength":2048}"""
         const val MODEL_KEY = "model"
         const val FLUSH_STRATEGY_KEY = "batchFlushStrategy"
         const val SILENCE_TIMEOUT_KEY = "batchSilenceTimeoutSeconds"
