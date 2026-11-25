@@ -154,6 +154,16 @@ impl WebSocketServer {
         self.format
     }
 
+    pub fn has_clients(&self) -> bool {
+        self.clients
+            .lock()
+            .is_ok_and(|clients| !clients.is_empty())
+    }
+
+    pub fn client_count(&self) -> usize {
+        self.clients.lock().map_or(0, |clients| clients.len())
+    }
+
     /// Drops buffered frames so a reconnecting client is not sent events the user cleared.
     pub fn clear_replay(&self) -> io::Result<()> {
         self.replay
@@ -698,5 +708,30 @@ mod tests {
             .unwrap();
         let replayed = read_json(&mut second);
         assert_eq!(replayed["seq"], 2);
+    }
+    #[test]
+    fn has_clients_reports_connection_status() {
+        let server = json_server();
+        assert!(!server.has_clients());
+        assert_eq!(server.client_count(), 0);
+
+        let mut client = connect(&server);
+        assert_eq!(read_json(&mut client)["control"], "HELLO");
+        assert!(server.has_clients());
+        assert_eq!(server.client_count(), 1);
+
+        drop(client);
+        // Client thread removes itself on read timeout or write failure
+        let mut disconnected = false;
+        for _ in 0..20 {
+            thread::sleep(Duration::from_millis(20));
+            let _ = server.broadcast_control(&Control::LogCaughtUp);
+            if !server.has_clients() {
+                disconnected = true;
+                break;
+            }
+        }
+        assert!(disconnected);
+        assert_eq!(server.client_count(), 0);
     }
 }

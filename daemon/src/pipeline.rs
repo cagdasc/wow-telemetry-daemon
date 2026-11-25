@@ -1,7 +1,9 @@
 use std::error::Error;
+use std::fs;
 use std::io::{self, BufWriter, Write};
 use std::sync::mpsc;
 use std::thread;
+use std::time::Duration;
 
 use crate::cli::Config;
 use crate::parser::parse_line;
@@ -11,6 +13,12 @@ use crate::typed_events::TypedCombatLogEvent;
 use crate::websocket::WebSocketServer;
 
 pub fn run_pipeline(config: Config) -> Result<(), Box<dyn Error>> {
+    if !config.tail {
+        fs::metadata(&config.path).map_err(|err| {
+            format!("cannot open combat log {}: {err}", config.path.display())
+        })?;
+    }
+
     let (control_sender, control_receiver) = mpsc::sync_channel(8);
     let websocket = if config.websocket_enabled {
         let server = WebSocketServer::bind_with_clear_log(
@@ -21,15 +29,35 @@ pub fn run_pipeline(config: Config) -> Result<(), Box<dyn Error>> {
         log::info!("WebSocket server listening on ws://{}", server.address());
         Some(server)
     } else {
+        drop(control_sender);
         None
     };
+
+    if let Some(server) = &websocket
+        && !config.tail
+    {
+        log::info!(
+            "waiting for WebSocket client to connect before streaming: {}",
+            config.path.display()
+        );
+        while !server.has_clients() {
+            thread::sleep(Duration::from_millis(50));
+        }
+        log::info!(
+            "WebSocket client connected; streaming {}",
+            config.path.display()
+        );
+    }
 
     let (sender, receiver) = mpsc::sync_channel(1024);
     let tail_path = config.path.clone();
     let start_at_end = config.start_at_end;
+    let tail = config.tail;
     let tail_thread = thread::Builder::new()
         .name("combat-log-tailer".into())
-        .spawn(move || tailer::tail_file(tail_path, sender, control_receiver, start_at_end))?;
+        .spawn(move || {
+            tailer::tail_file(tail_path, sender, control_receiver, start_at_end, tail)
+        })?;
 
     let stdout = io::stdout();
     let mut output = BufWriter::new(stdout.lock());
@@ -81,6 +109,9 @@ pub fn run_pipeline(config: Config) -> Result<(), Box<dyn Error>> {
                 output.flush()?;
                 if let Some(websocket) = &websocket {
                     websocket.broadcast_control(&Control::LogCaughtUp)?;
+                    if !config.tail {
+                        thread::sleep(Duration::from_millis(150));
+                    }
                 }
             }
             TailMessage::LogCleared(response) => {

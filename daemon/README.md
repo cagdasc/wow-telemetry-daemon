@@ -49,33 +49,37 @@ queue fills apply backpressure: the daemon pauses event processing until the
 client catches up instead of dropping events or disconnecting it. This can
 delay processing while a client is persistently slow.
 
-For the Windows launcher, cross-build the latest executable for
-`x86_64-pc-windows-gnu` and copy it beside `run-windows.ps1`:
+## Launchers (Linux, macOS, and Windows)
 
+Interactive launchers are provided in `scripts/` to run the daemon easily:
+- **Linux & macOS**: `scripts/run.sh`
+- **Windows**: `scripts/run-windows.bat` or `scripts/run-windows.ps1`
+
+Both launchers feature an interactive menu:
+- `[1] New Live Log`: Backs up existing logs to a timestamped `Backups` folder, removes them, waits for WoW to create a new log, and streams it live.
+- `[2] Latest Live Log`: Tails the most recently modified existing log.
+- `[3] Pick Existing Log`: Scans your log directory and `sample_log/`, presents a numbered list of available files with sizes, and runs `--file <selected>` (waits for client connection, streams the file, and terminates upon completion).
+- `[4] Custom Log File`: Allows entering a path to any combat log file to stream with `--file`.
+- `[5] Settings`: Displays and allows changing log directory, WebSocket address, or stream format (`protobuf` / `json`).
+
+Both launchers look for the daemon executable strictly in the same directory as the script (`scripts/wow-telemetry-daemon` or `scripts/wow-telemetry-daemon.exe`) and display an error if it is not present.
+
+On Linux/macOS:
 ```sh
-cargo build --release --target x86_64-pc-windows-gnu
-cp target/x86_64-pc-windows-gnu/release/wow-telemetry-daemon.exe scripts/wow-telemetry-daemon.exe
+./scripts/run.sh
+# Or with non-interactive CLI flags:
+./scripts/run.sh --file sample_log/WoWCombatLog-103126_002522.txt
+./scripts/run.sh --latest
 ```
 
-Then edit `LOG_DIR` in `run-windows.bat` to the World of Warcraft `Logs`
-directory. The launcher checks that the executable supports `--from-start`
-before backing up or removing any logs.
-The launcher has two modes. `run-windows.bat` asks which one to use when it
-opens; pass it as the first argument (`run-windows.bat Latest`) or set
-`WOW_RUN_MODE` to skip the prompt:
-
-- `NewLog`: double-click before enabling combat logging. It copies
-  existing `WoWCombatLog-*.txt` files into a timestamped `Backups` directory
-  under `Logs`, removes the originals after all copies succeed, waits for a new
-  timestamped log, then starts the daemon on that file.
-- `Latest`: starts the daemon on the most recently written existing log without
-  backing up or removing anything.
-
-Either way, the daemon reads the file from its beginning, including bytes
-written before it opens the file. You can override the folder by setting
-`WOW_COMBAT_LOG_DIR` before running the batch file. From PowerShell, run
-`run-windows.ps1 -LogDirectory DIR [-Mode NewLog|Latest] [-WebSocketAddress ADDR] [-Format protobuf|json]`. The launcher always passes `--quiet`; set `WOW_FORMAT=json` for `run-windows.bat` to send JSON frames. The daemon binds to `0.0.0.0:8765`, so allow that port through
-Windows Firewall if a client connects from another computer.
+On Windows:
+Double-click `run-windows.bat`, or from PowerShell run:
+```powershell
+.\scripts\run-windows.ps1
+# Or with flags:
+.\scripts\run-windows.ps1 -Mode Latest -Format protobuf
+.\scripts\run-windows.ps1 -Mode File -File sample_log\WoWCombatLog-103126_002522.txt
+```
 
 ## Generate a mock event stream
 

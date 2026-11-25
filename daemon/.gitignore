@@ -131,3 +131,7 @@ Cargo.lock
 *.pdb
 
 # End of https://www.toptal.com/developers/gitignore/api/intellij,rust
+
+# Compiled daemon executables in scripts/
+scripts/wow-telemetry-daemon
+scripts/*.exe

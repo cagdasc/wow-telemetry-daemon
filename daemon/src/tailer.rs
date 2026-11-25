@@ -24,8 +24,9 @@ pub fn tail_file(
     sender: SyncSender<TailMessage>,
     commands: Receiver<TailCommand>,
     start_at_end: bool,
+    tail: bool,
 ) {
-    if let Err(error) = tail_loop(&path, &sender, &commands, start_at_end) {
+    if let Err(error) = tail_loop(&path, &sender, &commands, start_at_end, tail) {
         let _ = sender.send(TailMessage::Error(error));
     }
 }
@@ -35,8 +36,13 @@ fn tail_loop(
     sender: &SyncSender<TailMessage>,
     commands: &Receiver<TailCommand>,
     start_at_end: bool,
+    tail: bool,
 ) -> io::Result<()> {
-    let mut reader = wait_for_reader(path, start_at_end)?;
+    let mut reader = if tail {
+        wait_for_reader(path, start_at_end)?
+    } else {
+        open_reader(path, start_at_end)?
+    };
     let mut pending = Vec::new();
     let mut caught_up = false;
 
@@ -71,30 +77,44 @@ fn tail_loop(
             continue;
         }
 
-        if let Some(path_metadata) = metadata_if_available(path)? {
-            let open_metadata = reader.get_ref().metadata()?;
-            if file_was_replaced(&open_metadata, &path_metadata)
-                || reader.stream_position()? > open_metadata.len()
-            {
-                // The replacement may vanish again before it can be opened; retry on the next pass.
-                match File::open(path) {
-                    Ok(file) => {
-                        reader = BufReader::new(file);
-                        pending.clear();
-                        caught_up = false;
-                        continue;
-                    }
-                    Err(error) if error.kind() == io::ErrorKind::NotFound => {}
-                    Err(error) => return Err(error),
-                }
+        if !pending.is_empty() {
+            let line = without_leading_nuls(std::mem::take(&mut pending));
+            if line.iter().any(|byte| !byte.is_ascii_whitespace()) {
+                sender.send(TailMessage::Line(line)).map_err(|_| {
+                    io::Error::new(io::ErrorKind::BrokenPipe, "event receiver closed")
+                })?;
             }
         }
+
+        if tail
+            && let Some(path_metadata) = metadata_if_available(path)? {
+                let open_metadata = reader.get_ref().metadata()?;
+                if file_was_replaced(&open_metadata, &path_metadata)
+                    || reader.stream_position()? > open_metadata.len()
+                {
+                    // The replacement may vanish again before it can be opened; retry on the next pass.
+                    match File::open(path) {
+                        Ok(file) => {
+                            reader = BufReader::new(file);
+                            pending.clear();
+                            caught_up = false;
+                            continue;
+                        }
+                        Err(error) if error.kind() == io::ErrorKind::NotFound => {}
+                        Err(error) => return Err(error),
+                    }
+                }
+            }
 
         if !caught_up {
             sender
                 .send(TailMessage::CaughtUp)
                 .map_err(|_| io::Error::new(io::ErrorKind::BrokenPipe, "event receiver closed"))?;
             caught_up = true;
+        }
+
+        if !tail {
+            return Ok(());
         }
 
         thread::sleep(EOF_SLEEP);
@@ -195,7 +215,7 @@ mod tests {
         let (sender, receiver) = mpsc::sync_channel(4);
         let tail_path = path.clone();
         let (_, commands) = mpsc::sync_channel(4);
-        let tail_thread = thread::spawn(move || tail_file(tail_path, sender, commands, false));
+        let tail_thread = thread::spawn(move || tail_file(tail_path, sender, commands, false, true));
 
         assert_eq!(receive_line(&receiver), b"existing event\n",);
 
@@ -215,7 +235,7 @@ mod tests {
         let (sender, receiver) = mpsc::sync_channel(4);
         let tail_path = path.clone();
         let (_, commands) = mpsc::sync_channel(4);
-        let tail_thread = thread::spawn(move || tail_file(tail_path, sender, commands, false));
+        let tail_thread = thread::spawn(move || tail_file(tail_path, sender, commands, false, true));
 
         assert!(matches!(
             receiver.recv_timeout(Duration::from_millis(100)),
@@ -238,7 +258,7 @@ mod tests {
         let (sender, receiver) = mpsc::sync_channel(4);
         let tail_path = path.clone();
         let (_, commands) = mpsc::sync_channel(4);
-        let tail_thread = thread::spawn(move || tail_file(tail_path, sender, commands, false));
+        let tail_thread = thread::spawn(move || tail_file(tail_path, sender, commands, false, true));
 
         receive_caught_up(&receiver);
         assert!(matches!(
@@ -263,7 +283,7 @@ mod tests {
         let (sender, receiver) = mpsc::sync_channel(4);
         let tail_path = path.clone();
         let (_, commands) = mpsc::sync_channel(4);
-        let tail_thread = thread::spawn(move || tail_file(tail_path, sender, commands, false));
+        let tail_thread = thread::spawn(move || tail_file(tail_path, sender, commands, false, true));
 
         receive_caught_up(&receiver);
         assert!(matches!(
@@ -300,7 +320,7 @@ mod tests {
         let (commands_sender, commands_receiver) = mpsc::sync_channel(4);
         let tail_path = path.clone();
         let tail_thread =
-            thread::spawn(move || tail_file(tail_path, sender, commands_receiver, true));
+            thread::spawn(move || tail_file(tail_path, sender, commands_receiver, true, true));
         receive_caught_up(&receiver);
 
         let (response_sender, response_receiver) = mpsc::sync_channel(1);
@@ -396,5 +416,37 @@ mod tests {
                 .expect("system clock before Unix epoch")
                 .as_nanos()
         ))
+    }
+
+    #[test]
+    fn file_mode_reads_entire_file_and_exits_at_eof() {
+        let path = temporary_log_path();
+        fs::write(&path, b"event one\nevent two\n").expect("write fixture");
+
+        let (sender, receiver) = mpsc::sync_channel(4);
+        let tail_path = path.clone();
+        let (_, commands) = mpsc::sync_channel(4);
+        let tail_thread = thread::spawn(move || tail_file(tail_path, sender, commands, false, false));
+
+        assert_eq!(receive_line(&receiver), b"event one\n");
+        assert_eq!(receive_line(&receiver), b"event two\n");
+        receive_caught_up(&receiver);
+
+        tail_thread.join().expect("join tailer thread");
+        assert!(receiver.recv().is_err());
+        fs::remove_file(path).expect("remove fixture");
+    }
+
+    #[test]
+    fn file_mode_fails_immediately_if_file_missing() {
+        let path = temporary_log_path();
+        let (sender, receiver) = mpsc::sync_channel(4);
+        let tail_path = path.clone();
+        let (_, commands) = mpsc::sync_channel(4);
+        let tail_thread = thread::spawn(move || tail_file(tail_path, sender, commands, false, false));
+
+        let message = receiver.recv_timeout(Duration::from_millis(100)).expect("receive error");
+        assert!(matches!(message, TailMessage::Error(err) if err.kind() == io::ErrorKind::NotFound));
+        tail_thread.join().expect("join tailer thread");
     }
 }
