@@ -299,6 +299,23 @@ fn parse_spec_value(value: Option<&str>, field_type: FieldType) -> Value {
     }
 }
 
+fn normalize_active_auras(value: Value) -> Value {
+    let Value::Array(values) = value else {
+        return value;
+    };
+    if values.len() % 3 != 0 || values.iter().any(Value::is_array) {
+        return Value::Array(values);
+    }
+
+    // Flat aura entries contain a source GUID, spell ID, and stack count.
+    Value::Array(
+        values
+            .chunks(3)
+            .map(|aura| Value::Array(aura.to_vec()))
+            .collect(),
+    )
+}
+
 fn parsed_fields(event: &str, fields: &[Option<Cow<'_, str>>]) -> Map<String, Value> {
     let total_field_count = fields.len() + 1;
     let layout = spec_event_fields(event);
@@ -352,6 +369,11 @@ fn parsed_fields(event: &str, fields: &[Option<Cow<'_, str>>]) -> Map<String, Va
             Value::String(value.to_owned())
         } else {
             parse_spec_value(Some(value), spec_field.field_type)
+        };
+        let parsed = if spec_field.name == "active_auras" {
+            normalize_active_auras(parsed)
+        } else {
+            parsed
         };
         decoded.insert(field_name, parsed);
     }
@@ -751,6 +773,22 @@ mod tests {
         assert_eq!(event_data(&version)["advanced_log_enabled"], true);
         assert_eq!(event_data(&version)["build_version"], "12.0.0");
         assert_eq!(event_data(&version)["project_id"], "1");
+    }
+
+    #[test]
+    fn decodes_flat_combatant_active_auras() {
+        let combatant = parse_line(
+            b"10/29 20:15:01.125  COMBATANT_INFO,Player-1,1,1,2,3,4,0,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,64,[],(),[],[Vehicle-1,465,1,Vehicle-2,1126,1]",
+        );
+
+        assert_eq!(
+            event_data(&combatant)["active_auras"],
+            serde_json::json!([["Vehicle-1", 465, 1], ["Vehicle-2", 1126, 1]])
+        );
+        assert_eq!(
+            combatant.fields[28].as_deref(),
+            Some("[Vehicle-1,465,1,Vehicle-2,1126,1]")
+        );
     }
 
     #[test]
