@@ -12,4 +12,5 @@ plugins {
     alias(libs.plugins.room) apply false
     alias(libs.plugins.wire) apply false
     alias(libs.plugins.kotlinAndroid) apply false
+    alias(libs.plugins.kotlin.serialization) apply false
 }

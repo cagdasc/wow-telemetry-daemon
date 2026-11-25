@@ -784,11 +784,12 @@ class TelemetryViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 narrationSettingsRepository.save(settings)
+                val reloaded = narrationSettingsRepository.load()
                 _uiState.update {
                     it.copy(
-                        narrationSettings = settings,
+                        narrationSettings = reloaded,
                         settingsError = null,
-                        contextUsage = it.contextUsage?.takeIf { usage -> usage.model == settings.model.name },
+                        contextUsage = it.contextUsage?.takeIf { usage -> usage.model == reloaded.model.name },
                     )
                 }
             } catch (error: Exception) {
@@ -826,10 +827,16 @@ class TelemetryViewModel(
         }
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                val settings = runCatching { narrationSettingsRepository.load() }.getOrNull()
                 val models = ollamaModelRepository.discoverModels()
                 val running = runCatching { ollamaModelRepository.listRunningModels() }.getOrDefault(emptyList())
                 _uiState.update {
-                    it.copy(ollamaModels = models, runningModels = running, isDiscoveringOllamaModels = false)
+                    it.copy(
+                        narrationSettings = settings ?: it.narrationSettings,
+                        ollamaModels = models,
+                        runningModels = running,
+                        isDiscoveringOllamaModels = false,
+                    )
                 }
             } catch (error: Exception) {
                 if (error is CancellationException) {

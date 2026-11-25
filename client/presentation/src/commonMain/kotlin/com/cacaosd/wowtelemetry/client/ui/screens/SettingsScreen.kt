@@ -352,6 +352,7 @@ private fun NarrationSettingsCard(
                             onClick = {
                                 selectedModel = model
                                 isModelMenuExpanded = false
+                                onSave(settings.copy(model = model))
                             },
                         )
                     }
@@ -429,6 +430,9 @@ private fun NarrationSettingsCard(
                 onValueChange = {
                     selectedModel = selectedModel.copy(contextLength = it.toLong())
                 },
+                onValueChangeFinished = {
+                    onSave(settings.copy(model = selectedModel))
+                },
                 valueRange = 512f..maxContext,
             )
 
@@ -456,11 +460,17 @@ private fun NarrationSettingsCard(
                     verticalAlignment = Alignment.Top,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { supporterFeedingMode = mode },
+                        .clickable {
+                            supporterFeedingMode = mode
+                            onSave(settings.copy(supporterFeedingMode = mode))
+                        },
                 ) {
                     RadioButton(
                         selected = supporterFeedingMode == mode,
-                        onClick = { supporterFeedingMode = mode },
+                        onClick = {
+                            supporterFeedingMode = mode
+                            onSave(settings.copy(supporterFeedingMode = mode))
+                        },
                     )
                     Spacer(Modifier.width(6.dp))
                     Column {
@@ -498,6 +508,7 @@ private fun NarrationSettingsCard(
                     onClick = {
                         selectedSummaryModel = ""
                         isSummaryModelMenuExpanded = false
+                        onSave(settings.copy(supporterSummaryModel = ""))
                     },
                 )
                 models.forEach { model ->
@@ -506,6 +517,7 @@ private fun NarrationSettingsCard(
                         onClick = {
                             selectedSummaryModel = model.name
                             isSummaryModelMenuExpanded = false
+                            onSave(settings.copy(supporterSummaryModel = model.name))
                         },
                     )
                 }
@@ -530,11 +542,17 @@ private fun NarrationSettingsCard(
                     verticalAlignment = Alignment.Top,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { selectedEffortMode = mode },
+                        .clickable {
+                            selectedEffortMode = mode
+                            onSave(settings.copy(effortMode = mode))
+                        },
                 ) {
                     RadioButton(
                         selected = selectedEffortMode == mode,
-                        onClick = { selectedEffortMode = mode },
+                        onClick = {
+                            selectedEffortMode = mode
+                            onSave(settings.copy(effortMode = mode))
+                        },
                     )
                     Spacer(Modifier.width(6.dp))
                     Column {
@@ -576,6 +594,9 @@ private fun NarrationSettingsCard(
             Slider(
                 value = temperature,
                 onValueChange = { temperature = it },
+                onValueChangeFinished = {
+                    onSave(settings.copy(temperature = temperature.toDouble()))
+                },
                 valueRange = 0f..2f,
                 steps = 19,
             )
@@ -605,11 +626,17 @@ private fun NarrationSettingsCard(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { flushStrategy = strategy },
+                        .clickable {
+                            flushStrategy = strategy
+                            onSave(settings.copy(batchFlushStrategy = strategy))
+                        },
                 ) {
                     RadioButton(
                         selected = flushStrategy == strategy,
-                        onClick = { flushStrategy = strategy },
+                        onClick = {
+                            flushStrategy = strategy
+                            onSave(settings.copy(batchFlushStrategy = strategy))
+                        },
                     )
                     Spacer(Modifier.width(6.dp))
                     Text(label, style = MaterialTheme.typography.bodyMedium)
@@ -631,6 +658,9 @@ private fun NarrationSettingsCard(
                 Slider(
                     value = silenceTimeout,
                     onValueChange = { silenceTimeout = it },
+                    onValueChangeFinished = {
+                        onSave(settings.copy(batchSilenceTimeoutSeconds = silenceTimeout.toInt()))
+                    },
                     valueRange = NarrationSettings.MIN_SILENCE_TIMEOUT_SECONDS.toFloat()..
                             NarrationSettings.MAX_SILENCE_TIMEOUT_SECONDS.toFloat(),
                 )
@@ -643,29 +673,6 @@ private fun NarrationSettingsCard(
                 style = MaterialTheme.typography.labelSmall,
                 color = ChronicleTextMuted,
             )
-
-            Button(
-                onClick = {
-                    onSave(
-                        NarrationSettings(
-                            temperature = temperature.toDouble(),
-                            model = selectedModel,
-                            batchFlushStrategy = flushStrategy,
-                            batchSilenceTimeoutSeconds = silenceTimeout.toInt(),
-                            effortMode = selectedEffortMode,
-                            supporterFeedingMode = supporterFeedingMode,
-                            supporterSummaryModel = selectedSummaryModel,
-                        )
-                    )
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = ChronicleGold,
-                    contentColor = Color(0xFF1E1602),
-                ),
-                modifier = Modifier.align(Alignment.End),
-            ) {
-                Text("Save Settings", fontWeight = FontWeight.Bold)
-            }
         }
     }
 }
