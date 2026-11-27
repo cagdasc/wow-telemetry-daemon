@@ -21,6 +21,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.ui.NavDisplay
+import com.cacaosd.wowtelemetry.client.navigation.Route
+import com.cacaosd.wowtelemetry.client.navigation.TopLevelRoutes
+import com.cacaosd.wowtelemetry.client.navigation.rememberAppNavigator
 import com.cacaosd.wowtelemetry.client.ui.components.BottomStatusBar
 import com.cacaosd.wowtelemetry.client.ui.components.SessionPanel
 import com.cacaosd.wowtelemetry.client.ui.components.TopBar
@@ -35,12 +40,6 @@ import com.cacaosd.wowtelemetry.domain.CharacterProfile
 import com.cacaosd.wowtelemetry.domain.DaemonConnectionState
 import kotlinx.coroutines.launch
 
-enum class MainAppTab(val title: String) {
-    CHAT("Chronicle"),
-    ATTACHMENTS("Attachments"),
-    SETTINGS("Settings"),
-}
-
 @Composable
 fun App(
     initialWebsocketUrl: String,
@@ -48,13 +47,18 @@ fun App(
     modifier: Modifier = Modifier,
     pickSessionFile: (suspend () -> String?)? = null,
     pickLogFile: (suspend () -> String?)? = null,
+    ensureNetworkAccess: (suspend (url: String) -> String?)? = null,
 ) {
     val uiState = viewModel.uiState.collectAsState().value
     val chatHistory = uiState.chatHistory
     val characterProfile = uiState.profile ?: CharacterProfile()
     val profileError = uiState.profileError
 
-    var selectedTab by remember { mutableStateOf(MainAppTab.CHAT) }
+    val navigator = rememberAppNavigator()
+    val openSettings: () -> Unit = {
+        navigator.navigateToTopLevel(Route.Settings)
+        viewModel.discoverOllamaModels()
+    }
     var isClearDaemonDialogVisible by remember { mutableStateOf(false) }
     var daemonAddress by remember(initialWebsocketUrl) {
         mutableStateOf(initialDaemonAddress(initialWebsocketUrl))
@@ -77,34 +81,22 @@ fun App(
         ) {
             NavigationSuiteScaffold(
                 navigationSuiteItems = {
-                    item(
-                        selected = selectedTab == MainAppTab.CHAT,
-                        onClick = { selectedTab = MainAppTab.CHAT },
-                        icon = { Text("📜", fontSize = 18.sp) },
-                        label = { Text("Chronicle") },
-                    )
-                    item(
-                        selected = selectedTab == MainAppTab.ATTACHMENTS,
-                        onClick = { selectedTab = MainAppTab.ATTACHMENTS },
-                        icon = {
-                            Text("📎", fontSize = 18.sp)
-                        },
-                        badge = {
-                            if (uiState.activeAttachmentCount > 0) {
-                                Badge { Text("${uiState.activeAttachmentCount}") }
-                            }
-                        },
-                        label = { Text("Attachments") },
-                    )
-                    item(
-                        selected = selectedTab == MainAppTab.SETTINGS,
-                        onClick = {
-                            selectedTab = MainAppTab.SETTINGS
-                            viewModel.discoverOllamaModels()
-                        },
-                        icon = { Text("⚙️", fontSize = 18.sp) },
-                        label = { Text("Settings") },
-                    )
+                    TopLevelRoutes.forEach { route ->
+                        item(
+                            selected = navigator.current == route,
+                            onClick = {
+                                if (route == Route.Settings) openSettings()
+                                else navigator.navigateToTopLevel(route)
+                            },
+                            icon = { Text(route.icon(), fontSize = 18.sp) },
+                            badge = if (route == Route.Attachments && uiState.activeAttachmentCount > 0) {
+                                { Badge { Text("${uiState.activeAttachmentCount}") } }
+                            } else {
+                                null
+                            },
+                            label = { Text(route.title()) },
+                        )
+                    }
                 },
                 modifier = Modifier.fillMaxSize(),
             ) {
@@ -115,10 +107,7 @@ fun App(
                         connection = connection,
                         characterProfile = characterProfile,
                         onOpenConnectionSettings = { isConnectionDialogVisible = true },
-                        onNavigateToSettings = {
-                            selectedTab = MainAppTab.SETTINGS
-                            viewModel.discoverOllamaModels()
-                        },
+                        onNavigateToSettings = openSettings,
                         onOpenSessions = {
                             viewModel.refreshSessions()
                             isSessionsDialogVisible = true
@@ -163,56 +152,56 @@ fun App(
                         }
                     }
 
-                    // Tab Content Area (preserves LazyListState and active streams)
+                    // Navigation host. Back handling, per-entry saved state and transitions
+                    // come from Navigation 3; Android's system Back pops to Chronicle first.
                     Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
-                        when (selectedTab) {
-                            MainAppTab.CHAT -> {
-                                ChatScreen(
-                                    uiState = uiState,
-                                    isConnected = isConnected,
-                                    characterProfile = characterProfile,
-                                    assistantTurns = assistantTurns,
-                                    onOpenCharacterSettings = {
-                                        selectedTab = MainAppTab.SETTINGS
-                                        viewModel.discoverOllamaModels()
-                                    },
-                                    onNavigateAttachments = {
-                                        selectedTab = MainAppTab.ATTACHMENTS
-                                    },
-                                    setSupporterFeedingMode = viewModel::setSupporterFeedingMode,
-                                    ask = viewModel::ask,
-                                )
-                            }
-
-                            MainAppTab.ATTACHMENTS -> {
-                                AttachmentsScreen(
-                                    attachments = uiState.attachments,
-                                    onToggleEnabled = viewModel::toggleAttachment,
-                                    onDescriptionChange = viewModel::updateAttachmentDescription,
-                                    onRemoveAttachment = viewModel::removeAttachment,
-                                    onAddAttachment = viewModel::addAttachment,
-                                    pickLogFile = pickLogFile,
-                                )
-                            }
-
-                            MainAppTab.SETTINGS -> {
-                                SettingsScreen(
-                                    characterProfile = characterProfile,
-                                    narrationSettings = uiState.narrationSettings,
-                                    ollamaModels = uiState.ollamaModels,
-                                    runningModels = uiState.runningModels,
-                                    isDiscoveringModels = uiState.isDiscoveringOllamaModels,
-                                    isPreloadingModel = uiState.isPreloadingModel,
-                                    isOffloadingModel = uiState.isOffloadingModel,
-                                    modelError = uiState.ollamaModelError,
-                                    onSaveCharacterProfile = viewModel::saveCharacterProfile,
-                                    onSaveNarrationSettings = viewModel::saveNarrationSettings,
-                                    onRefreshModels = viewModel::discoverOllamaModels,
-                                    onPreloadModel = viewModel::preloadModel,
-                                    onOffloadModel = viewModel::offloadModel,
-                                )
-                            }
-                        }
+                        NavDisplay(
+                            backStack = navigator.backStack,
+                            onBack = { navigator.back() },
+                            entryProvider = entryProvider {
+                                entry<Route.Chronicle> {
+                                    ChatScreen(
+                                        uiState = uiState,
+                                        isConnected = isConnected,
+                                        characterProfile = characterProfile,
+                                        assistantTurns = assistantTurns,
+                                        onOpenCharacterSettings = openSettings,
+                                        onNavigateAttachments = {
+                                            navigator.navigateToTopLevel(Route.Attachments)
+                                        },
+                                        setSupporterFeedingMode = viewModel::setSupporterFeedingMode,
+                                        ask = viewModel::ask,
+                                    )
+                                }
+                                entry<Route.Attachments> {
+                                    AttachmentsScreen(
+                                        attachments = uiState.attachments,
+                                        onToggleEnabled = viewModel::toggleAttachment,
+                                        onDescriptionChange = viewModel::updateAttachmentDescription,
+                                        onRemoveAttachment = viewModel::removeAttachment,
+                                        onAddAttachment = viewModel::addAttachment,
+                                        pickLogFile = pickLogFile,
+                                    )
+                                }
+                                entry<Route.Settings> {
+                                    SettingsScreen(
+                                        characterProfile = characterProfile,
+                                        narrationSettings = uiState.narrationSettings,
+                                        ollamaModels = uiState.ollamaModels,
+                                        runningModels = uiState.runningModels,
+                                        isDiscoveringModels = uiState.isDiscoveringOllamaModels,
+                                        isPreloadingModel = uiState.isPreloadingModel,
+                                        isOffloadingModel = uiState.isOffloadingModel,
+                                        modelError = uiState.ollamaModelError,
+                                        onSaveCharacterProfile = viewModel::saveCharacterProfile,
+                                        onSaveNarrationSettings = viewModel::saveNarrationSettings,
+                                        onRefreshModels = viewModel::discoverOllamaModels,
+                                        onPreloadModel = viewModel::preloadModel,
+                                        onOffloadModel = viewModel::offloadModel,
+                                    )
+                                }
+                            },
+                        )
                     }
 
                     // Pinned Footer Status Bar
@@ -272,7 +261,10 @@ fun App(
                         endpointError = "Enter a valid daemon IP:port (e.g. 127.0.0.1:8765)."
                     } else {
                         endpointError = null
-                        viewModel.connectToDaemon(url)
+                        scope.launch {
+                            val blocked = ensureNetworkAccess?.invoke(url)
+                            if (blocked == null) viewModel.connectToDaemon(url) else endpointError = blocked
+                        }
                     }
                 },
                 onDisconnect = viewModel::disconnectDaemon,
@@ -313,4 +305,16 @@ fun parseDaemonAddress(address: String): String? {
     val port = parts[1].trim().toIntOrNull() ?: return null
     if (host.isEmpty() || port !in 1..65535) return null
     return "$scheme://$host:$port"
+}
+
+private fun Route.title(): String = when (this) {
+    Route.Chronicle -> "Chronicle"
+    Route.Attachments -> "Attachments"
+    Route.Settings -> "Settings"
+}
+
+private fun Route.icon(): String = when (this) {
+    Route.Chronicle -> "📜"
+    Route.Attachments -> "📎"
+    Route.Settings -> "⚙️"
 }

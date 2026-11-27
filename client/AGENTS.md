@@ -46,6 +46,16 @@
 - Ollama models are discovered from `/api/tags`; build `LLModel(provider = LLMProvider.Ollama, id = selectedModel)`,
   never copy another model's metadata. Supporting docs come from `./knowledge` (`.md`/`.txt`).
 
+## Navigation and Android networking
+
+- Navigation uses Navigation 3 (`org.jetbrains.androidx.navigation3:navigation3-ui`) in `presentation`
+  (`client/navigation/`): `Route` destinations, `AppNavigator` (saveable back stack, Chronicle is always the root),
+  and a `NavDisplay` in `App.kt`. New screens are new `Route`s plus an `entry<...>` in `App.kt`.
+- `androidApp` targets SDK 37, where LAN traffic is blocked unless `ACCESS_LOCAL_NETWORK` is granted at runtime.
+  `MainActivity` requests it before connecting to non-loopback hosts (`App(ensureNetworkAccess = ...)`).
+- Cleartext `ws://` is allowed for any host via `network_security_config.xml`. On a physical phone use the daemon
+  host's LAN IP (not `127.0.0.1`); on the emulator use `10.0.2.2`.
+
 ## Architecture and implementation
 
 - The client owns metadata, persistence, deterministic analysis, and presentation. The daemon owns combat-log file I/O, parsing, and event publishing.

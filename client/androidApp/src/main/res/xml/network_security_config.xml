@@ -1,5 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  The daemon speaks plain ws:// and the user types whatever LAN IP the daemon host has,
+  so cleartext must be allowed for arbitrary hosts. The daemon is unauthenticated and
+  unencrypted: only use it on a trusted network.
+-->
 <network-security-config>
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">192.168.0.15</domain> <!-- Your host LAN IP -->
-    </domain-config>
+    <base-config cleartextTrafficPermitted="true" />
 </network-security-config>

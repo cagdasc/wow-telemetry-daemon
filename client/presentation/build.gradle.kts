@@ -24,6 +24,7 @@ kotlin {
             implementation(project(":data"))
             implementation(project(":domain"))
             api(libs.androidx.lifecycle.viewmodel)
+            implementation(libs.androidx.navigation3.ui)
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.koin.core)
 

@@ -20,8 +20,10 @@ kotlin {
             implementation(project(":combat-log"))
             implementation(project(":domain"))
             implementation(libs.koin.core)
+            implementation(libs.ktor.client.core)
             implementation(libs.koog.agents)
             implementation(libs.koog.ollama.client)
+            implementation(libs.koog.http.client.ktor)
         }
     }
 }
